@@ -1,0 +1,16 @@
+{
+  "name": "@realtype/schemas",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "5.0.2",
+    "typescript": "6.0.3",
+    "vitest": "5.0.2"
+  }
+}
