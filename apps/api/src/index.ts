@@ -1,8 +1,27 @@
+import fastify, { type FastifyInstance } from "fastify";
+
 /**
- * RealType API server (stub phase, M0-04).
- *
- * The Fastify server with the /health endpoint arrives with M0-10
- * (implementation-guide chapter 3, M0-10). This stub exists so lint, typecheck,
- * and build have real input files.
+ * RealType API (M0-10). The health endpoint is the deployment and uptime
+ * probe (M0-06/M0-07). Content delivery, result verification, and integrity
+ * checks arrive with M3 (implementation-guide chapter 8).
  */
-export const API_NAME = "RealType API";
+export function buildApp(): FastifyInstance {
+  const app = fastify({
+    logger: {
+      level: "info",
+      // Privacy (AGENTS.md rule 4): never log request bodies — they will
+      // eventually contain keystroke logs and typed text.
+      redact: ["req.headers.authorization", "req.body", "res.body"],
+    },
+  });
+
+  app.get("/health", async () => {
+    return {
+      status: "ok",
+      service: "realtype-api",
+      time: new Date().toISOString(),
+    };
+  });
+
+  return app;
+}
