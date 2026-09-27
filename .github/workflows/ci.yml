@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: pnpm/action-setup@v6.1.0 # reads the packageManager pin from package.json
+
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Typecheck all packages
+        run: pnpm typecheck
+
+      - name: "Unit tests (per-package coverage gates: engine/schemas 85%)"
+        run: pnpm test
+
+      - name: Build all packages
+        run: pnpm build
+
+      - name: Dependency audit (production)
+        run: pnpm audit --prod
+
+      - name: License check (copyleft gate on production dependencies)
+        run: pnpm check:licenses
+
+      # TODO (M0-10): bundle-size check against the ~200 KB gzip budget for the
+      # test page, and Playwright e2e smoke on Chromium. Both stages activate
+      # when the web shell is scaffolded and produces a real build artifact.
