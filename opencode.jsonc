@@ -5,13 +5,13 @@
   "mcp": {
     "context7": {
       "type": "remote",
-      "url": "https://mcp.context7.com/mcp"
+      "url": "https://mcp.context7.com/mcp",
     },
     "playwright": {
       "type": "local",
       "command": ["npx", "-y", "@playwright/mcp@latest"],
-      "enabled": false
-    }
+      "enabled": false,
+    },
   },
 
   "permission": {
@@ -26,7 +26,7 @@
       "a11y-typing-ui": "allow",
       "token-drill-generators": "allow",
       "integrity-anti-cheat": "allow",
-      "keystroke-privacy": "allow"
+      "keystroke-privacy": "allow",
       // After vetting, add e.g.: "frontend-design": "allow", "web-design-guidelines": "allow",
       // "emil-design-eng": "allow", "review-animations": "allow"
     },
@@ -35,9 +35,9 @@
       "pnpm *": "allow",
       "git status*": "allow",
       "git diff*": "allow",
-      "git log*": "allow"
+      "git log*": "allow",
     },
-    "external_directory": "ask"
+    "external_directory": "ask",
   },
 
   "agent": {
@@ -45,8 +45,8 @@
     "plan": {
       "permission": {
         "edit": "ask",
-        "bash": "ask"
-      }
-    }
-  }
+        "bash": "ask",
+      },
+    },
+  },
 }
