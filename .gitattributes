@@ -1,0 +1,15 @@
+# Normalize all text files to LF in the working tree (prettier expects LF;
+# CI runs on Linux). Binary files are excluded.
+
+* text=auto eol=lf
+
+# Binaries
+*.zip binary
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.mp3 binary
+*.mp4 binary
