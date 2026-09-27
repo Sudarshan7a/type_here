@@ -1,8 +1,7 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
+  push: # all branches — task branches run CI before they are merged to main
   pull_request:
 
 concurrency:
