@@ -1,0 +1,52 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // Context is expensive: keep MCP servers few. Context7 is on; Playwright MCP is off until you need it.
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "-y", "@playwright/mcp@latest"],
+      "enabled": false
+    }
+  },
+
+  "permission": {
+    // Third-party skills default to "ask" until you have vetted them (see README).
+    // Rules are evaluated in order; the last matching rule wins, so keep "*" first.
+    "skill": {
+      "*": "ask",
+      "typing-*": "allow",
+      "award-readiness-review": "allow",
+      "habit-gamification-rules": "allow",
+      "efficacy-and-experiments": "allow",
+      "a11y-typing-ui": "allow",
+      "token-drill-generators": "allow",
+      "integrity-anti-cheat": "allow",
+      "keystroke-privacy": "allow"
+      // After vetting, add e.g.: "frontend-design": "allow", "web-design-guidelines": "allow",
+      // "emil-design-eng": "allow", "review-animations": "allow"
+    },
+    "bash": {
+      "*": "ask",
+      "pnpm *": "allow",
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow"
+    },
+    "external_directory": "ask"
+  },
+
+  "agent": {
+    // Keep the Plan agent read-only-ish for architecture and flow planning.
+    "plan": {
+      "permission": {
+        "edit": "ask",
+        "bash": "ask"
+      }
+    }
+  }
+}
