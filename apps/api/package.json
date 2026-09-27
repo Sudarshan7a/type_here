@@ -1,0 +1,13 @@
+{
+  "name": "@realtype/api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3"
+  }
+}
