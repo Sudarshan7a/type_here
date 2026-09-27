@@ -1,0 +1,14 @@
+# Curated project material — must stay character-identical to sources; never reformat
+docs/
+content/
+.opencode/
+*.md
+!docs/decisions/*.md
+
+# Tooling artifacts
+node_modules/
+coverage/
+dist/
+test-results/
+playwright-report/
+pnpm-lock.yaml
