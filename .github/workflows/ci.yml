@@ -25,16 +25,7 @@ jobs:
           cache: pnpm
 
       - name: Install (frozen lockfile)
-        run: |
-          set +e
-          pnpm install --frozen-lockfile > install.log 2>&1
-          code=$?
-          set -e
-          cat install.log
-          if [ $code -ne 0 ]; then
-            echo "::error title=pnpm install failed::$(tail -n 60 install.log | tr '\n' ' ')"
-            exit $code
-          fi
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm lint
