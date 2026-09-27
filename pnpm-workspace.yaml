@@ -1,3 +1,9 @@
 packages:
   - apps/*
   - packages/*
+
+# Build-script approvals (pnpm 11: allowBuilds map; the old
+# onlyBuiltDependencies setting name was removed in v11).
+# esbuild is required by Vite; its postinstall installs the platform binary.
+allowBuilds:
+  esbuild: true
