@@ -56,3 +56,10 @@ Thresholds pending human decision (Track A, `docs/WEEK-0-2-PLAN.md` §3) — the
 - **Reasoning:** gh is not installed; halting contradicts the autonomous-execution prompt; local --no-ff merges preserve the branch-per-task audit trail and push cleanly. Branch protection on GitHub still needs the human (see BUILD-LOG "Flagged for human review").
 - **Approver:** autonomous run (Section 7 mechanism).
 - **Revisit trigger:** gh CLI installed / branch protection enabled.
+
+### 2026-09-27 · ADR-002: Tooling stack and pins (M0-04)
+- **Decision:** pnpm 11.2.2 workspaces; Node pinned to 24 (`.nvmrc`, engines >=24); TypeScript **6.0.3**; ESLint 10.11.0 flat config + typescript-eslint 8.70.1 + eslint-config-prettier; Prettier 3.9.9; Vitest 5.0.2 with `@vitest/coverage-v8` (coverage thresholds 85% for engine + schemas per execution-prompt Section 5; api 70% / web 60% configured when those apps are scaffolded in M0-10); Playwright for e2e (M0-10); license-checker for the copyleft gate.
+- **Reasoning:** All versions are current registry "latest" except TypeScript, where latest (7.0.2) is outside typescript-eslint's supported range (`>=4.8.4 <6.1.0`) — pinned to the highest supported stable (6.0.3) instead of guessing at compatibility.
+- **Commit convention (M0-04 item 6):** `<MILESTONE-TASK-ID> (<REQ-ID>): <short imperative subject>` — e.g. `M1-03 (ENG-02): add text model`.
+- **Revisit trigger:** typescript-eslint ships TS 7 support; any pinned major goes EOL.
+- **Note:** packages declare their own devDependencies (pnpm strictness) — TypeScript and Vitest are duplicated per-package by design, installed once on disk via the store.
