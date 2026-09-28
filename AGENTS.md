@@ -16,9 +16,20 @@ Habit/retention design: `docs/spec/retention-and-mastery-playbook.md`. Proof/eff
 ## Repo layout (create if missing)
 - `apps/web` (UI) · `apps/api` (server) · `packages/engine` · `packages/schemas` · `docs/spec` · `e2e`
 
-## Commands (fill in once scaffolded)
-- Install: `pnpm install` · Dev: `pnpm dev` · Test: `pnpm test` · E2E: `pnpm e2e` · Lint/types: `pnpm lint && pnpm typecheck` · Build: `pnpm build`
-- Run tests and typecheck before saying a task is done.
+## Commands (live as of M0-10)
+- Install: `pnpm install` · Dev (web): `pnpm --dir apps/web dev` · Dev (api): `pnpm --dir apps/api dev`
+- Test: `pnpm test` · E2E: `pnpm e2e` · Lint/types: `pnpm lint && pnpm typecheck`
+- Format: `pnpm format` / `pnpm format:check` · Build: `pnpm build` · Bundle gate: `pnpm check:bundle`
+- License gate: `pnpm check:licenses` · Prod audit: `pnpm audit:prod`
+- Run tests and typecheck before saying a task is done. CI runs on every branch push; the branch must be green before merge.
+
+## Project decisions (confirmed, Decision Log D1-D17)
+- Name: "RealType" (working title; trademark check before beta, M7)
+- License: open-core — `packages/engine` and `packages/schemas` MIT; `apps/`, `content/`, docs proprietary
+- Age policy: 18+ only at launch (age gate on first visit with the first user-facing release)
+- Programmer-track languages (priority): JS/TS, Python, Java, SQL, HTML/CSS
+- Keyboard layouts (build order): QWERTY-US fully first, then QWERTY-UK, Dvorak, Colemak-DH, AZERTY, QWERTZ (one PR each)
+- Tooling pins: Node 24 (`.nvmrc`), pnpm 11.2.2, TypeScript 6.0.3 (typescript-eslint ceiling), Vitest 5 + Playwright; coverage gates: engine/schemas 85%, api 70%, web 60%
 
 ## Non-negotiable rules
 1. **Typing surface is sacred:** no popups, modals, ads, or decorative motion while typing. Input must feel instant (target input-to-paint p95 ≤ 16 ms).
