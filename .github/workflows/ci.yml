@@ -54,7 +54,9 @@ jobs:
         run: pnpm audit --prod
 
       - name: License check (copyleft gate on production dependencies)
-        run: pnpm check:licenses
+        run: |
+          pnpm check:licenses
+          node --test scripts/check-licenses.test.mjs
 
       # TODO (M0-10): bundle-size check against the ~200 KB gzip budget for the
       # test page, and Playwright e2e smoke on Chromium. Both stages activate
