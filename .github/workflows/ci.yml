@@ -42,6 +42,14 @@ jobs:
       - name: Build all packages
         run: pnpm build
 
+      - name: Bundle-size check (200 KB gzip budget, test page JS)
+        run: pnpm check:bundle
+
+      - name: E2E smoke (Chromium)
+        run: |
+          pnpm --dir e2e exec playwright install --with-deps chromium
+          pnpm e2e
+
       - name: Dependency audit (production)
         run: pnpm audit --prod
 
