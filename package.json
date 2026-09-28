@@ -14,7 +14,9 @@
     "test": "pnpm -r test",
     "build": "pnpm -r build",
     "audit:prod": "pnpm audit --prod",
-    "check:licenses": "node scripts/check-licenses.mjs"
+    "check:licenses": "node scripts/check-licenses.mjs",
+    "check:bundle": "node scripts/check-bundle-size.mjs",
+    "e2e": "pnpm --dir e2e test"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
