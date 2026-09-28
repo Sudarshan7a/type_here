@@ -1,13 +1,16 @@
 # BUILD LOG
 
 ## Current Position
-Phase: Phase 0 — Validate + Set Up (Track B; Track A pending human action)
-Last completed task: M0-09 + M0-11 (AGENTS.md commands, issue templates, DoD)
-Next task: R0-07 technical spikes S1-S6 (input latency, timing capture, engine parity, token parsing, bundle size, hidden-tab) — then M0-07 scrubbing layer, then M1-01 data contracts
+Phase: Phase 0 — Validate + Set Up (Track B; Track A pending human action) · Session 2 running Block A
+Last completed task: A1 (merge-trail finding + pr-log backfill)
+Next task: A2 (prove remaining gates fail), then A3-A5
 Last updated: 2026-09-28
 
 ## Autonomous decisions made
 (Newest first. Format: date | decision | 1-2 sentence reasoning | which section of this prompt justified it)
+
+- 2026-09-28 | A1 backfill slice is 16 files, above the ~10-file guidance; kept as one slice because it is a single reviewable reconstruction of existing git/CI history. | Sections 1.2, 2.1
+- 2026-09-28 | A1 finding: no real GitHub PRs exist for Session 1 (gh never installed); all merges were local --no-ff merges pushed to main per ADR-001; branch-CI gating only from M0-05b onward. Full trail + all 16 run IDs recorded in docs/pr-log/README.md. | Section 3 Block A1
 
 - 2026-09-28 | Fastify plugin registrations must be awaited. `void app.register(rateLimit, ...)` silently skipped the rate-limit onRequest hook (5 requests all 200, no x-ratelimit headers) while awaited registration worked; reproduced in isolation before fixing. | Sections 2 (verify, don't guess), 8
 - 2026-09-28 | pnpm 11 removed `onlyBuiltDependencies`; build approvals live in `pnpm-workspace.yaml` under `allowBuilds` (map). This was the root cause of CI's ERR_PNPM_IGNORED_BUILDS on run 36354786531; confirmed via pnpm.io/11.x docs, fixed, and verified with a full fresh local install (deleted all node_modules) plus green CI run 36362668007. | Section 2
