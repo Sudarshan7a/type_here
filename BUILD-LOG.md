@@ -2,13 +2,15 @@
 
 ## Current Position
 Phase: Phase 0 — Validate + Set Up (Track B; Track A pending human action) · Session 2 running Block A
-Last completed task: A1 (merge-trail finding + pr-log backfill)
-Next task: A2 (prove remaining gates fail), then A3-A5
+Last completed task: A3+A4 (toolchain record, HUMAN-ACTIONS.md)
+Next task: A5 (web security headers), then A2 red-proofs (coverage/bundle/e2e), then Block B
 Last updated: 2026-09-28
 
 ## Autonomous decisions made
 (Newest first. Format: date | decision | 1-2 sentence reasoning | which section of this prompt justified it)
 
+- 2026-09-28 | A3+A4 combined into one branch: both are documentation-only acceptance lines (toolchain record + HUMAN-ACTIONS.md), one small reviewable slice. | Sections 1.2, 3 (Block A3/A4)
+- 2026-09-28 | License gate made fail-closed: undetectable (UNKNOWN) licenses now fail the gate, per the MASTER-BUILD-CONTRACT standing rule (unverified facts are not trusted by default); fixture tests prove both directions (CI run 36423835116 green). | Sections 2.3, 7
 - 2026-09-28 | A1 backfill slice is 16 files, above the ~10-file guidance; kept as one slice because it is a single reviewable reconstruction of existing git/CI history. | Sections 1.2, 2.1
 - 2026-09-28 | A1 finding: no real GitHub PRs exist for Session 1 (gh never installed); all merges were local --no-ff merges pushed to main per ADR-001; branch-CI gating only from M0-05b onward. Full trail + all 16 run IDs recorded in docs/pr-log/README.md. | Section 3 Block A1
 
@@ -22,6 +24,21 @@ Last updated: 2026-09-28
 - 2026-09-28 | "All CI checks green" interpreted as local gates passing until GitHub Actions CI existed; from M0-05 on, task-branch CI runs are verified green before merging. | Section 0 step 11 + Section 7
 - 2026-09-28 | Session budget: no explicit daily usage cap was set by the user in Section 6; operating until the session naturally ends, a stop condition, or a phase block, and reporting at that boundary. | Section 6 / Section 0 step 13
 - 2026-09-28 | Phase 0 Track A (interviews, waitlist, usability tests, real-keyboard fixture recording) is pending human action and is NOT a blocker for Track B / Phase 1 technical work; every place a real Track A input would replace a synthetic placeholder is flagged. | Section 6
+
+## Toolchain record (A3, from `pnpm ls -r --depth 0`)
+
+Exact pins (package.json + committed lockfile; CI installs --frozen-lockfile; packageManager pnpm@11.2.2; engines node >=24, pnpm >=11; .nvmrc 24):
+
+| Workspace | Dependencies |
+|---|---|
+| root (realtype) | dev: @eslint/js 10.0.1, eslint 10.11.0, eslint-config-prettier 10.1.8, license-checker 25.0.1, prettier 3.9.9, typescript 6.0.3, typescript-eslint 8.70.1 |
+| @realtype/api | prod: @fastify/helmet 13.1.1, @fastify/rate-limit 11.2.0, fastify 5.12.5; dev: @types/node 24.19.0, @vitest/coverage-v8 5.0.2, tsx 4.23.15, typescript 6.0.3, vitest 5.0.2 |
+| @realtype/web | prod: react 19.3.0, react-dom 19.3.0; dev: @types/react 19.3.0, @types/react-dom 19.3.0, @vitejs/plugin-react 6.1.1, typescript 6.0.3, vite 8.3.1 |
+| @realtype/e2e | dev: @playwright/test 1.63.0, typescript 6.0.3 |
+| @realtype/engine | dev: @vitest/coverage-v8 5.0.2, typescript 6.0.3, vitest 5.0.2 |
+| @realtype/schemas | dev: @vitest/coverage-v8 5.0.2, typescript 6.0.3, vitest 5.0.2 |
+
+License flags (Section 2.5): every direct dependency is MIT except **typescript (Apache-2.0)**, **@playwright/test (Apache-2.0)**, and **license-checker (BSD-2-Clause)** — all inside the allowlist (MIT, Apache-2.0, BSD, ISC, 0BSD, CC0, BlueOak). No copyleft anywhere; 30 packages in 6 projects. Major bumps of pnpm, TypeScript, Vite, Vitest, ESLint, Fastify or React require a log entry + passing CI (Section 2.5).
 
 ## Flagged for human review
 (Newest first. Anything from Section 9, or a test you suspected was wrong but did not change.)
@@ -37,6 +54,9 @@ Last updated: 2026-09-28
 ## Task history
 (Newest first. Format: date | task ID | branch | PR link | status [merged/awaiting human merge/blocked] | tests added | one-line summary)
 
+- 2026-09-28 | S2-A3+A4 | task/s2-a3-a4 | see docs/pr-log/s2-a3-a4.md | merged | n/a | Toolchain record (pnpm ls, license flags) in BUILD-LOG; HUMAN-ACTIONS.md created at repo root
+- 2026-09-28 | S2-A2 (license half) | task/s2-a2-license-gate-test | run 36423835116 green; docs/pr-log/s2-a2-license-gate-test.md | merged | 4 fixture tests (node:test) | License gate core exported + fixture-proven; fail-closed on UNKNOWN licenses; CI step runs the fixture tests
+- 2026-09-28 | S2-A1 | task/s2-a1-pr-log | run 36417412245 green; docs/pr-log/s2-a1-pr-log.md | merged | n/a | Merge-trail finding (no real PRs; local --no-ff only; branch CI from M0-05b) + 15 backfilled pr-log files
 - 2026-09-28 | M0-09 + M0-11 | task/p0-m0-09 | run 36373415709 green, local merge | merged | n/a | AGENTS.md commands + confirmed decisions; feature/bug/spike/decision issue templates; Definition of Done doc
 - 2026-09-28 | M0-12 | task/p0-m0-12 | run 36372272261 green, local merge | merged | 3 security tests (headers, burst 429, redaction pin) | API security baseline: helmet (CSP script-src none, XFO DENY), rate limiting (100/min default), log redaction constant, PR template with §8.10 checklist
 - 2026-09-28 | M0-10 (part 3) | task/p0-m0-10c | run 36362668007 green, local merge | merged | e2e smoke (1) + bundle gate script | Playwright e2e project (Chromium smoke), bundle-size gate (66.3 KB gzip vs 200 KB budget), CI e2e + bundle stages
