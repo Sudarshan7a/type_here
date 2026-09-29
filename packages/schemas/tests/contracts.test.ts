@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   KeyEventSchema,
+  LogMarkerSchema,
   ResultSummarySchema,
   SessionSchema,
   TypingSettingsSchema,
@@ -109,6 +110,47 @@ describe("M1-01 contracts: valid samples parse", () => {
   });
   it("Session", () => {
     expect(SessionSchema.parse(validSession)).toEqual(validSession);
+  });
+
+  it("InputLog with markers (focus/blur/visibility) parses", () => {
+    const parsed = InputLogSchema.parse({
+      ...validLog,
+      markers: [
+        { kind: "focus", t: 0 },
+        { kind: "visibility", t: 4200, detail: "hidden" },
+        { kind: "visibility", t: 9100, detail: "visible" },
+        { kind: "blur", t: 9110 },
+      ],
+    });
+    expect(parsed.markers).toHaveLength(4);
+  });
+
+  it("markers are optional (B1-shape logs still parse)", () => {
+    expect(InputLogSchema.parse(validLog).markers).toBeUndefined();
+  });
+
+  it("meta.recorder (userAgent + note) parses; unknown fields inside it fail", () => {
+    const withRecorder = InputLogSchema.parse({
+      ...validLog,
+      meta: { ...validLog.meta, recorder: { userAgent: "test-agent", note: "laptop keyboard" } },
+    });
+    expect(withRecorder.meta.recorder?.userAgent).toBe("test-agent");
+    const bad = InputLogSchema.safeParse({
+      ...validLog,
+      meta: { ...validLog.meta, recorder: { userAgent: "x", evil: 1 } },
+    });
+    expect(bad.success).toBe(false);
+  });
+
+  it("LogMarker rejects unknown fields and negative t", () => {
+    expect(LogMarkerSchema.safeParse({ kind: "focus", t: 0, extra: 1 }).success).toBe(false);
+    expect(LogMarkerSchema.safeParse({ kind: "focus", t: -1 }).success).toBe(false);
+    expect(LogMarkerSchema.safeParse({ kind: "nonsense", t: 0 }).success).toBe(false);
+  });
+
+  it("InputLog rejects an unknown-field marker inside the markers array", () => {
+    const bad = { ...validLog, markers: [{ kind: "focus", t: 0, evil: true }] };
+    expect(InputLogSchema.safeParse(bad).success).toBe(false);
   });
 });
 

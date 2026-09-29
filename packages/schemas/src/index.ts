@@ -4,10 +4,16 @@
  * packages/engine). Bumping any contract shape bumps CONTRACT_VERSION.
  */
 
-export const CONTRACT_VERSION = "1.0.0";
+export const CONTRACT_VERSION = "1.2.0";
 
 export { LIMITS } from "./limits.js";
 export { KeyEventSchema, type KeyEvent } from "./key-event.js";
+export {
+  LogMarkerSchema,
+  LogMarkerKindSchema,
+  type LogMarker,
+  type LogMarkerKind,
+} from "./log-marker.js";
 export { TypingTextSchema, type TypingText } from "./typing-text.js";
 export {
   LayoutSchema,

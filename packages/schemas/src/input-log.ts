@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { KeyEventSchema } from "./key-event.js";
 import { LIMITS } from "./limits.js";
+import { LogMarkerSchema } from "./log-marker.js";
 import { TypingSettingsSchema } from "./typing-settings.js";
 
 /** Practice modes at MVP (master spec §3.2). Provisional string values. */
@@ -32,10 +33,20 @@ export const InputLogMetaSchema = z.strictObject({
   engineVersion: VersionSchema,
   /** Present when the log belongs to a signed server session. */
   sessionId: z.string().min(1).optional(),
+  /** Present on logs captured by tools/fixture-recorder (never in production logs). */
+  recorder: z
+    .strictObject({
+      userAgent: z.string(),
+      /** Free-text keyboard-model note typed by the human. */
+      note: z.string().optional(),
+    })
+    .optional(),
 });
 
 export const InputLogSchema = z.strictObject({
   events: z.array(KeyEventSchema).max(LIMITS.maxEventsPerLog),
+  /** Non-keyboard markers (focus/blur/visibility); optional since B1 logs may predate it. */
+  markers: z.array(LogMarkerSchema).optional(),
   meta: InputLogMetaSchema,
 });
 
