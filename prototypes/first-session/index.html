@@ -144,7 +144,12 @@
           ><button type="button" aria-pressed="false">120s</button
           ><button type="button" aria-pressed="false">Custom</button>
         </div>
-        <p class="passage" id="passage" tabindex="0" aria-label="Type the text shown. Press Tab to restart. Press Escape to leave this area."></p>
+        <p
+          class="passage"
+          id="passage"
+          tabindex="0"
+          aria-label="Type the text shown. Press Tab to restart. Press Escape to leave this area."
+        ></p>
         <p class="hint">Press Tab to restart</p>
         <p class="note" id="test-caption">Passage PROSE-01-004, from the RealType prose library.</p>
       </section>
@@ -173,10 +178,13 @@
       <!-- ============ SCREEN: DRILL ============ -->
       <section class="screen" id="screen-drill" aria-labelledby="drill-title" hidden>
         <h2 id="drill-title">Practice these</h2>
-        <p class="note">
-          A short drill targeting: th → e, Shift+P, er → t.
-        </p>
-        <p class="passage" id="drill-passage" tabindex="0" aria-label="Type the drill text. Press Tab to restart. Press Escape to leave this area."></p>
+        <p class="note">A short drill targeting: th → e, Shift+P, er → t.</p>
+        <p
+          class="passage"
+          id="drill-passage"
+          tabindex="0"
+          aria-label="Type the drill text. Press Tab to restart. Press Escape to leave this area."
+        ></p>
         <p class="hint">Press Tab to restart</p>
       </section>
 
@@ -184,14 +192,21 @@
       <section class="screen" id="screen-retest" aria-labelledby="retest-title" hidden>
         <h2 id="retest-title">Same text, one more time</h2>
         <p class="hint">Start typing whenever you're ready.</p>
-        <p class="passage" id="retest-passage" tabindex="0" aria-label="Type the text shown. Press Tab to restart. Press Escape to leave this area."></p>
+        <p
+          class="passage"
+          id="retest-passage"
+          tabindex="0"
+          aria-label="Type the text shown. Press Tab to restart. Press Escape to leave this area."
+        ></p>
         <p class="hint">Press Tab to restart</p>
       </section>
 
       <!-- ============ SCREEN: DELTA + SAVE PROMPT ============ -->
       <section class="screen" id="screen-delta" aria-labelledby="delta-title" hidden>
         <h2 id="delta-title">Nice — th → e is 12% faster than it was a minute ago.</h2>
-        <p class="note">Still steady on Shift+P. That's fine — some things take a few more rounds.</p>
+        <p class="note">
+          Still steady on Shift+P. That's fine — some things take a few more rounds.
+        </p>
         <div class="card">
           <h3>Save your progress?</h3>
           <p>
@@ -204,8 +219,8 @@
           </div>
         </div>
         <p class="note" id="final-note" hidden>
-          Thanks — that's the whole first-session flow. (In the real product, the next step would
-          be picking a goal and planning when you'll practice.)
+          Thanks — that's the whole first-session flow. (In the real product, the next step would be
+          picking a goal and planning when you'll practice.)
         </p>
       </section>
     </main>
