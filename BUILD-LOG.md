@@ -2,12 +2,14 @@
 
 ## Current Position
 Phase: Phase 0 — Validate + Set Up (Track B; Track A pending human action) · Session 2 running Block A
-Last completed task: B2 (fixture recorder)
-Next task: B3 (first-session prototype), then B4 (waitlist), then Blocks C/D/E
+Last completed task: B3+B4 (first-session prototype, waitlist concepts)
+Next task: Block C (technical spikes S1-S6)
 Last updated: 2026-09-28
 
 ## Autonomous decisions made
 (Newest first. Format: date | decision | 1-2 sentence reasoning | which section of this prompt justified it)
+
+- 2026-09-28 | B3+B4 in one branch (4 throwaway-UI files, one reviewable slice); waitlist copy lives in docs/waitlist-copy.md and is mirrored into the static page (CSP forbids fetch). Waitlist form ships DISABLED: CONFIG.formActionUrl = null and no submit handler exists at all — collecting emails is new personal data (stop condition #2) until the human picks a provider. | Section 3 Blocks B3-B4, Section 6 #2
 
 - 2026-09-28 | B2: InputLog extended additively (optional markers[] + meta.recorder {userAgent, note?}) instead of encoding markers as fake KeyEvents; CONTRACT_VERSION 1.0.0 → 1.2.0 in one bump. Fixture textHash is an offline FNV-1a placeholder (real sha-256 at intake). CSP connect-src 'none' is declared by the page itself + a source-scan test proves no network/storage APIs — node smoke tests cannot enforce CSP (documented in README). | Sections 3 Block B2, 7
 - 2026-09-28 | B1: mode enum values (classic/real-world/numbers-symbols/custom/code) are provisional string forms of the MVP modes (spec §3.2); revisit at M2 when the mode bar is built. Percentages stored 0-100, ratios 0-1, full precision; textHash = 64-char sha-256 hex; expiresAt = ISO 8601 UTC. The prompt's explicit shape list was followed exactly; implementation-guide chapter 5 was not re-read for this slice. | Section 3 Block B1
@@ -46,6 +48,8 @@ License flags (Section 2.5): every direct dependency is MIT except **typescript 
 
 ## Flagged for human review
 (Newest first. Anything from Section 9, or a test you suspected was wrong but did not change.)
+
+- 2026-09-28 | **AWAITING HUMAN DECISION — waitlist form provider.** The waitlist form ships disabled (prototypes/waitlist): collecting emails is new personal-data collection (Section 6 stop condition #2). Enabling requires a provider choice + a privacy notice. Until then nothing is transmitted and the button reads "Not connected yet".
 
 - 2026-09-28 | Phase 0 Track A in full: interviews (12-15 people), waitlist 3-concept test, 5-person prototype usability test, competitor hands-on audit, REAL typing fixtures recorded on real keyboards (the engine's realistic-timing tests will need these; synthetic placeholders will be used and flagged until then), design direction + typography choice, Day-14 go/no-go memo. These gate Phase 1 advancement per the roadmap, though technical M1 work may proceed in parallel per WEEK-0-2-PLAN.
 - 2026-09-28 | M0-06: staging/production deploys blocked on cloud accounts (shell "hello world" deploy + rollback drill). Suggested: Vercel (web), Render/Fly.io (api), MongoDB Atlas (per D5).
