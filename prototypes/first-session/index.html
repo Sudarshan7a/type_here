@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; form-action 'none'; base-uri 'none'"
+    />
+    <title>RealType — first session prototype</title>
+    <style>
+      :root {
+        font-family: system-ui, sans-serif;
+        color-scheme: light dark;
+        max-width: 46rem;
+        margin: 0 auto;
+        padding: 1rem;
+        line-height: 1.6;
+      }
+      .banner {
+        position: sticky;
+        top: 0;
+        background: #b45309;
+        color: #fff;
+        padding: 0.4rem 0.8rem;
+        text-align: center;
+        font-weight: bold;
+        z-index: 10;
+      }
+      .modebar {
+        display: flex;
+        gap: 0.5rem;
+        margin: 0.75rem 0;
+        flex-wrap: wrap;
+      }
+      .modebar button {
+        font-size: 0.95rem;
+        padding: 0.3rem 0.8rem;
+      }
+      .modebar button[aria-pressed="true"] {
+        border: 2px solid currentColor;
+      }
+      .durations {
+        display: flex;
+        gap: 0.4rem;
+        margin: 0.5rem 0;
+        flex-wrap: wrap;
+      }
+      .passage {
+        font-family: ui-monospace, monospace;
+        font-size: 1.3rem;
+        padding: 1rem;
+        border: 2px solid currentColor;
+        margin: 0.75rem 0;
+        line-height: 1.9;
+      }
+      .passage:focus {
+        outline: 3px solid currentColor;
+        outline-offset: 2px;
+      }
+      .ch-pending {
+        opacity: 0.45;
+      }
+      .ch-correct {
+        opacity: 1;
+      }
+      .ch-wrong {
+        opacity: 1;
+        text-decoration: underline wavy;
+        color: #d21f3c;
+      }
+      .screen[hidden] {
+        display: none;
+      }
+      .headline {
+        font-size: 2.6rem;
+        font-weight: bold;
+        margin: 0.2rem 0;
+      }
+      .card {
+        border: 2px solid currentColor;
+        padding: 1rem;
+        margin: 0.75rem 0;
+      }
+      .fixitem {
+        display: list-item;
+        margin-left: 1.2rem;
+        margin-bottom: 0.4rem;
+      }
+      .btnrow {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        margin: 0.8rem 0;
+      }
+      button {
+        font-size: 1.05rem;
+        padding: 0.5rem 1rem;
+      }
+      .btn-primary {
+        font-weight: bold;
+        border: 2px solid currentColor;
+      }
+      .note {
+        opacity: 0.85;
+        font-size: 0.95rem;
+      }
+      .hint {
+        opacity: 0.75;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .screen {
+          animation: fadein 200ms ease-out;
+        }
+        @keyframes fadein {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Persistent: every participant must understand the numbers are fake -->
+    <p class="banner" role="banner">PROTOTYPE — numbers are illustrative, not measured.</p>
+
+    <main>
+      <!-- ============ SCREEN: FIRST TEST ============ -->
+      <section class="screen" id="screen-test" aria-labelledby="test-title">
+        <h1 id="test-title">Let's see where you're starting from.</h1>
+        <p class="hint" id="first-hint">Start typing whenever you're ready.</p>
+        <div class="modebar" role="group" aria-label="Mode">
+          <button type="button" aria-pressed="false">Classic</button
+          ><button type="button" aria-pressed="true">Real-World</button
+          ><button type="button" aria-pressed="false">Numbers & Symbols</button>
+        </div>
+        <div class="durations" role="group" aria-label="Duration">
+          <button type="button" aria-pressed="false">15s</button
+          ><button type="button" aria-pressed="false">30s</button
+          ><button type="button" aria-pressed="true">60s</button
+          ><button type="button" aria-pressed="false">120s</button
+          ><button type="button" aria-pressed="false">Custom</button>
+        </div>
+        <p class="passage" id="passage" tabindex="0" aria-label="Type the text shown. Press Tab to restart. Press Escape to leave this area."></p>
+        <p class="hint">Press Tab to restart</p>
+        <p class="note" id="test-caption">Passage PROSE-01-004, from the RealType prose library.</p>
+      </section>
+
+      <!-- ============ SCREEN: RESULTS ============ -->
+      <section class="screen" id="screen-results" aria-labelledby="results-title" hidden>
+        <h2 class="headline" id="results-title">42 WPM</h2>
+        <p class="headline" style="font-size: 1.4rem">96% accuracy</p>
+        <p class="note">Classic WPM: 41.5</p>
+        <p class="note">This text was rated <strong>Easy</strong>.</p>
+        <p class="note">Practice result (not verified)</p>
+        <div class="card">
+          <h3>What to work on</h3>
+          <ul style="list-style: none; padding: 0">
+            <li class="fixitem">th → e — about 40% slower than your average pair</li>
+            <li class="fixitem">Shift+P — mistyped 3 times in this test</li>
+            <li class="fixitem">er → t — about 18% slower than your average pair</li>
+          </ul>
+          <div class="btnrow">
+            <button type="button" class="btn-primary" id="btn-practice">Practice these</button
+            ><button type="button">Watch replay</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SCREEN: DRILL ============ -->
+      <section class="screen" id="screen-drill" aria-labelledby="drill-title" hidden>
+        <h2 id="drill-title">Practice these</h2>
+        <p class="note">
+          A short drill targeting: th → e, Shift+P, er → t.
+        </p>
+        <p class="passage" id="drill-passage" tabindex="0" aria-label="Type the drill text. Press Tab to restart. Press Escape to leave this area."></p>
+        <p class="hint">Press Tab to restart</p>
+      </section>
+
+      <!-- ============ SCREEN: RETEST ============ -->
+      <section class="screen" id="screen-retest" aria-labelledby="retest-title" hidden>
+        <h2 id="retest-title">Same text, one more time</h2>
+        <p class="hint">Start typing whenever you're ready.</p>
+        <p class="passage" id="retest-passage" tabindex="0" aria-label="Type the text shown. Press Tab to restart. Press Escape to leave this area."></p>
+        <p class="hint">Press Tab to restart</p>
+      </section>
+
+      <!-- ============ SCREEN: DELTA + SAVE PROMPT ============ -->
+      <section class="screen" id="screen-delta" aria-labelledby="delta-title" hidden>
+        <h2 id="delta-title">Nice — th → e is 12% faster than it was a minute ago.</h2>
+        <p class="note">Still steady on Shift+P. That's fine — some things take a few more rounds.</p>
+        <div class="card">
+          <h3>Save your progress?</h3>
+          <p>
+            Create a free account to keep your history, track goals, and pick up where you left off
+            on another device.
+          </p>
+          <div class="btnrow">
+            <button type="button" class="btn-primary" id="btn-save">Save my progress</button
+            ><button type="button" id="btn-dismiss-save">Not now</button>
+          </div>
+        </div>
+        <p class="note" id="final-note" hidden>
+          Thanks — that's the whole first-session flow. (In the real product, the next step would
+          be picking a goal and planning when you'll practice.)
+        </p>
+      </section>
+    </main>
+
+    <!-- The only live-region announcement in the whole flow -->
+    <p aria-live="polite" class="sr-only" id="announcer"></p>
+
+    <script>
+      "use strict";
+      // PROTOTYPE: all numbers below are ILLUSTRATIVE and are never measured.
+      // The per-character coloring is real feedback so typing feels right; the
+      // metrics, the "what to work on" items, and the delta are canned.
+      var PASSAGE =
+        "Dinner's ready whenever you are. I made extra rice in case your brother stops by later tonight.";
+      var DRILL_TEXT = "the three prefers there Peter better pattern";
+
+      function renderPassage(el, text) {
+        el.textContent = "";
+        for (var i = 0; i < text.length; i++) {
+          var span = document.createElement("span");
+          span.textContent = text[i] === " " ? "\u00A0" : text[i];
+          span.className = "ch-pending";
+          span.id = el.id + "-ch-" + i;
+          el.appendChild(span);
+        }
+        el.dataset.text = text;
+        el.dataset.pos = "0";
+        el.focus();
+      }
+
+      function handleTyping(el, onDone) {
+        el.addEventListener("keydown", function (e) {
+          var pos = parseInt(el.dataset.pos, 10);
+          var text = el.dataset.text;
+          if (e.key === "Tab") {
+            e.preventDefault();
+            renderPassage(el, text); // action.restart is bound to Tab
+            return;
+          }
+          if (e.key === "Escape") {
+            el.blur();
+            return;
+          }
+          if (e.key === "Backspace") {
+            if (pos > 0) {
+              pos -= 1;
+              var prev = document.getElementById(el.id + "-ch-" + pos);
+              prev.className = "ch-pending";
+              el.dataset.pos = String(pos);
+            }
+            e.preventDefault();
+            return;
+          }
+          if (e.key.length === 1) {
+            var span = document.getElementById(el.id + "-ch-" + pos);
+            if (span) {
+              span.className = e.key === text[pos] ? "ch-correct" : "ch-wrong";
+              pos += 1;
+              el.dataset.pos = String(pos);
+            }
+            if (pos >= text.length) {
+              announce("Test finished. 42 words per minute, 96 percent accuracy.");
+              setTimeout(onDone, 500);
+            }
+            e.preventDefault();
+          }
+        });
+      }
+
+      function announce(msg) {
+        var a = document.getElementById("announcer");
+        a.textContent = msg;
+      }
+
+      function show(id) {
+        var screens = document.querySelectorAll(".screen");
+        for (var i = 0; i < screens.length; i++) screens[i].hidden = screens[i].id !== id;
+      }
+
+      // Flow wiring. The mode bar and duration picker are visual context for
+      // the test's realism; they do not change the canned numbers.
+      var testEl = document.getElementById("passage");
+      var drillEl = document.getElementById("drill-passage");
+      var retestEl = document.getElementById("retest-passage");
+
+      renderPassage(testEl, PASSAGE);
+      handleTyping(testEl, function () {
+        show("screen-results");
+      });
+      handleTyping(drillEl, function () {
+        show("screen-retest");
+        renderPassage(retestEl, PASSAGE);
+      });
+      handleTyping(retestEl, function () {
+        show("screen-delta");
+      });
+
+      document.getElementById("btn-practice").addEventListener("click", function () {
+        show("screen-drill");
+        renderPassage(drillEl, DRILL_TEXT);
+      });
+      document.getElementById("btn-save").addEventListener("click", function () {
+        // PROTOTYPE: no account system exists; the button demonstrates the
+        // save prompt's placement and copy only.
+        document.getElementById("final-note").hidden = false;
+      });
+      document.getElementById("btn-dismiss-save").addEventListener("click", function () {
+        document.getElementById("final-note").hidden = false;
+      });
+
+      // Mode/duration buttons toggle their pressed state (visual realism only).
+      var groups = document.querySelectorAll(".modebar, .durations");
+      for (var g = 0; g < groups.length; g++) {
+        groups[g].addEventListener("click", function (e) {
+          if (e.target.tagName === "BUTTON") {
+            var btns = this.querySelectorAll("button");
+            for (var b = 0; b < btns.length; b++) btns[b].setAttribute("aria-pressed", "false");
+            e.target.setAttribute("aria-pressed", "true");
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

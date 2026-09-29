@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; form-action 'none'; base-uri 'none'"
+    />
+    <title>RealType — waitlist concepts</title>
+    <style>
+      :root {
+        font-family: system-ui, sans-serif;
+        color-scheme: light dark;
+        max-width: 40rem;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        line-height: 1.6;
+      }
+      .concept-nav {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+      }
+      .concept-nav a {
+        padding: 0.3rem 0.8rem;
+        border: 1px solid currentColor;
+        color: inherit;
+        text-decoration: none;
+      }
+      .concept-nav a[aria-current="true"] {
+        background: currentColor;
+      }
+      /* CSS variable colors get inverted by the current color; simpler: */
+      .concept-nav a[aria-current="true"] {
+        outline: 3px solid currentColor;
+        background: transparent;
+      }
+      h1 {
+        font-size: 1.8rem;
+        line-height: 1.3;
+      }
+      .signup {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        border: 2px solid currentColor;
+      }
+      .signup input {
+        font-size: 1rem;
+        padding: 0.4rem;
+        min-width: 16rem;
+      }
+      .facts {
+        list-style: none;
+        padding: 0;
+        margin-top: 1.5rem;
+      }
+      .facts li {
+        margin: 0.3rem 0;
+      }
+      button {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+      }
+      .disabled-note {
+        font-size: 0.9rem;
+        opacity: 0.85;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="concept-nav" aria-label="Waitlist concept variants">
+      <a href="?c=a" id="nav-a">Concept A</a>
+      <a href="?c=b" id="nav-b">Concept B</a>
+      <a href="?c=c" id="nav-c">Concept C</a>
+    </nav>
+
+    <main>
+      <h1 id="headline"></h1>
+      <p id="subhead"></p>
+
+      <div class="signup">
+        <!-- The form is DISABLED BY DEFAULT: collecting emails is new
+             personal-data collection (a privacy stop condition) until a
+             provider is chosen and a privacy notice exists. The action URL
+             below is a placeholder read from CONFIG and nothing is ever
+             transmitted. -->
+        <label for="email" id="email-label">Email address</label>
+        <br />
+        <input id="email" name="email" type="email" autocomplete="off" disabled />
+        <button type="button" id="signup-btn" disabled>Not connected yet</button>
+        <p class="disabled-note" id="disabled-note"></p>
+      </div>
+
+      <ul class="facts">
+        <li id="fact-dev"></li>
+        <li id="fact-age"></li>
+        <li id="fact-promises"></li>
+      </ul>
+    </main>
+
+    <script>
+      "use strict";
+      // CONFIG: the only place a real action URL would ever go. null = the
+      // form stays disabled and transmits nothing (by design, until the
+      // human picks a provider — see HUMAN-ACTIONS.md).
+      var CONFIG = { formActionUrl: null };
+
+      // The exact copy lives in docs/waitlist-copy.md — edit it there and
+      // mirror the change here (static page, no fetch by CSP design).
+      var COPY = {
+        a: {
+          headline:
+            "Find what slows your typing and fix it in 15 minutes a day.",
+          subhead:
+            "RealType shows you exactly which keys, pairs, and habits cost you speed, then gives you short drills that target them.",
+        },
+        b: {
+          headline:
+            "Symbols, numbers, and naming: typing practice built for programmers.",
+          subhead:
+            "Brackets, operators, strings, numbers, identifiers — RealType's programmer track drills the keys and patterns that actually appear in code.",
+        },
+        c: {
+          headline:
+            "We're exploring typing practice you can run on your own code, entirely on your device. Would you use it?",
+          subhead:
+            "Nothing to install: paste or pick code, practice on it, and keep everything on your machine. Tell us if this is worth building.",
+        },
+      };
+
+      var FACTS = {
+        dev: "RealType is in development — this page is for the waitlist, not the product itself.",
+        age: "RealType is for adults 18 and over.",
+        promises:
+          "We make no promises about speed gains, programming ability, or hiring outcomes — only about what you practice.",
+      };
+
+      var params = new URLSearchParams(window.location.search);
+      var c = (params.get("c") || "a").toLowerCase();
+      if (c !== "b" && c !== "c") c = "a";
+      var copy = COPY[c];
+
+      document.getElementById("headline").textContent = copy.headline;
+      document.getElementById("subhead").textContent = copy.subhead;
+      document.getElementById("fact-dev").textContent = FACTS.dev;
+      document.getElementById("fact-age").textContent = FACTS.age;
+      document.getElementById("fact-promises").textContent = FACTS.promises;
+      document.getElementById("nav-" + c).setAttribute("aria-current", "true");
+
+      var note = document.getElementById("disabled-note");
+      if (CONFIG.formActionUrl === null) {
+        note.textContent =
+          "Signup isn't connected yet. When it is, your email will only be used to tell you RealType is available.";
+        document.getElementById("email").disabled = true;
+        document.getElementById("signup-btn").disabled = true;
+        // No submit handler exists at all: nothing can be transmitted.
+      } else {
+        // Future wiring goes here once a provider is chosen (HUMAN-ACTIONS).
+        note.textContent = "";
+      }
+    </script>
+  </body>
+</html>
