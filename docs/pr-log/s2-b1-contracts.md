@@ -1,0 +1,10 @@
+# pr-log: B1 — M1-01 data contracts in packages/schemas
+
+- **Task ID:** M1-01 (Session 2, Block B1)
+- **Branch:** task/s2-b1-contracts
+- **Files touched:** packages/schemas/src/{limits,key-event,typing-text,typing-settings,input-log,result-summary,session,index}.ts (8), tests/{contracts,limits}.test.ts (2), package.json (zod 4.6.5 dep), pnpm-lock.yaml; the M0-04 harness stub test was removed
+- **Tests added:** 2 files, 30 assertions total — valid samples for every schema; unknown-field rejection on every schema incl. nested strictness (meta, mods); boundaries: events 20,000 pass / 20,001 fail, text 10,000 / 10,001 chars; t = 0 pass, negative/NaN/Infinity fail; NaN/Infinity/range violations on metrics
+- **Verification:** local pnpm test/typecheck/build/lint/format green; schemas coverage 100% (gate 85%); branch CI green (run on this branch).
+- **Shapes:** KeyEvent (code/key/type/t/mods/repeat/isTrusted/auto — all required), InputLog (events ≤ 20,000; meta: mode, textId, textHash sha-256-hex, layout, settings, engineVersion semver, optional sessionId), TypingText (id, text 1..10,000), TypingSettings (errorMode free|must-correct|stop-on-error, autoIndent, autoPair, layout of the six MVP layouts), ResultSummary (all typing-metrics-spec metrics, nullable consistency/IKI/difficultyBand, modelVersion, verified, flags[]), Session (id, seed, nonce, textHash, ISO expiresAt). CONTRACT_VERSION = "1.0.0". Shape validation only — no metric logic.
+- **Default decisions relied on:** mode enum values ["classic","real-world","numbers-symbols","custom","code"] are provisional string forms of the MVP mode list (spec §3.2) — revisit at M2 when the mode bar is built; percentages stored 0-100, ratios 0-1, full precision; textHash = 64-char lowercase sha-256 hex; engineVersion = semver core only; session expiresAt = ISO 8601 UTC string. The prompt's shape list was followed exactly (implementation-guide chapter 5 not re-read for this slice — the prompt's explicit shape list is authoritative for B1; log it).
+- **Deferred:** none. CONTRACT_VERSION bumps on any future shape change.
