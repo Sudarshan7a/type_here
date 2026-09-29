@@ -2,13 +2,15 @@
 
 ## Current Position
 Phase: Phase 0 — Validate + Set Up (Track B; Track A pending human action) · Session 2 running Block A
-Last completed task: A3+A4 (toolchain record, HUMAN-ACTIONS.md)
-Next task: A5 (web security headers), then A2 red-proofs (coverage/bundle/e2e), then Block B
+Last completed task: Block A complete (A1 trail, A2 gate proofs, A3 toolchain, A4 human list, A5 web headers)
+Next task: B1 (M1-01 data contracts in packages/schemas)
 Last updated: 2026-09-28
 
 ## Autonomous decisions made
 (Newest first. Format: date | decision | 1-2 sentence reasoning | which section of this prompt justified it)
 
+- 2026-09-28 | A2 bundle-proof slip: bloat edits briefly landed on main's working tree (checked out between proof branches); caught via git status, fully reverted (no commit), redone on the branch. Logged here because a wrong working tree during proofs is exactly the kind of drift Section 2.3 exists to catch. | Sections 1.2, 2.3
+- 2026-09-28 | A5: vercel.json is the single source of truth for host headers; vite preview serves the same headers (config-read) so e2e asserts what production sends. connect-src carries placeholder origin https://api.realtype.example (vercel.json is static; HUMAN-ACTIONS item covers the swap). Web coverage gate 60% activated with a real SSR-string render test (main.tsx excluded as the DOM entry point, like api's server.ts). Playwright Response.headerValue() is async — first spec version forgot to await (fixed). | Section 3 Block A5
 - 2026-09-28 | A3+A4 combined into one branch: both are documentation-only acceptance lines (toolchain record + HUMAN-ACTIONS.md), one small reviewable slice. | Sections 1.2, 3 (Block A3/A4)
 - 2026-09-28 | License gate made fail-closed: undetectable (UNKNOWN) licenses now fail the gate, per the MASTER-BUILD-CONTRACT standing rule (unverified facts are not trusted by default); fixture tests prove both directions (CI run 36423835116 green). | Sections 2.3, 7
 - 2026-09-28 | A1 backfill slice is 16 files, above the ~10-file guidance; kept as one slice because it is a single reviewable reconstruction of existing git/CI history. | Sections 1.2, 2.1
@@ -54,6 +56,8 @@ License flags (Section 2.5): every direct dependency is MIT except **typescript 
 ## Task history
 (Newest first. Format: date | task ID | branch | PR link | status [merged/awaiting human merge/blocked] | tests added | one-line summary)
 
+- 2026-09-28 | S2-A2 (gate proofs) | 3 throwaway branches (deleted) | docs/pr-log/s2-a2-gate-proofs.md (runs 36473904305, 36490786968, 36486751130, 36487928156) | merged (bookkeeping) | 4 license fixture tests (keeper slice) | All gates proven non-vacuous: coverage red+green, bundle red (234.1 KB), e2e red at exact steps; license gate via fixtures
+- 2026-09-28 | S2-A5 | task/s2-a5-web-headers | run 36472034584 green; docs/pr-log/s2-a5-web-headers.md | merged | 8 config tests + 1 SSR smoke + 1 preview e2e | vercel.json strict headers, preview shim, web coverage gate live, zero-CSP-violation e2e
 - 2026-09-28 | S2-A3+A4 | task/s2-a3-a4 | see docs/pr-log/s2-a3-a4.md | merged | n/a | Toolchain record (pnpm ls, license flags) in BUILD-LOG; HUMAN-ACTIONS.md created at repo root
 - 2026-09-28 | S2-A2 (license half) | task/s2-a2-license-gate-test | run 36423835116 green; docs/pr-log/s2-a2-license-gate-test.md | merged | 4 fixture tests (node:test) | License gate core exported + fixture-proven; fail-closed on UNKNOWN licenses; CI step runs the fixture tests
 - 2026-09-28 | S2-A1 | task/s2-a1-pr-log | run 36417412245 green; docs/pr-log/s2-a1-pr-log.md | merged | n/a | Merge-trail finding (no real PRs; local --no-ff only; branch CI from M0-05b) + 15 backfilled pr-log files
