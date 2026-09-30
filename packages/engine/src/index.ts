@@ -1,11 +1,56 @@
 /**
  * RealType typing engine (open-core, MIT).
  *
- * All metric formulas live here and only here (AGENTS.md rule 3). Changing a
- * formula requires bumping ENGINE_MODEL_VERSION and updating /how-we-calculate.
+ * The framework-agnostic typing engine and metrics library shared by the web
+ * client and the API server. All metric formulas live here and only here
+ * (AGENTS.md rule 3): changing one requires bumping ENGINE_MODEL_VERSION and
+ * updating /how-we-calculate.
  *
- * Stub phase (M0-04): this package verifies the tooling harness only. The real
- * engine contracts and the 40 ENG-* fixture tests arrive with M1, implemented
- * against docs/chapter-4-deep-dive-typing-engine-part1.md and part2.md.
+ * No DOM: this package runs unchanged in the browser and in Node, which is
+ * what makes the server-side recompute authoritative.
  */
-export const ENGINE_MODEL_VERSION = "0.0.1";
+
+export {
+  ENGINE_MODEL_VERSION,
+  IKI_GAP_EXCLUSION_MS,
+  MIN_CONSISTENCY_DURATION_MS,
+  BURST_WINDOW_MS,
+  computeFromEvents,
+  type ComputeOptions,
+  type EngineDetails,
+  type EngineResult,
+} from "./metrics.js";
+
+export {
+  filterEvents,
+  integrityFlags,
+  isBackspace,
+  isScoringPress,
+  type FilteredEvents,
+  type IntegrityFlags,
+} from "./input-filter.js";
+
+export {
+  applyPress,
+  bufferText,
+  correctCharsInFinalText,
+  createTextModel,
+  finalText,
+  type ErrorMode,
+  type PressOutcome,
+  type TextModel,
+} from "./text-model.js";
+
+import type { InputLog, TypingText } from "@realtype/schemas";
+
+import { computeFromEvents, type EngineResult } from "./metrics.js";
+
+/**
+ * The single entry point the client and the server both call: replay a
+ * captured InputLog against its text and return the full result.
+ */
+export function computeResult(log: InputLog, text: TypingText): EngineResult {
+  return computeFromEvents(text.text, log.events, log.meta.settings.errorMode, {
+    markers: log.markers,
+  });
+}

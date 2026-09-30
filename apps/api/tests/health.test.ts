@@ -4,7 +4,7 @@ import { buildApp } from "../src/index";
 
 describe("API health endpoint (M0-10)", () => {
   it("GET /health responds 200 with status ok", async () => {
-    const app = await buildApp();
+    const app = await buildApp({ rateLimitKey: "health-test" });
     const response = await app.inject({ method: "GET", url: "/health" });
 
     expect(response.statusCode).toBe(200);

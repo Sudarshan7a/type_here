@@ -4,7 +4,7 @@ import { LOG_REDACT_PATHS, buildApp } from "../src/index";
 
 describe("API security baseline (M0-12)", () => {
   it("responds with security headers on /health", async () => {
-    const app = await buildApp();
+    const app = await buildApp({ rateLimitKey: "headers-test" });
     const response = await app.inject({ method: "GET", url: "/health" });
 
     expect(response.statusCode).toBe(200);
@@ -14,7 +14,7 @@ describe("API security baseline (M0-12)", () => {
   });
 
   it("blocks a burst that exceeds the rate limit", async () => {
-    const app = await buildApp({ rateLimitMax: 3 });
+    const app = await buildApp({ rateLimitMax: 3, rateLimitKey: "burst-test" });
     let lastStatus = 0;
     for (let i = 0; i < 5; i++) {
       const response = await app.inject({ method: "GET", url: "/health" });
