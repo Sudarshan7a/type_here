@@ -4,9 +4,19 @@ Ordered by what blocks soonest. The agent keeps this current; check items off
 as you do them and note the date. Format: [ ] title | why it matters | time
 estimate | what it blocks | how you will know it is done.
 
+## Open defects found by the Session 5 attack pass (no human decision needed yet)
+
+Recorded so they are not lost and not rediscovered. No human action is required
+to proceed; full evidence in `docs/pr-log/s4-block-f-close.md`.
+
+- [ ] **F3 (highest): `pnpm dev` reports success with a dead API when port 3000 is busy** | `apps/api/src/server.ts` calls `process.exit(1)` on `EADDRINUSE`, but `tsx watch` swallows the child's exit, so pnpm never sees a failure and the web app comes up looking fine. Invisible today because the test surface makes no API calls; a real trap in Phase 4 when results depend on the API. | 30 min | Phase 4 | An occupied port 3000 makes `pnpm dev` fail loudly (bad case → fail) |
+- [ ] **F2: port 5173 busy orphans the API on 3000** | pnpm exits loudly, but the `tsx watch` child survives and keeps port 3000 bound — a clean prompt plus a silently occupied port. | 20 min | Phase 4 | Killing the root leaves no listener on 3000 |
+- [ ] **F1/F9: a typo in the root `dev` filter yields a silent half-stack** | `pnpm --filter @realtype/webb ...` prints "No projects matched" but still starts the remaining filters and exits 0. Today's filters are correct (verified), so this is latent. It matters because the list is a hard-coded allowlist: a third service added later is silently omitted rather than flagged. | 20 min | Nothing yet; real when a third service is added | A bad filter name fails loudly |
+- [ ] **F4: the README's "Ctrl-C stops both" is unverified** | The harness could not deliver Ctrl-C to the process group, so that claim rests on reasoning, not on a test. | 10 min | Nothing | Confirmed while doing the manual engine test below (starting/stopping the servers is the same act) |
+
 ## Blocks soonest
 
-- [ ] **Try the manual engine test now** | It is the first artifact where you can feel the engine's latency and correctness on a real keyboard (Block E). `pnpm --dir apps/web dev`, pick a passage, press Start, type it. Report anything that feels wrong: latency, wrong counts, caret drift, mis-marked characters. | 10 min | Confidence in M1 before Phase 2 UI work | A note in BUILD-LOG with what you observed (and any bug report)
+- [ ] **Try the manual engine test now** | It is the first artifact where you can feel the engine's latency and correctness on a real keyboard (Block E). `pnpm dev` (starts web + api together), pick a passage, press Start, type it. Report anything that feels wrong: latency, wrong counts, caret drift, mis-marked characters. | 10 min | Confidence in M1 before Phase 2 UI work | A note in BUILD-LOG with what you observed (and any bug report)
 - [ ] Enable branch protection on main (require CI, no direct pushes) | **Session 4 verified empirically that protection is NOT on**: a dry-run push of a throwaway commit to `main` was ACCEPTED by GitHub. Direct pushes remain possible, which is why the merge protocol was violated twice in Session 3. | 10 min | Everything in Section 1 rules 2–3 depends on this | A real (non-dry-run) direct push to main is rejected by GitHub
 - [ ] Live-driver confirmation of the six verified layout maps | The finger maps were derived from physical key positions and cross-checked (same-finger rates land at 14.8–16.0%, matching touch-typing research), but no human has typed on each layout with a debugger open | ~15 min per layout | Phase 3 layout support | One word typed per layout with a key-event inspector, logged in BUILD-LOG
 - [ ] Resolve the AltGr / dead-key characters (QWERTY-UK, AZERTY, QWERTZ) | They currently return `unknown` instead of a guess, which is correct but leaves those symbols un-attributable | 30 min with a live keyboard | Phase 6 token attribution on symbol drills | Each character verified against a real driver and added to (or removed from) `UNKNOWN_LAYOUT_CHARACTERS` in `packages/engine/src/layout-fingers.ts`

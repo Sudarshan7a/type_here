@@ -1,11 +1,13 @@
 # BUILD LOG
 
 ## Current Position
-Phase: Phase 1 (M1 engine) — Session 4 complete
-Last completed task: E (engine wired into the web app — the first hands-on artifact)
+Phase: Phase 1 (M1 engine) — Session 5 complete
+Last completed task: A (root `pnpm dev` script added and proven; README corrected after it documented a command that did not exist). Two commits that had been stranded off `main` are reconciled.
 Next task: remaining Chapter 4 edge fixtures — E3 Caps Lock, E5 dead keys, E6 graphemes, E7 paste, E8 dual-key, A03 long test, D02 stop-on-error, D03 no-backspace. D04 (word-locked) needs a TypingSettings contract change first (CONTRACT_VERSION bump — a scope decision).
 Not started: E7's server-side paste backstop; the weakness model; the content pipeline.
-Last updated: 2026-09-28
+Open defects: F1–F4/F9 from the Session 5 attack pass (see HUMAN-ACTIONS.md). F3 is the one that matters — `pnpm dev` reports success with a dead API when port 3000 is busy; harmless now, a real trap in Phase 4.
+Sessions since last human contact: 2 (Session 4 close, Session 5)
+Last updated: 2026-10-01
 
 ## Session 3 pre-flight findings (Block A)
 
