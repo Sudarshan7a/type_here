@@ -1,10 +1,10 @@
 # BUILD LOG
 
 ## Current Position
-Phase: Phase 1 (M1 engine) — Session 3 complete
-Last completed task: C3 (ENG-PARITY-01/02 parity harness) — all of Session 3's Blocks A–E landed
-Next task: the remaining chapter-4 catalog items (edge-case fixtures ENG-FIXTURE-E-CAPS / E-DEADKEY / E-EMOJI / E-PASTE / E-DUALKEY, and A02/A03/D02–D04), then M1 integration into apps/web. Parity will be re-run against REAL recorded fixtures once the human supplies them.
-Not started: those edge fixtures; apps/web engine integration; S4 grammar smoke tests (Phase 6).
+Phase: Phase 1 (M1 engine) — Session 4 complete
+Last completed task: E (engine wired into the web app — the first hands-on artifact)
+Next task: remaining Chapter 4 edge fixtures — E3 Caps Lock, E5 dead keys, E6 graphemes, E7 paste, E8 dual-key, A03 long test, D02 stop-on-error, D03 no-backspace. D04 (word-locked) needs a TypingSettings contract change first (CONTRACT_VERSION bump — a scope decision).
+Not started: E7's server-side paste backstop; the weakness model; the content pipeline.
 Last updated: 2026-09-28
 
 ## Session 3 pre-flight findings (Block A)
@@ -187,6 +187,12 @@ License flags (Section 2.5): every direct dependency is MIT except **typescript 
 
 ## Task history
 (Newest first. Format: date | task ID | branch | PR link | status [merged/awaiting human merge/blocked] | tests added | one-line summary)
+
+- 2026-09-28 | S4-E (wiring) | task/s4-e-wiring | run 36730995564 green, local merge | merged | 5 adapter + 6 UI + 3 e2e | Engine wired into the web app: type real text, see live engine metrics (the first hands-on artifact)
+- 2026-09-28 | S4-D (robustness, partial) | task/s4-d-fixtures | run 36724471613 green, local merge | merged | 8 tests | E09 zero-keystrokes, A02 short-test, corrupted-log (fixed a real negative-duration bug); E10 as an enforced lint rule
+- 2026-09-28 | S4-C (layouts) | task/s4-c-layouts | run 36723627616 green, local merge | merged | 9 tests | All six in-scope layouts verified from physical key positions; three errors in my own tests caught; AltGr chars return unknown
+- 2026-09-28 | S4-A+B (audit + gate) | task/s4-a-audit | run 36721747229 green, local merge | merged | red/green proofs | Main-branch audit confirmed Session 3's repairs append-only; bundle gate found blind to CSS and public/ assets and now measures the whole dist
+- 2026-09-28 | S3-C3 (parity) | task/s3-c3-parity | run 36710738039 green, local merge | merged | 2 e2e specs | ENG-PARITY-01/02: all 9 chapter-4 fixtures + alignment/aggregation/finger-tagging produce identical results in Node and Chromium (1e-9), running the engine's own compiled output on both sides
 
 - 2026-09-28 | S3-C3 (parity) | task/s3-c3-parity | run 36710738039 green, local merge | merged | 2 e2e specs | ENG-PARITY-01/02: all 9 chapter-4 fixtures + alignment/aggregation/finger-tagging produce identical results in Node and Chromium (1e-9), running the engine's own compiled output on both sides
 - 2026-09-28 | S3-D3 (aggregation) | task/s3-d3-aggregation | run 36709160465 green, local merge | merged | 9 tests | Self-relative 3x-median outlier exclusion (185 ms / n=4, not 388 / n=5) + layout-dependent finger tagging; unmapped layouts return "unknown" rather than a guess
