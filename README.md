@@ -34,6 +34,10 @@ pnpm lint           # lint all packages
 pnpm typecheck      # TypeScript strict checks, all packages
 pnpm build          # production builds
 ```
+## run it yourself
+pnpm install                                   # once
+pnpm --dir apps/web dev                        # terminal 1 → http://localhost:5173
+pnpm --dir apps/api dev      
 
 ## License
 
