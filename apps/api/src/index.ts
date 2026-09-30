@@ -8,6 +8,11 @@ export interface AppOptions {
    * Tests lower this to verify the burst block (M0-12).
    */
   rateLimitMax?: number;
+  /**
+   * Overrides the limiter key. The default store is process-global, so tests
+   * that assert rate-limit behaviour must not share a key with other tests.
+   */
+  rateLimitKey?: string;
 }
 
 /**
@@ -53,6 +58,9 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await app.register(rateLimit, {
     max: options.rateLimitMax ?? 100,
     timeWindow: "1 minute",
+    ...(options.rateLimitKey === undefined
+      ? {}
+      : { keyGenerator: (): string => options.rateLimitKey as string }),
   });
 
   app.get("/health", async () => {
