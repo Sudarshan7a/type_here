@@ -4,7 +4,10 @@ Typing trainer web app (working title). Goal: **diagnose → drill → retest**,
 
 ## Status
 
-Phase 0 — Validate + Set Up (see `docs/BUILD-ROADMAP-START-TO-END.md`). Nothing user-facing is built yet; the repo is being scaffolded task by task (M0-xx), one task per merge, on branches, never directly to main.
+Phase 1 — Core Engine and Metrics (see `docs/BUILD-ROADMAP-START-TO-END.md`).
+The engine in `packages/engine` is complete and its metrics are live in the web
+app's developer test surface. The product flow — test modes, saved results,
+accounts, the weakness model and drills — is not built yet.
 
 ## Structure
 
@@ -23,17 +26,47 @@ Phase 0 — Validate + Set Up (see `docs/BUILD-ROADMAP-START-TO-END.md`). Nothin
 
 ## Commands
 
-Wired up when the M0-10 scaffold lands; documented here as the target set:
-
 ```bash
 pnpm install        # install all workspace packages
-pnpm dev            # dev servers (web + api)
-pnpm test           # unit tests (engine, schemas, api, web)
+pnpm dev            # web + api dev servers, in parallel (Ctrl-C stops both)
+pnpm test           # unit tests (engine, schemas, telemetry, api, web, fixture-recorder)
 pnpm e2e            # Playwright e2e suite
 pnpm lint           # lint all packages
 pnpm typecheck      # TypeScript strict checks, all packages
 pnpm build          # production builds
 ```
+
+## Run it yourself
+
+```bash
+pnpm install                    # once
+pnpm dev                        # starts both servers
+```
+
+Then open <http://localhost:5173>.
+
+`pnpm dev` starts two servers:
+
+| Service | URL | What it is |
+|---|---|---|
+| `apps/web` | <http://localhost:5173> | The React app |
+| `apps/api` | <http://localhost:3000> | The API; `/health` returns `{"status":"ok", ...}` |
+
+To run just one, use its workspace directly:
+
+```bash
+pnpm --dir apps/web dev         # web only
+pnpm --dir apps/api dev         # api only
+```
+
+On the web page: pick a passage, press **Start**, then type the passage shown.
+Characters mark correct or wrong as you type, and a results panel reports net /
+raw / gross WPM, keystroke and final accuracy, KSPC, consistency, best 5-second
+burst, mean key interval and rollover — all computed by `packages/engine`. Press
+**Tab** to restart.
+
+Note: this is a developer test surface for the engine, not the product flow.
+Nothing is saved or sent anywhere.
 
 ## License
 
