@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  OUTLIER_MULTIPLE,
-  aggregateBigram,
-  fingerTag,
-  type Sample,
-} from "../src/aggregation.js";
+import { OUTLIER_MULTIPLE, aggregateBigram, fingerTag, type Sample } from "../src/aggregation.js";
 
 /**
  * Chapter-4 deep-dive §4.12 — per-key / per-bigram aggregation.
@@ -49,22 +44,32 @@ describe("ENG-AGG-FIXTURE-01-bigram-outlier-exclusion", () => {
 
 describe("ENG-AGG-FIXTURE-02-layout-dependent-hand-finger-tagging", () => {
   it("tags the same bigram differently under QWERTY and Dvorak", () => {
-    // On QWERTY: t = left index, h = right index -> cross-hand.
+    // Verified by construction (docs/recompute-fingermap.mjs), not memory:
+    // QWERTY: t = left index, h = right index -> cross-hand.
+    // Dvorak: t sits on the QWERTY 'k' key (right middle), h on 'j' (right
+    // index) -> same hand, different finger.
     const qwerty = fingerTag("t", "h", "qwerty-us");
-    // On Dvorak, 't' sits on the QWERTY 'y' key (right index) and 'h' stays
-    // on the right index -> same-finger.
     const dvorak = fingerTag("t", "h", "dvorak");
 
     expect(qwerty).toEqual({ hand: "cross", sameFinger: false });
-    expect(dvorak.sameFinger).toBe(true);
     expect(dvorak.hand).toBe("same");
+    expect(dvorak.sameFinger).toBe(false);
   });
 
-  it("a same-finger pair stays same-finger on every layout", () => {
-    for (const layout of ["qwerty-us", "dvorak", "colemak-dh"] as const) {
-      const tag = fingerTag("f", "j", layout);
-      expect(tag.hand).toBe("same");
-    }
+  it("a same-finger pair on QWERTY is not same-finger on Dvorak", () => {
+    // f and v are both left-index on QWERTY; on Dvorak they sit on the QWERTY
+    // 'y' and 'b' keys (right middle and right pinky).
+    expect(fingerTag("f", "v", "qwerty-us").sameFinger).toBe(true);
+    expect(fingerTag("f", "v", "dvorak").sameFinger).toBe(false);
+  });
+
+  it("an unmapped layout returns unknown rather than guessing (§4.12: never hardcode)", () => {
+    // Finger maps for the remaining layouts are filled in during Phase 6. A
+    // wrong tag is worse than no tag: silently mis-attributing a bigram's hand
+    // would feed the weakness model bad data.
+    const tag = fingerTag("t", "h", "azerty");
+    expect(tag.hand).toBe("unknown");
+    expect(tag.sameFinger).toBeNull();
   });
 });
 
