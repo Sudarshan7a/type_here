@@ -15,8 +15,9 @@ estimate | what it blocks | how you will know it is done.
 ## Blocks the engine's realistic tests (after Block B)
 
 - [ ] Record typing fixtures with tools/fixture-recorder on every keyboard and layout you have | The engine cannot invent realistic human timing; synthetic fixtures are placeholders until then | ~15 min per layout | M1 engine tests against real rollover/repeat/pause behavior | fixture-<scenario>-<layout>-<yyyymmdd>.json files exist and are checked into the repo
-- [ ] Run spikes/s1-latency/manual.html and spikes/s6-hidden-tab/manual.html on a real laptop and fill spikes/RESULTS-TEMPLATE.md | Headless synthetic latency is a LAB PROXY; real input-to-paint p95 and background throttling need real hardware | ~10 min each | REAL-DEVICE evidence for Phase 0 spikes S1 and S6 | RESULTS-TEMPLATE.md filled with real-device numbers
+- [ ] Run spikes/s1-latency/manual.html and spikes/s6-hidden-tab/manual.html on a real laptop and fill spikes/RESULTS-TEMPLATE.md | Headless synthetic latency is a LAB PROXY; real input-to-paint p95 and background throttling need real hardware. The lab p95 (15.2 ms) sits only 5% under the 16 ms proposed budget | ~10 min each | REAL-DEVICE evidence for Phase 0 spikes S1 and S6 | RESULTS-TEMPLATE.md filled with real-device numbers
 - [ ] Run the first-session prototype test with 5 people (prototypes/first-session/) | Usability of the core diagnose-drill-retest loop is a Phase 0 exit criterion | ~1 hour total | Phase 0 exit criteria (4 of 5 unaided) | Observation notes exist; 4/5 completion recorded
+- [ ] Retry `pnpm --dir spikes/s1-latency exec playwright install firefox webkit` when the network allows | All browser results so far are Chromium-only; the 3-engine matrix in the implementation guide is unverified | ~5 min | Spikes S1/S2/S3/S6 browser coverage | Firefox/WebKit runs appear in spikes/*/results/ and the two commented projects in each playwright.config.ts are re-enabled
 
 ## Privacy stop condition (after Block B4)
 
@@ -32,3 +33,5 @@ estimate | what it blocks | how you will know it is done.
 - [ ] Create the project board (Backlog, Ready, In Progress, In Review, Done) with M1-M8 epics | Task visibility outside BUILD-LOG | 20 min (needs gh) | M0-11 remainder | The board exists with the first 10 tasks entered
 - [ ] Find a privacy or data-protection professional for a scoping call | Legal pages and privacy notices must be professionally reviewed before beta | 1 call | Phase 7 legal review | A review is scheduled or completed
 - [ ] Set the real API origin in vercel.json `connect-src` when the domain is chosen | The CSP currently carries a placeholder origin (https://api.realtype.example) | 5 min | The web app's production API calls once both deploy | connect-src names the real API origin and the config test is updated
+- [ ] Decide Chapter 8 §8.7.1 (plateau example SD) | The example's stated SD 0.85 does not match its own eight values (sample SD 0.825), so WM-FIXTURE-009 would fail a correct implementation | 15 min | Phase 5 weakness model | A written decision in docs/decisions/decision-log.md
+- [ ] Resolve levels-05 §2.3 (`;` drill: 8 semicolons vs 15 target keystrokes + 14 anchors) | Two different specifications for the same drill | 10 min | Phase 6, T0-GEN-001 | A written decision; the levels file or the spec is corrected by you (agents do not edit chapter/spec files)
