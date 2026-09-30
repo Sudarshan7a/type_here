@@ -62,6 +62,15 @@ export {
   type Transposition,
 } from "./alignment.js";
 
+export {
+  OUTLIER_MULTIPLE,
+  aggregateBigram,
+  fingerTag,
+  type AggregateResult,
+  type FingerTag,
+  type Sample,
+} from "./aggregation.js";
+
 import type { InputLog, TypingText } from "@realtype/schemas";
 
 import { computeFromEvents, type EngineResult } from "./metrics.js";
