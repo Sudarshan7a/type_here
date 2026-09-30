@@ -38,15 +38,18 @@ by narrowing the ignore list.
 
 Added at the root so the documented command exists and is exercised:
 
-    "dev": "pnpm -r --parallel dev"
+    "dev": "pnpm --filter @realtype/web --filter @realtype/api --parallel dev"
 
-Scope is deliberately **not** `pnpm -r dev`: that would also start
-`tools/fixture-recorder`, a dev-only recording tool that is not part of running
-the app. `pnpm -r --parallel dev` was verified to start the api, the web app and
-the recorder together; the two the README names are the two a person needs.
+Two forms were probed and **rejected**, both for verified reasons:
 
-`pnpm -r dev` was probed and **rejected**: it starts the three dev servers
-serially, so the second one never gets a terminal. `--parallel` is required.
+- `pnpm -r dev` — starts the dev servers **serially**, so the second one never
+  gets a terminal.
+- `pnpm -r --parallel dev` — works, but `Scope: 7 of 8` and it also starts
+  `tools/fixture-recorder` on port 5174. That is a dev-only recording tool, not
+  part of running the app.
+
+The filter form reports `Scope: 2 of 8` and starts exactly the two servers the
+README names. Verified: web HTTP 200 on 5173, API HTTP 200 on 3000.
 
 ## Verification (actual output, this session)
 
@@ -67,8 +70,40 @@ Coverage: engine 96.11 / 92.82 / 95.16 / 97.40 · schemas 100 / 100 / 100 / 100 
 telemetry 100 / 92.62 / 100 / 100 · api 100 / 80 / 100 / 100 · web 84.84 / 85.71 / 80 / 84.37.
 
 The dev script was proven **bad case → fail** (`pnpm dev` before: exit 1) and
-**good case → pass** (after: all three dev servers start). A command in
-documentation that has never been executed is a claim, not a fact.
+**good case → pass** (after: both dev servers start and answer HTTP). A command
+in documentation that has never been executed is a claim, not a fact.
+
+## ATTACK pass findings and what was fixed
+
+An adversarial subagent was given only "find a failing case". Nine findings came
+back. **Four were defects in this block's own commit and are fixed here;** the
+rest are logged, not silently dropped.
+
+Fixed in this block:
+
+| # | Defect | Fix |
+|---|---|---|
+| F5 | README claimed `/health` returns `{"status":"ok"}`; it returns `{"status":"ok","service":"realtype-api","time":...}` | Corrected to `{"status":"ok", ...}` |
+| F6 | **This pr-log documented the command form it had rejected**, and said "all three dev servers start" for a script that starts two | Rewritten to the shipped filter form, with both rejected forms and the evidence for rejecting them |
+| F7 | README's `pnpm test` comment omitted `tools/fixture-recorder` (11 tests) | Package added to the list |
+| F8 | Status said results were "not built yet" while 30 lines later the run instructions described a results panel | Narrowed to what is actually absent: saved results, accounts, the weakness model, drills |
+
+Accepted and logged rather than fixed here, because each is a pre-existing
+condition of `tsx watch` / port binding, not of this change:
+
+| # | Finding | Disposition |
+|---|---|---|
+| F1 | A **typo'd** filter yields a silent half-stack (pnpm prints "No projects matched" but still starts the rest, exit 0). Latent, not live — today's filters are correct | Logged in `HUMAN-ACTIONS.md`; the failure mode is recorded so the next person who edits the filter knows the gate is silent, not loud |
+| F2 | Port 5173 busy → pnpm exits loudly but **orphans the API** on 3000 | Pre-existing `tsx watch` behaviour; logged |
+| F3 | Port 3000 busy → `tsx watch` swallows the child's `exit(1)`, so `pnpm dev` **reports success with a dead API** | Pre-existing; logged as the most serious of the three, because it fails silently |
+| F4 | `(Ctrl-C stops both)` could not be verified by the harness (it cannot deliver Ctrl-C to the process group) | README claim stands as unverified rather than being asserted as tested |
+| F9 | The filter list is a hard-coded allowlist; a third service added later is silently omitted (F1's failure mode) | Logged with F1 |
+
+**F3 is the one that matters most.** A developer whose port 3000 is taken gets a
+web app that appears to work and an API that is not there, with no error. That
+is a worse failure than a loud one, and it is invisible until something calls
+the API — which the current test surface never does. Logged as a real defect
+against Phase 4, where the web app starts depending on the API for results.
 
 ## Default decisions relied on
 
