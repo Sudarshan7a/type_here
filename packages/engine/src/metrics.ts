@@ -222,7 +222,12 @@ function summarise(
   const printable = presses.filter((p) => p.key !== "Backspace");
   const first = presses[0];
   const last = presses[presses.length - 1];
-  const durationMs = first === undefined || last === undefined ? 0 : last.t - first.t;
+  // A corrupted capture can carry an out-of-order timestamp (the second event
+  // claiming an earlier time). A negative span would make every speed metric
+  // negative or NaN, so the span is clamped to zero and the log is reported as
+  // unusable for speed rather than silently producing nonsense.
+  const rawDuration = first === undefined || last === undefined ? 0 : last.t - first.t;
+  const durationMs = Math.max(0, rawDuration);
 
   const final = finalText(model);
   const correctFinal = correctCharsInFinalText(model);

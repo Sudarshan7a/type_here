@@ -29,4 +29,22 @@ export default tseslint.config(
       },
     },
   },
+  {
+    // E10 (chapter 4 §4.9): timing must use monotonic sources
+    // (performance.now()), never Date.now() — a system clock change mid-test
+    // would otherwise corrupt every elapsed-time calculation. The chapter asks
+    // for this as a linting rule, not a code-review habit.
+    files: ["packages/engine/**/*.ts"],
+    rules: {
+      "no-restricted-properties": [
+        "error",
+        {
+          object: "Date",
+          property: "now",
+          message:
+            "Use performance.now() for timing (chapter 4 E10): wall-clock jumps break elapsed-time math.",
+        },
+      ],
+    },
+  },
 );
