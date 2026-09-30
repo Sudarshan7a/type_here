@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>S3 — Parity page</title>
+  </head>
+  <body>
+    <p id="status">computing…</p>
+    <script type="module">
+      import { parityVectors } from "./vectors.js";
+      window.__PARITY = parityVectors();
+      document.getElementById("status").textContent = "done";
+    </script>
+  </body>
+</html>

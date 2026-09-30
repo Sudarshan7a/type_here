@@ -1,0 +1,19 @@
+{
+  "generatedBy": "parity.node.test.ts (vitest, node)",
+  "a": {
+    "ikiCount": 10,
+    "ikiMeanMs": 545.4,
+    "ikiSdMs": 0.5163977794943223,
+    "netWpm": 24.202420242024207,
+    "rawWpm": 24.202420242024207,
+    "keystrokeAccuracy": 1
+  },
+  "b": {
+    "ikiCount": 12,
+    "ikiMeanMs": 487.8333333333333,
+    "ikiSdMs": 134.69145436436523,
+    "netWpm": 22.5486846600615,
+    "rawWpm": 24.598565083703452,
+    "keystrokeAccuracy": 0.9166666666666666
+  }
+}

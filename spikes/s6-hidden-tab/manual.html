@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="connect-src 'none'" />
+    <title>Spike S6 -- hidden-tab real-device run</title>
+    <style>
+      body {
+        background: #fafafa;
+        color: #222;
+        font-family: Consolas, "Courier New", monospace;
+        margin: 40px;
+        max-width: 720px;
+      }
+      button,
+      select {
+        font: inherit;
+        margin-right: 8px;
+      }
+      #summary {
+        margin: 16px 0;
+        font-size: 16px;
+        white-space: pre-line;
+      }
+      .note {
+        font-size: 13px;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Spike S6 -- hidden-tab behavior (real-device manual run)</h2>
+    <ol>
+      <li>Pick a mode (start with practice).</li>
+      <li>Press Start, then type anything (any printable keys) for a few seconds.</li>
+      <li>
+        Switch to another browser tab or application for about 10 seconds, then come back and keep
+        typing for a few more seconds.
+      </li>
+      <li>Press Stop: wall-clock vs scored durations appear below.</li>
+      <li>Press Download JSON and file the numbers in spikes/RESULTS-TEMPLATE.md.</li>
+      <li>Repeat with verified mode: the attempt must be flagged invalid.</li>
+    </ol>
+    <p>
+      Mode:
+      <select id="mode">
+        <option value="practice">practice</option>
+        <option value="verified">verified</option>
+      </select>
+      <button id="start">Start</button>
+      <button id="stop">Stop</button>
+      <button id="download" disabled>Download JSON</button>
+    </p>
+    <p>
+      State: <strong id="state">idle</strong> -- wall clock: <span id="wall">0.00 s</span> --
+      scored: <span id="scored">0.00 s</span> -- keystrokes: <span id="keys">0</span>
+    </p>
+    <div id="summary"></div>
+    <p class="note">
+      This page makes zero network requests (CSP: connect-src 'none'). All measurements stay in this
+      tab until you download them.
+    </p>
+    <script src="model.js"></script>
+    <script>
+      (function () {
+        "use strict";
+        var model = null;
+        var lastResult = null;
+        function fmt(ms) {
+          return (ms / 1000).toFixed(2) + " s";
+        }
+        document.getElementById("start").addEventListener("click", function () {
+          var mode = document.getElementById("mode").value;
+          model = new HiddenTabModel(mode, function () {
+            return performance.now();
+          });
+          model.start();
+          lastResult = null;
+          document.getElementById("summary").textContent = "";
+          document.getElementById("download").disabled = true;
+        });
+        document.getElementById("stop").addEventListener("click", function () {
+          if (!model) return;
+          lastResult = model.stop();
+          document.getElementById("summary").textContent =
+            "State: " +
+            lastResult.state +
+            (lastResult.valid ? " (valid)" : " (INVALID / not verifiable)") +
+            "\nWall clock: " +
+            fmt(lastResult.wallDurationMs) +
+            "\nScored duration: " +
+            fmt(lastResult.scoredDurationMs) +
+            "\nExcluded (paused) time: " +
+            fmt(lastResult.wallDurationMs - lastResult.scoredDurationMs) +
+            "\nKeystrokes: " +
+            lastResult.keystrokes;
+          document.getElementById("download").disabled = false;
+        });
+        document.getElementById("download").addEventListener("click", function () {
+          if (!lastResult) return;
+          var payload = {
+            spike: "s6-hidden-tab",
+            kind: "real-device-manual",
+            date: new Date().toISOString(),
+            userAgent: navigator.userAgent,
+            mode: model.mode,
+            state: lastResult.state,
+            valid: lastResult.valid,
+            keystrokes: lastResult.keystrokes,
+            scoredDurationMs: +lastResult.scoredDurationMs.toFixed(1),
+            wallDurationMs: +lastResult.wallDurationMs.toFixed(1),
+            excludedPauseMs: +(lastResult.wallDurationMs - lastResult.scoredDurationMs).toFixed(1),
+            visibilityStateAtStop: document.visibilityState,
+          };
+          var blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+          var a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = "s6-real-device-" + new Date().toISOString().replace(/[:.]/g, "-") + ".json";
+          a.click();
+          setTimeout(function () {
+            URL.revokeObjectURL(a.href);
+          }, 5000);
+        });
+        document.addEventListener("visibilitychange", function () {
+          if (model) model.onVisibilityChange(document.hidden);
+        });
+        window.addEventListener("blur", function () {
+          if (model) model.onBlur();
+        });
+        window.addEventListener("focus", function () {
+          if (model) model.onFocus();
+        });
+        document.addEventListener("keydown", function (e) {
+          if (model && e.key.length === 1) model.keystroke();
+        });
+        setInterval(function () {
+          if (!model) return;
+          document.getElementById("state").textContent = model.state;
+          document.getElementById("wall").textContent = fmt(model.wallDurationMs);
+          document.getElementById("scored").textContent = fmt(model.scoredDurationMs);
+          document.getElementById("keys").textContent = String(model.keystrokes);
+        }, 100);
+      })();
+    </script>
+  </body>
+</html>

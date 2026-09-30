@@ -17,7 +17,8 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   prettier,
   {
-    files: ["scripts/**"],
+    // Node globals for plain-ESM tooling files (TS files get them via @types/node)
+    files: ["scripts/**", "**/*.mjs"],
     languageOptions: {
       globals: {
         console: "readonly",
