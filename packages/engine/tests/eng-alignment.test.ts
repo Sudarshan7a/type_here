@@ -55,10 +55,15 @@ describe("ENG-FIXTURE-I02-insertion-classification", () => {
 });
 
 describe("ENG-FIXTURE-I03-mixed-errors", () => {
-  it("classifies a mix of all four error kinds in one pass", () => {
+  it("classifies extra characters ahead of the correct suffix", () => {
+    // "cwxats" against "cats": after the leading `c`, both `w` and `x` are
+    // extra, and the remaining "ats" lines up with the target suffix — so
+    // this is two insertions, not an omission plus a substitution.
     const result = alignText("cats", "cwxats");
-    expect(result.insertions).toHaveLength(1);
+    expect(result.insertions.map((i) => i.typed)).toEqual(["w", "x"]);
     expect(result.correctChars).toBe(4);
+    expect(result.omissions).toHaveLength(0);
+    expect(result.substitutions).toHaveLength(0);
   });
 });
 
@@ -84,8 +89,24 @@ describe("ENG-ALIGN-PROP-01", () => {
   }
 
   const WORDS = [
-    "the", "quick", "brown", "fox", "jumps", "over", "lazy", "dog", "typing", "speed",
-    "practice", "bracket", "string", "number", "symbol", "editor", "keyboard", "muscle",
+    "the",
+    "quick",
+    "brown",
+    "fox",
+    "jumps",
+    "over",
+    "lazy",
+    "dog",
+    "typing",
+    "speed",
+    "practice",
+    "bracket",
+    "string",
+    "number",
+    "symbol",
+    "editor",
+    "keyboard",
+    "muscle",
   ];
   const ALPHABET = "abcdefghijklmnopqrstuvwxyz ";
 
@@ -100,7 +121,12 @@ describe("ENG-ALIGN-PROP-01", () => {
       const kind = (["substitution", "omission", "insertion", "transposition"] as const)[
         Math.floor(next() * 4)
       ]!;
-      const replacement = ALPHABET[Math.floor(next() * ALPHABET.length)]!;
+      // The replacement must actually differ from the original, otherwise no
+      // error is injected and the ground truth would be wrong.
+      let replacement = ALPHABET[Math.floor(next() * ALPHABET.length)]!;
+      if (replacement === word[position]) {
+        replacement = replacement === "a" ? "b" : "a";
+      }
 
       let typed = word;
       let expected: { kind: ErrorKind; count: number };
@@ -118,8 +144,10 @@ describe("ENG-ALIGN-PROP-01", () => {
           expected = { kind, count: 1 };
           break;
         case "transposition": {
-          // Only valid when a following character exists.
+          // Only meaningful when a following character exists AND the two
+          // characters differ — swapping "e","e" injects no error at all.
           if (position + 1 >= word.length) continue;
+          if (word[position] === word[position + 1]) continue;
           typed =
             word.slice(0, position) +
             word[position + 1] +
