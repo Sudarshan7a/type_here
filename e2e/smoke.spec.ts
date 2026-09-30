@@ -6,5 +6,5 @@ import { expect, test } from "@playwright/test";
 test("web shell renders the RealType title (M0-10 smoke)", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByTestId("app-title")).toBeVisible();
-  await expect(page.getByTestId("app-title")).toHaveText("RealType");
+  await expect(page.getByTestId("app-title")).toHaveText("RealType — manual engine test");
 });
