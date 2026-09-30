@@ -63,13 +63,14 @@ describe("ENG-AGG-FIXTURE-02-layout-dependent-hand-finger-tagging", () => {
     expect(fingerTag("f", "v", "dvorak").sameFinger).toBe(false);
   });
 
-  it("an unmapped layout returns unknown rather than guessing (§4.12: never hardcode)", () => {
-    // Finger maps for the remaining layouts are filled in during Phase 6. A
-    // wrong tag is worse than no tag: silently mis-attributing a bigram's hand
-    // would feed the weakness model bad data.
-    const tag = fingerTag("t", "h", "azerty");
-    expect(tag.hand).toBe("unknown");
-    expect(tag.sameFinger).toBeNull();
+  it("returns unknown for AltGr-dependent or absent characters, never a guess", () => {
+    // Since Session 4's layout verification, all six in-scope layouts have
+    // physically verified maps, so these cases are the ones that must stay
+    // unknown: characters reachable only via AltGr, and characters no layout
+    // places on the standard block.
+    expect(fingerTag("@", "a", "azerty")).toEqual({ hand: "unknown", sameFinger: null });
+    expect(fingerTag("€", "a", "qwerty-uk")).toEqual({ hand: "unknown", sameFinger: null });
+    expect(fingerTag("Ω", "a", "qwerty-us")).toEqual({ hand: "unknown", sameFinger: null });
   });
 });
 
