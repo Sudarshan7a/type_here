@@ -98,6 +98,33 @@ what goes in the record. This is the verification rule earning its keep.
   commit and re-verified; the merge is now green. Note for the record: local
   `pnpm format:check` had not been run after those files were written.
 
+## Session 4 — Block A: main-branch audit (trust nothing; verified against git, CI, and a clean checkout)
+
+**Verdict: A2 — Session 3's repairs confirmed clean**, with one material gap
+found in the enforcement itself (below).
+
+| Check | Method | Result |
+|---|---|---|
+| Direct commits to main | `git log --format="%h|%p|%s" main`, parents per commit | Every task's work sits behind a **merge commit** (2 parents). The "direct" entries in the log are branch commits reachable *through* those merges, which is normal topology. |
+| The S4 repair | parents of `bcc233e`, `2595ecc`, `f8237f7` | `bcc233e` (the disclosed direct-to-main commit) is now a **parent of merge `f8237f7`**, whose other parent is the pr-log/incident commit. The work is behind a merge. |
+| Was history rewritten? | `git reflog show main` | **No `reset` and no force-move entries.** Main's history contains exactly one `commit:` entry (bcc233e, 16:23) and every other movement is `merge ...: Merge made by the 'ort' strategy`. The repair was append-only, as claimed. |
+| Numbers | clean `git worktree` at 5aff79d, `pnpm install --frozen-lockfile` → lint → format:check → typecheck → test → build → check:bundle | All green. **engine 56 tests / 56 passed / 0 failed**, coverage **95.82 / 92.7 / 95.08 / 97.07**; schemas 56, telemetry 97, api 4, web 8, recorder 11 = **232 tests, 0 failures**; bundle 66.3 KB gzip. Matches Session 3's claims exactly. |
+| Current HEAD CI | run 36711540608 (main @ 5aff79d) | **success** |
+| Red runs still attached to main commits | all 64 runs cross-referenced against main | Six, **all previously disclosed**: 621140c + adb5259 (CRLF format, Session 3), 2b5b141 + 45ff6bd (lockfile drift, Session 2), 73a8e1c (prototype HTML format, Session 2), 05fba6c (D3 test file format, caught and fixed before merging). Each was superseded by a fix within minutes; none is undisclosed. |
+
+### GAP FOUND — branch protection is NOT enabled (the reason rules 2–3 were breakable)
+
+`gh` is not installed. I tested protection empirically: created a throwaway
+commit on a scratch branch and ran `git push --dry-run origin HEAD:main`.
+**GitHub accepted it** (`5aff79d..9576ce6  HEAD -> main`, exit 0); the remote
+ref was verified unchanged afterwards (`git ls-remote` still `5aff79d`), so
+nothing was written. Direct pushes to main remain possible.
+
+This is the mechanical reason the merge protocol was violated twice in Session
+3: the rules are honor-system only, with nothing to stop a bad push. Until
+branch protection is on, every future slice's safety depends on this agent
+remembering the rules. **Logged for human action (top of HUMAN-ACTIONS.md).**
+
 ## Autonomous decisions made
 (Newest first. Format: date | decision | 1-2 sentence reasoning | which section of this prompt justified it)
 
