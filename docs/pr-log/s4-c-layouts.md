@@ -1,0 +1,11 @@
+# pr-log: S4-C — layout verification (LAYOUT PROTOCOL)
+
+- **Task ID:** Session 4, Block C
+- **Branch:** task/s4-c-layouts
+- **Files touched:** `packages/engine/src/layout-fingers.ts` (new — the verified maps as data), `packages/engine/src/aggregation.ts` (fingerTag now uses the verified maps instead of two hardcoded layouts), `packages/engine/tests/eng-layout-maps.test.ts` (new, 9 tests), `packages/engine/tests/eng-aggregation.test.ts` (one test updated: AZERTY no longer returns unknown, so the unknown cases are now AltGr/absent characters), `tools/layout-verify.mjs` + `tools/layout-report.mjs` (scratch verification, kept for re-verification), `docs/LAYOUT-VERIFICATION.md`
+- **Tests added:** 9 (every verified map value pinned, plus AltGr/unknown behaviour and a same-finger-rate sanity bound)
+- **Verification:** engine 13 files / 65 tests green; full workspace gates green (lint, format, typecheck, test, build, bundle 66.6 KB); branch CI green.
+- **Result:** all **six** in-scope layouts verified from physical key positions — QWERTY-US, QWERTY-UK, Dvorak, Colemak-DH, AZERTY, QWERTZ. The engine's QWERTY and Dvorak maps were confirmed correct. Same-finger letter-bigram rate lands at 14.8–16.0% across layouts, inside the range touch-typing research reports — an independent structural check, not just self-consistency.
+- **Three errors caught in my own tests** (not the implementation) by comparing against physical data: `c` is left-*middle* not left-index; AZERTY's `w` is the bottom-left key (lp), not left-ring; QWERTZ **swaps** `y`/`z` relative to QWERTY. Each is logged in `docs/LAYOUT-VERIFICATION.md`.
+- **Accepted gaps (human action):** AltGr/dead-key characters on QWERTY-UK, AZERTY and QWERTZ return `unknown` (driver-dependent; the chapter flags this caveat itself); QWERTZ's `ü`/`ä` sit outside the 10-column block; a human should type one word per layout with a debugger before Phase 3 ships layout support. Plain (non-DH) Colemak is not in the contract's Layout enum and was not verified.
+- **Default decisions relied on:** one budget of "measure the whole dist/" for the bundle gate (Block B) and "unknown over guess" for layout attribution — both are the conservative option when the underlying fact can't be established in-repo.

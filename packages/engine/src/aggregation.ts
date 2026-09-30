@@ -1,6 +1,6 @@
 /**
- * RealType typing engine (open-core, MIT) — per-key and per-bigram
- * aggregation (D3), implementing §4.12 of
+ * RealType typing engine (open-core, MIT) â€” per-key and per-bigram
+ * aggregation (D3), implementing Â§4.12 of
  * docs/chapter-4-deep-dive-typing-engine-part2.md.
  *
  * Two rules carry the whole point:
@@ -9,7 +9,7 @@
  *    median for that bigram is dropped from the speed aggregate (typing speed
  *    varies hugely between people, so a fixed millisecond threshold would be
  *    wrong for someone and useless for someone else). The excluded sample is
- *    still recorded as a hesitation event — that is a different, useful signal.
+ *    still recorded as a hesitation event â€” that is a different, useful signal.
  *
  * 2. Finger/hand tags come from the ACTIVE layout's map, never hardcoded: the
  *    same bigram string can be same-finger on one layout and cross-hand on
@@ -17,6 +17,8 @@
  */
 
 import type { Layout } from "@realtype/schemas";
+
+import { fingerFor } from "./layout-fingers.js";
 
 /** Self-relative outlier threshold: 3x the item's own median interval. */
 export const OUTLIER_MULTIPLE = 3;
@@ -90,50 +92,22 @@ export function aggregateBigram(from: string, to: string, samples: Sample[]): Ag
   };
 }
 
-// ---- finger / hand tagging ---------------------------------------------
-
-type Finger = "lp" | "lr" | "lm" | "li" | "ri" | "rm" | "rr" | "rp";
-
-/** Physical QWERTY key rows; the Dvorak row lists the character on each key. */
-const QWERTY_ROWS = ["qwertyuiop", "asdfghjkl;", "zxcvbnm,./"];
-const DORAK_ROWS = ["',.pyfgcrl", "aoeuidhtns", ";qjkxbmwvz"];
-
-/** Finger per physical key, by index within its row. Left hand: qwerty/asdf/zxcv plus t, g, b. */
-const FINGER_BY_KEY: Finger[][] = [
-  ["lp", "lr", "lm", "li", "li", "ri", "ri", "rm", "rr", "rp"],
-  ["lp", "lr", "lm", "li", "li", "ri", "ri", "rm", "rr", "rp"],
-  ["lp", "lr", "lm", "li", "li", "ri", "ri", "rm", "rr", "rp"],
-];
-
-function fingerFromRows(rows: string[], ch: string): Finger | null {
-  for (let r = 0; r < rows.length; r++) {
-    const i = rows[r]!.indexOf(ch);
-    if (i >= 0) return FINGER_BY_KEY[r]![i]!;
-  }
-  return null;
-}
-
 export interface FingerTag {
-  /** "cross" | "same" | "unknown" — unknown when the layout has no map yet. */
+  /** "cross" | "same" | "unknown" â€” unknown when the layout or character
+   *  has no verified map (see layout-fingers.ts). */
   hand: "cross" | "same" | "unknown";
   sameFinger: boolean | null;
 }
 
 /**
- * Tag a bigram by the ACTIVE layout. Layouts without a finger map yet return
- * "unknown" rather than inheriting the QWERTY map, which would be silently
- * wrong for Dvorak/Colemak and corrupt the weakness model's data.
+ * Tag a bigram by the ACTIVE layout, using the physically verified maps in
+ * layout-fingers.ts. Layouts and AltGr-dependent characters without a verified
+ * map return "unknown" rather than inheriting another layout's answer, which
+ * would be silently wrong and would corrupt the weakness model's data.
  */
 export function fingerTag(from: string, to: string, layout: Layout): FingerTag {
-  const maps: Partial<Record<Layout, string[]>> = {
-    "qwerty-us": QWERTY_ROWS,
-    dvorak: DORAK_ROWS,
-  };
-  const rows = maps[layout];
-  if (rows === undefined) return { hand: "unknown", sameFinger: null };
-
-  const a = fingerFromRows(rows, from);
-  const b = fingerFromRows(rows, to);
+  const a = fingerFor(layout, from);
+  const b = fingerFor(layout, to);
   if (a === null || b === null) return { hand: "unknown", sameFinger: null };
 
   const sameFinger = a === b;
