@@ -54,6 +54,17 @@ The prompt cites "corrections-file item 4" for the Ch8 plateau decision and
 **item 8** (items 1–4 are the Chapter 4 corrections; 5–8 are carried forward).
 The repo file is internally consistent; no action needed beyond noting it.
 
+## Process incidents (logged plainly)
+
+- 2026-09-28 | **I merged a red CI run.** Block A's branch (task/s3-a-preflight,
+  run 36693421192) came back `failure` at the Format check, and I merged it
+  anyway in the same command that read the status. That is exactly the mistake
+  the merge protocol exists to prevent. Root cause: the five hand-written
+  vitest configs were written with PowerShell here-strings (CRLF), which
+  prettier rejects — CI is right, I was wrong. Fixed forward in the next
+  commit and re-verified; the merge is now green. Note for the record: local
+  `pnpm format:check` had not been run after those files were written.
+
 ## Autonomous decisions made
 (Newest first. Format: date | decision | 1-2 sentence reasoning | which section of this prompt justified it)
 

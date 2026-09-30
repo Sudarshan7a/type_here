@@ -50,13 +50,37 @@ to Example B. Independently confirmed by the S3-lite parity spike. Fixtures use
 
 ## Carried forward (not engine scope — do not act on until the phase below)
 
-### 5. Chapter 8 §8.7.1 — plateau example sits on its own threshold · PENDING (Phase 5)
+### 5. Chapter 8 §8.7.1 — plateau example sits on its own threshold · **RESOLVED (Session 3)**
 
-The example states SD = 0.85, but the eight listed values have sample SD
-0.825 (population 0.771; residual SD about the fitted line ≈ 0.833) while the
-fitted 14-day change is 0.833. Under sample SD the example would **not** be
-flagged, so `WM-FIXTURE-009` would fail a correct implementation. Needs a human
-decision on the SD definition (and probably new example data) before Phase 5.
+**Human decision (2026-09-28): use POPULATION standard deviation (divide by n)
+for the plateau-detection window**, because the window describes the full
+observed set of recent tests, not a sample estimating a larger population.
+This is a choice among the two variants the formula already allows; the rule
+itself is unchanged.
+
+**Independent recompute** (`docs/recompute-plateau.mjs`, throwaway; imports
+nothing from the project; rule = flag a plateau when the fitted 14-day
+predicted change is less than one SD of the data points):
+
+| Series | Predicted 14-day change | Population SD (decided) | Sample SD (rejected) | Verdict (population rule) |
+|---|---|---|---|---|
+| Chapter example `[42.1, 43.5, 41.8, 44.2, 42.9, 43.1, 42.6, 43.8]` | **0.8333** | **0.7714** | 0.8246 | **not a plateau** |
+| `WM-FIXTURE-009a` flat `[42.0, 42.4, 41.7, 42.3, 42.1, 41.9, 42.2, 42.0]` | −0.0500 | 0.2107 | 0.2252 | **plateau (flagged)** — 124% margin |
+| `WM-FIXTURE-009b` improving `[40, 41, 42, 43, 44, 45, 46, 47]` | 7.0000 | 2.2913 | 2.4495 | **not a plateau** — 205% margin |
+
+**Findings:**
+
+1. The chapter's own claim ("predicted 0.84 < SD 0.85 → **is** a plateau") does
+   not hold under **either** variant: the recomputed predicted change is 0.8333,
+   which exceeds both the population SD (0.7714) and the sample SD (0.8246).
+   The chapter's stated SD of 0.85 matches neither variant exactly.
+2. The chapter example is therefore **marked illustrative only and is NOT used
+   as `WM-FIXTURE-009`**. Its conclusion ("flat with noise should be flagged,
+   not celebrated as improvement") remains correct as pedagogy — the example
+   simply does not demonstrate it numerically.
+3. `WM-FIXTURE-009a` and `-009b` are constructed from scratch and are
+   unambiguous **under both variants**, so the decision does not rest on the
+   SD choice. Implementation lands with the Phase 5 weakness model.
 
 ### 6. Chapter 8 §8.2.4 — "qu" at 0.8% of English bigrams · CARRIED (Phase 5)
 
@@ -68,10 +92,47 @@ never taken from the chapter.
 
 The value is 0.891. Use a tolerance in the shrinkage implementation.
 
-### 8. levels-05 §2.3 — the literal `;` drill shows 8 semicolons · PENDING (Phase 6)
+### 8. levels-05 §2.3 — the literal `;` drill shows 8 semicolons · **RESOLVED (Session 3)**
 
-The text specifies 15 target keystrokes plus 14 anchors. Resolve before writing
-`T0-GEN-001`.
+**Human decision (2026-09-28): the text's own stated parameters win; the
+illustration was simply short.** §2.2 specifies **15 target keystrokes**, the
+home-row `a` as anchor, and a **1:1 (50/50) rest-key ratio**. §2.3's literal
+line shows only 8 `;` and 8 `a`.
+
+**Resolved generator rule for `generateTier0(level=0.1, key=';')`:**
+15 `;` targets, 14 `a` anchors, 50/50 interleaved, target first and last —
+**29 keystrokes total**:
+
+```
+; a ; a ; a ; a ; a ; a ; a ; a ; a ; a ; a ; a ;
+```
+(counted: 15 `;`, 14 `a`.)
+
+This applies when Tier 0 generator work is reached (Phase 6). Resolved and
+logged now so it is not re-discovered as a new problem.
+
+### 9. levels-05 §2.4 — the `@` illustration contradicts §2.2's rep count · **NEW FINDING (Session 3), unresolved**
+
+While resolving item 8, a second inconsistency surfaced in the same file.
+
+**Chapter says (§2.2):** "Reps per key, first exposure — **15 keystrokes**"
+(shared by all keys).
+
+**Chapter shows (§2.4, "Worked full-length Level 0.1 drill for key #22 (`@`,
+a Shift-symbol)"):**
+```
+2 2 2 @ @ @ 2 2 2 @ @ @ 2 2 2
+```
+— only **6 `@` targets** and 9 base keys, in a 3-and-3 pattern.
+
+**The finding:** §2.4's heading claims a *full-length* drill, but the count is
+neither 15 (§2.2's rule) nor any multiple of the 3-and-3 pattern stated in the
+same section. Either Shift-symbol keys use a different rep count (never stated)
+or this illustration is truncated like §2.3's was.
+
+**Not fixed here:** per the arithmetic protocol, chapter files are not edited
+and a spec ambiguity is a stop condition rather than an autonomous decision.
+Flagged for resolution before `T0-GEN-001`; add to `HUMAN-ACTIONS.md`.
 
 ---
 
