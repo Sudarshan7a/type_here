@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "@realtype/schemas": "workspace:*",
+    "@realtype/engine": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import { App } from "./App";
+import { ManualTestApp } from "./ManualTestApp";
 
 const root = document.getElementById("root");
 if (root === null) {
@@ -10,6 +10,6 @@ if (root === null) {
 
 createRoot(root).render(
   <StrictMode>
-    <App />
+    <ManualTestApp />
   </StrictMode>,
 );
