@@ -1,10 +1,10 @@
 # BUILD LOG
 
 ## Current Position
-Phase: Phase 1 (M1 engine) — Session 3
-Last completed task: D1 (state machine §4.10) + D2 (alignment/classification §4.11) — implemented, all local gates green
-Next task: confirm CI green on task/s3-d1-state-machine and merge it, then D3 (per-key/per-bigram aggregation §4.12: outlier exclusion, hesitation counts, layout-dependent finger tagging, ENG-AGG-FIXTURE-01/-02, ENG-AGG-PROP-01), test-first; then ENG-PARITY-01/02 (Node vs browser over every fixture).
-Not started this session: ENG-PARITY-01/02, D3 aggregation, S4 grammar smoke tests for Phase 6.
+Phase: Phase 1 (M1 engine) — Session 3 complete
+Last completed task: C3 (ENG-PARITY-01/02 parity harness) — all of Session 3's Blocks A–E landed
+Next task: the remaining chapter-4 catalog items (edge-case fixtures ENG-FIXTURE-E-CAPS / E-DEADKEY / E-EMOJI / E-PASTE / E-DUALKEY, and A02/A03/D02–D04), then M1 integration into apps/web. Parity will be re-run against REAL recorded fixtures once the human supplies them.
+Not started: those edge fixtures; apps/web engine integration; S4 grammar smoke tests (Phase 6).
 Last updated: 2026-09-28
 
 ## Session 3 pre-flight findings (Block A)
@@ -160,6 +160,13 @@ License flags (Section 2.5): every direct dependency is MIT except **typescript 
 
 ## Task history
 (Newest first. Format: date | task ID | branch | PR link | status [merged/awaiting human merge/blocked] | tests added | one-line summary)
+
+- 2026-09-28 | S3-C3 (parity) | task/s3-c3-parity | run 36710738039 green, local merge | merged | 2 e2e specs | ENG-PARITY-01/02: all 9 chapter-4 fixtures + alignment/aggregation/finger-tagging produce identical results in Node and Chromium (1e-9), running the engine's own compiled output on both sides
+- 2026-09-28 | S3-D3 (aggregation) | task/s3-d3-aggregation | run 36709160465 green, local merge | merged | 9 tests | Self-relative 3x-median outlier exclusion (185 ms / n=4, not 388 / n=5) + layout-dependent finger tagging; unmapped layouts return "unknown" rather than a guess
+- 2026-09-28 | S3-D1+D2 (engine) | task/s3-d1-state-machine | run 36708042536 green, local merge | merged | 18 tests | Full §4.10 state machine (scored duration excludes pauses exactly) and §4.11 alignment with the documented transposition rule; engine 29 -> 47 tests
+- 2026-09-28 | S3-C (S4 spike) | task/s3-d-state-machine | run 36706234681 green, local merge | merged | 2 specs | Real Tree-sitter WASM reproduces chapter 9 §9.2.1's token map; found the WASM-blind bundle gate and closed it
+- 2026-09-28 | S3-B (decisions) | task/s3-b-decisions | run 36696445156 green, local merge | merged | n/a | Ch8 population-SD decided + fresh WM-FIXTURE-009a/b; levels-05 `;` drill resolved; new §2.4 `@` finding logged
+- 2026-09-28 | S3-A (pre-flight) | task/s3-a-preflight | local merge | merged | n/a | F1: vitest was running compiled tests from dist/ (telemetry 194 vs 97); fixed and proven
 
 - 2026-09-28 | S2-E (engine E0-E6) | task/s2-e-engine | run 36685949292 green, local merge | merged | 30 tests (18 fixture + 12 unit), coverage 98/97/96/99 | Fixtures committed BEFORE implementation; input filter (repeat/untrusted/auto), text model (must-correct/stop-on-error), metrics core with corrected B01/F01/A01 expectations; ENGINE_MODEL_VERSION 1.0.0
 - 2026-09-28 | S2-C (spikes) | task/s2-c-spikes-final | local merge | merged | 3 spike suites | S1 p95 15.2ms (LAB PROXY, Chromium only), S2 capture+replay, S3 parity max-diff 0, S5 baseline 66.3/200KB, S6 state machine + page, RESULTS-TEMPLATE; S4 (Tree-sitter) NOT started
