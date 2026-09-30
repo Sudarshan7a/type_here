@@ -77,6 +77,17 @@ what goes in the record. This is the verification rule earning its keep.
 
 ## Process incidents (logged plainly)
 
+- 2026-09-28 | **Second direct commit to main (S4).** The S4 commit was made
+  while `main` was checked out, so it landed on main with no merge commit and
+  the intended task branch was left empty. Repaired append-only: the branch was
+  fast-forwarded onto the commit, the missing `docs/pr-log/` entry and this
+  record were added, and the branch was then merged with `--no-ff`. Nothing was
+  force-pushed and no history was rewritten; main's CI for the content commit
+  (run 36705446131) was green before the merge. Root cause: chaining a `git
+  checkout` and a later `git commit` in separate commands without re-checking
+  which branch is active. Mitigation going forward: every commit command starts
+  with an explicit `git checkout <branch> || exit 1` and the commit is
+  preceded by `git status` in the same command.
 - 2026-09-28 | **I merged a red CI run.** Block A's branch (task/s3-a-preflight,
   run 36693421192) came back `failure` at the Format check, and I merged it
   anyway in the same command that read the status. That is exactly the mistake
