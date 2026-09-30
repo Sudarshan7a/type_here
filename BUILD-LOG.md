@@ -1,9 +1,10 @@
 # BUILD LOG
 
 ## Current Position
-Phase: Phase 0 — Validate + Set Up (Track B; Track A pending human action) · Session 2 running Block A
-Last completed task: Block A (pre-flight check on Session 2's claims — one real defect found and fixed)
-Next task: Block B (resolve carried-forward Ch8 SD + levels-05 decisions), then Block C (S4 spike, parity harness), then Block D (engine state machine, alignment, aggregation)
+Phase: Phase 1 (M1 engine) — Session 3
+Last completed task: D1 (state machine §4.10) + D2 (alignment/classification §4.11) — implemented, all local gates green
+Next task: confirm CI green on task/s3-d1-state-machine and merge it, then D3 (per-key/per-bigram aggregation §4.12: outlier exclusion, hesitation counts, layout-dependent finger tagging, ENG-AGG-FIXTURE-01/-02, ENG-AGG-PROP-01), test-first; then ENG-PARITY-01/02 (Node vs browser over every fixture).
+Not started this session: ENG-PARITY-01/02, D3 aggregation, S4 grammar smoke tests for Phase 6.
 Last updated: 2026-09-28
 
 ## Session 3 pre-flight findings (Block A)

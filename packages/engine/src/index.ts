@@ -41,6 +41,27 @@ export {
   type TextModel,
 } from "./text-model.js";
 
+export {
+  DEFAULT_PAUSE_TIMEOUT_MS,
+  SESSION_STATES,
+  TypingStateMachine,
+  createStateMachine,
+  type SessionEvent,
+  type SessionMode,
+  type SessionState,
+  type StateMachineOptions,
+} from "./state-machine.js";
+
+export {
+  alignText,
+  type AlignmentResult,
+  type ErrorKind,
+  type Insertion,
+  type Omission,
+  type Substitution,
+  type Transposition,
+} from "./alignment.js";
+
 import type { InputLog, TypingText } from "@realtype/schemas";
 
 import { computeFromEvents, type EngineResult } from "./metrics.js";
