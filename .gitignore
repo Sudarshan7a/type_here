@@ -37,3 +37,10 @@ Thumbs.db
 # misc
 *.pem
 *.local
+
+# Build artifacts and test output inside spikes/
+# Spikes are scratch: their tsc output and Playwright output are regenerated
+# by `pnpm test` in each spike folder and must not be committed.
+spikes/s6-hidden-tab/model.js
+spikes/s3-parity/*.js
+spikes/s3-parity/tsconfig.build.tsbuildinfo

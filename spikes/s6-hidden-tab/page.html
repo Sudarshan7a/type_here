@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="connect-src 'none'" />
+    <title>Spike S6 -- hidden-tab model harness (automated)</title>
+    <style>
+      body {
+        background: #fafafa;
+        color: #222;
+        font-family: Consolas, "Courier New", monospace;
+        margin: 40px;
+      }
+      button,
+      select {
+        font: inherit;
+        margin-right: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Spike S6 -- hidden-tab model harness (driven by the Playwright spec)</h2>
+    <p>
+      Mode:
+      <select id="mode">
+        <option value="practice">practice</option>
+        <option value="verified">verified</option>
+      </select>
+      <button id="start">Start</button>
+      <button id="stop">Stop</button>
+    </p>
+    <p>
+      State: <strong id="state">idle</strong> -- wall clock: <span id="wall">0.00 s</span> --
+      scored: <span id="scored">0.00 s</span> -- keystrokes: <span id="keys">0</span>
+    </p>
+    <script src="model.js"></script>
+    <script>
+      (function () {
+        "use strict";
+        var model = null;
+        function fmt(ms) {
+          return (ms / 1000).toFixed(2) + " s";
+        }
+        window.__setMode = function (m) {
+          document.getElementById("mode").value = m;
+        };
+        window.__start = function () {
+          var mode = document.getElementById("mode").value;
+          model = new HiddenTabModel(mode, function () {
+            return performance.now();
+          });
+          model.start();
+          return true;
+        };
+        window.__stop = function () {
+          return model ? model.stop() : null;
+        };
+        window.__state = function () {
+          return model ? model.state : "idle";
+        };
+        document.getElementById("start").addEventListener("click", window.__start);
+        document.getElementById("stop").addEventListener("click", function () {
+          window.__stop();
+        });
+        document.addEventListener("visibilitychange", function () {
+          if (model) model.onVisibilityChange(document.hidden);
+        });
+        window.addEventListener("blur", function () {
+          if (model) model.onBlur();
+        });
+        window.addEventListener("focus", function () {
+          if (model) model.onFocus();
+        });
+        document.addEventListener("keydown", function (e) {
+          if (model && e.key.length === 1) model.keystroke();
+        });
+        setInterval(function () {
+          if (!model) return;
+          document.getElementById("state").textContent = model.state;
+          document.getElementById("wall").textContent = fmt(model.wallDurationMs);
+          document.getElementById("scored").textContent = fmt(model.scoredDurationMs);
+          document.getElementById("keys").textContent = String(model.keystrokes);
+        }, 100);
+      })();
+    </script>
+  </body>
+</html>

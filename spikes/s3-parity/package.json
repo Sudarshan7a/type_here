@@ -1,0 +1,17 @@
+{
+  "name": "s3-parity",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:browser": "tsc -p tsconfig.build.json",
+    "test:node": "vitest run",
+    "test:browser": "playwright test",
+    "test": "vitest run && tsc -p tsconfig.build.json && playwright test",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "typescript": "6.0.3",
+    "vitest": "5.0.2"
+  }
+}

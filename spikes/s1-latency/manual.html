@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="connect-src 'none'" />
+    <title>Spike S1 -- real-keyboard latency run</title>
+    <style>
+      body {
+        background: #fafafa;
+        color: #222;
+        font-family: Consolas, "Courier New", monospace;
+        margin: 40px;
+        max-width: 720px;
+      }
+      #surface {
+        position: relative;
+        max-width: 560px;
+        font-size: 20px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        border: 1px solid #ccc;
+        padding: 12px;
+      }
+      #surface span {
+        white-space: pre;
+      }
+      span.c-pending {
+        color: #666;
+      }
+      span.c-done {
+        color: #0a7d24;
+      }
+      #caret {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 2px;
+        background: #111;
+        border-radius: 1px;
+        will-change: transform;
+      }
+      #stats {
+        margin: 16px 0;
+        font-size: 16px;
+      }
+      button {
+        font: inherit;
+        margin-right: 8px;
+        padding: 6px 14px;
+      }
+      .note {
+        font-size: 13px;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Spike S1 -- real-keyboard latency (manual run)</h2>
+    <p>
+      Type the text below at your normal pace, starting anywhere in it. Only printable characters
+      count. When you are done (about 300 keystrokes), press "Download JSON" and file the numbers in
+      spikes/RESULTS-TEMPLATE.md.
+    </p>
+    <div id="surface"></div>
+    <div id="stats">
+      Typed <span id="count">0</span> keys -- p50 <span id="p50">-</span> ms -- p95
+      <span id="p95">-</span> ms -- max <span id="max">-</span> ms
+    </div>
+    <button id="download">Download JSON</button>
+    <button id="reset">Reset</button>
+    <p class="note">
+      This page makes zero network requests (CSP: connect-src 'none'). All measurements stay in this
+      tab until you download them.
+    </p>
+    <script>
+      (function () {
+        "use strict";
+        var TEXT =
+          "the quick brown fox jumps over the lazy dog. a calm river flows past green hills " +
+          "while birds circle above tall pine trees. every keystroke below is measured locally " +
+          "in this tab and never sent anywhere; press download when you are done to keep your " +
+          "numbers. aim for your normal typing pace.";
+        var surface = document.getElementById("surface");
+        var spans = [];
+        var positions = [];
+        for (var i = 0; i < TEXT.length; i++) {
+          var s = document.createElement("span");
+          s.setAttribute("class", "c-pending");
+          s.textContent = TEXT.charAt(i);
+          surface.appendChild(s);
+          spans.push(s);
+        }
+        var caret = document.createElement("div");
+        caret.setAttribute("id", "caret");
+        surface.appendChild(caret);
+        for (var j = 0; j < spans.length; j++) {
+          positions.push({
+            x: spans[j].offsetLeft,
+            y: spans[j].offsetTop,
+            h: spans[j].offsetHeight,
+          });
+        }
+        caret.style.height = positions[0].h + "px";
+        var idx = 0;
+        caret.style.transform = "translate(" + positions[0].x + "px," + positions[0].y + "px)";
+
+        var kd = [];
+        var np = [];
+        var keyCount = 0;
+
+        function percentile(sorted, p) {
+          if (sorted.length === 0) return null;
+          var rank = Math.ceil(p * sorted.length);
+          return sorted[Math.min(Math.max(rank, 1), sorted.length) - 1];
+        }
+
+        document.addEventListener("keydown", function (e) {
+          if (e.key.length !== 1) return;
+          performance.mark("keydown_start_" + keyCount);
+          kd.push(performance.now());
+          var prev = spans[idx];
+          prev.setAttribute("class", "c-done");
+          idx++;
+          if (idx >= spans.length) idx = 0;
+          var p = positions[idx];
+          caret.style.transform = "translate(" + p.x + "px," + p.y + "px)";
+          var markIndex = keyCount;
+          requestAnimationFrame(function () {
+            performance.mark("next_paint_" + markIndex);
+            np.push(performance.now());
+          });
+          keyCount++;
+        });
+
+        function currentDurations() {
+          var n = Math.min(kd.length, np.length);
+          var out = [];
+          for (var i = 0; i < n; i++) out.push(np[i] - kd[i]);
+          out.sort(function (a, b) {
+            return a - b;
+          });
+          return out;
+        }
+
+        setInterval(function () {
+          var d = currentDurations();
+          document.getElementById("count").textContent = String(d.length);
+          document.getElementById("p50").textContent =
+            d.length > 0 ? percentile(d, 0.5).toFixed(2) : "-";
+          document.getElementById("p95").textContent =
+            d.length > 0 ? percentile(d, 0.95).toFixed(2) : "-";
+          document.getElementById("max").textContent =
+            d.length > 0 ? d[d.length - 1].toFixed(2) : "-";
+        }, 400);
+
+        document.getElementById("download").addEventListener("click", function () {
+          var d = currentDurations();
+          var payload = {
+            spike: "s1-latency",
+            kind: "real-keyboard-manual",
+            date: new Date().toISOString(),
+            userAgent: navigator.userAgent,
+            textLength: TEXT.length,
+            keystrokes: d.length,
+            p50Ms: d.length > 0 ? +percentile(d, 0.5).toFixed(2) : null,
+            p95Ms: d.length > 0 ? +percentile(d, 0.95).toFixed(2) : null,
+            maxMs: d.length > 0 ? +d[d.length - 1].toFixed(2) : null,
+            durationsMs: d.map(function (v) {
+              return +v.toFixed(2);
+            }),
+          };
+          var blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+          var a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = "s1-real-device-" + new Date().toISOString().replace(/[:.]/g, "-") + ".json";
+          a.click();
+          setTimeout(function () {
+            URL.revokeObjectURL(a.href);
+          }, 5000);
+        });
+
+        document.getElementById("reset").addEventListener("click", function () {
+          kd = [];
+          np = [];
+          keyCount = 0;
+          idx = 0;
+          for (var i = 0; i < spans.length; i++) spans[i].setAttribute("class", "c-pending");
+          caret.style.transform = "translate(" + positions[0].x + "px," + positions[0].y + "px)";
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "commonjs",
+    "lib": ["es2020"],
+    "strict": true,
+    "noEmitOnError": true
+  },
+  "include": ["model.ts"]
+}

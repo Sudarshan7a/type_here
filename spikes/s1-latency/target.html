@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="connect-src 'none'" />
+    <title>Spike S1 -- latency target surface (synthetic)</title>
+    <style>
+      body {
+        background: #fafafa;
+        color: #222;
+        font-family: Consolas, "Courier New", monospace;
+        margin: 40px;
+      }
+      #surface {
+        position: relative;
+        max-width: 400px;
+        font-size: 20px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+      }
+      #surface span {
+        white-space: pre;
+      }
+      span.c-pending {
+        color: #666;
+      }
+      span.c-done {
+        color: #0a7d24;
+      }
+      #caret {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 2px;
+        background: #111;
+        border-radius: 1px;
+        will-change: transform;
+      }
+    </style>
+  </head>
+  <body>
+    <p>
+      Spike S1 target surface. Synthetic keystrokes (Playwright) drive this page; for real-keyboard
+      runs open manual.html instead.
+    </p>
+    <div id="surface"></div>
+    <script>
+      (function () {
+        "use strict";
+        var TEXT =
+          "the quick brown fox jumps over the lazy dog while the calm river flows past green hills.";
+        var surface = document.getElementById("surface");
+        var spans = [];
+        var positions = [];
+        for (var i = 0; i < TEXT.length; i++) {
+          var s = document.createElement("span");
+          s.setAttribute("class", "c-pending");
+          s.textContent = TEXT.charAt(i);
+          surface.appendChild(s);
+          spans.push(s);
+        }
+        var caret = document.createElement("div");
+        caret.setAttribute("id", "caret");
+        surface.appendChild(caret);
+        // Layout offsets are read exactly once, here. The keydown handler below
+        // never reads layout (no offsetLeft/offsetWidth/getBoundingClientRect).
+        for (var j = 0; j < spans.length; j++) {
+          positions.push({
+            x: spans[j].offsetLeft,
+            y: spans[j].offsetTop,
+            h: spans[j].offsetHeight,
+          });
+        }
+        caret.style.height = positions[0].h + "px";
+        var idx = 0;
+        caret.style.transform = "translate(" + positions[0].x + "px," + positions[0].y + "px)";
+
+        // Results buffer attached to window, as the spike method requires.
+        window.__lat = { kd: [], np: [], longtasks: [], textLength: TEXT.length, resets: 0 };
+        var keyCount = 0;
+
+        if (typeof PerformanceObserver !== "undefined") {
+          try {
+            var po = new PerformanceObserver(function (list) {
+              var entries = list.getEntries();
+              for (var k = 0; k < entries.length; k++) {
+                window.__lat.longtasks.push({
+                  start: entries[k].startTime,
+                  duration: entries[k].duration,
+                });
+              }
+            });
+            po.observe({ entryTypes: ["longtask"] });
+          } catch (e) {
+            // "longtask" is unsupported in some engines (e.g. Firefox); leave buffer empty.
+          }
+        }
+
+        document.addEventListener("keydown", function (e) {
+          if (e.key.length !== 1) return;
+          performance.mark("keydown_start_" + keyCount);
+          window.__lat.kd.push(performance.now());
+          var prev = spans[idx];
+          prev.setAttribute("class", "c-done");
+          idx++;
+          if (idx >= spans.length) {
+            for (var r = 0; r < spans.length; r++) spans[r].setAttribute("class", "c-pending");
+            idx = 0;
+            window.__lat.resets++;
+          }
+          var p = positions[idx];
+          caret.style.transform = "translate(" + p.x + "px," + p.y + "px)";
+          var markIndex = keyCount;
+          requestAnimationFrame(function () {
+            performance.mark("next_paint_" + markIndex);
+            window.__lat.np.push(performance.now());
+          });
+          keyCount++;
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "spike-s6-hidden-tab",
+  "private": true,
+  "scripts": {
+    "test": "tsc -p . && playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "typescript": "6.0.3"
+  }
+}
