@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ENG-PARITY: engine results in the browser</title>
+  </head>
+  <body>
+    <pre id="out">loadingâ€¦</pre>
+    <script type="module">
+      // ENG-PARITY-01/02: run the engine's own compiled output over every
+      // chapter-4 fixture inside the browser, and hand the numbers to the
+      // Playwright spec for comparison against the same run under Node.
+      const FIXTURES = ["a01", "b01", "c01", "d01", "e01", "e02", "e03", "f01", "g01"];
+
+      try {
+        const engine = await import("/packages/engine/dist/src/index.js");
+        const results = {};
+        for (const id of FIXTURES) {
+          const mod = await import(`/packages/engine/dist/fixtures/${id}.js`);
+          const { summary, details, finalText } = engine.computeResult(mod.log, mod.text);
+          results[id] = { summary, details, finalText };
+        }
+        window.__parity = { results, engineModelVersion: engine.ENGINE_MODEL_VERSION };
+        document.getElementById("out").textContent = JSON.stringify(window.__parity, null, 2);
+      } catch (err) {
+        window.__parity = { error: String(err && err.stack ? err.stack : err) };
+        document.getElementById("out").textContent = window.__parity.error;
+      }
+    </script>
+  </body>
+</html>
