@@ -17,12 +17,15 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   prettier,
   {
-    // Node globals for plain-ESM tooling files (TS files get them via @types/node)
+    // Node + browser globals that plain-ESM tooling files legitimately use
+    // (TS files get theirs from @types/node).
     files: ["scripts/**", "**/*.mjs"],
     languageOptions: {
       globals: {
         console: "readonly",
         process: "readonly",
+        performance: "readonly",
+        URL: "readonly",
       },
     },
   },

@@ -54,6 +54,27 @@ The prompt cites "corrections-file item 4" for the Ch8 plateau decision and
 **item 8** (items 1–4 are the Chapter 4 corrections; 5–8 are carried forward).
 The repo file is internally consistent; no action needed beyond noting it.
 
+## Session 3 subagent diagnostic (Section 5 requirement)
+
+Three deliberately tiny, isolated probes (list directories; read one exported
+constant; one arithmetic question) were dispatched in parallel.
+
+**Verdict: subagents function normally on the current API.** All three
+completed in a single round-trip with correct, minimal answers. The Session 2
+`Provider response headers timed out after 300000ms` failures were therefore
+**provider-side on the previous API**, not a runner timeout, task-size problem,
+or model-specific limit — nothing to configure differently. Delegation is
+available again for any task, including critical path, subject to rule 11.
+
+**Rule 11 caught something real immediately:** probe C recomputed the flat
+series and reported a predicted 14-day change of −0.100 WPM, contradicting the
+−0.0500 in `docs/recompute-plateau.mjs`. Re-deriving by hand settled it: the
+x values `[0,2,4,…,14]` are **day indices**, so the fitted slope is already
+per-day and no unit conversion applies. My recorded numbers stand; the probe's
+conversion was wrong. The plateau verdict is unaffected under either reading
+(both are far inside the 0.2107 population SD), but the corrected arithmetic is
+what goes in the record. This is the verification rule earning its keep.
+
 ## Process incidents (logged plainly)
 
 - 2026-09-28 | **I merged a red CI run.** Block A's branch (task/s3-a-preflight,

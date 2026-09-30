@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>S4 tokenizer feasibility</title>
+  </head>
+  <body>
+    <pre id="out">loading…</pre>
+    <script type="module">
+      // S4: lazy-load the Tree-sitter runtime and one grammar, tokenize the
+      // chapter's worked example, and expose the token map for the spec.
+      // The runtime is imported dynamically so it is NOT in any initial
+      // bundle — this is the lazy-load proof.
+      const SOURCE = "if (count >= max) {";
+
+      // Master-spec §7.2 12-class mapping, as used by chapter 9 §9.2.1.
+      // NOTE: order and exact matching matter. A substring test such as
+      // nodeType.includes("if") matches "identifier" (id-IF-ier) and would classify
+      // every identifier in the language as a keyword — a bug this spike hit and
+      // pinned with a test.
+      const KEYWORD_NODES = new Set([
+        "if",
+        "else",
+        "for",
+        "while",
+        "return",
+        "function",
+        "const",
+        "let",
+        "var",
+        "class",
+        "import",
+        "export",
+        "try",
+        "catch",
+        "switch",
+        "case",
+        "break",
+        "continue",
+        "new",
+        "typeof",
+        "instanceof",
+        "await",
+        "async",
+        "throw",
+      ]);
+      const CLASS_OF = (nodeType, text) => {
+        if (/^\s+$/.test(text)) return "whitespace";
+        if (nodeType === "identifier") return "identifier";
+        if (KEYWORD_NODES.has(nodeType)) return "keyword";
+        if (["(", ")", "{", "}", "[", "]"].includes(text)) return "bracket";
+        if (nodeType.includes("comparison_operator") || /^[<>=!+\-*/%&|^~]+$/.test(text)) {
+          return "operator";
+        }
+        return `other(${nodeType})`;
+      };
+
+      const out = document.getElementById("out");
+      try {
+        const t0 = performance.now();
+        // 0.25.x ships tree-sitter.js (0.27 renamed it to web-tree-sitter.js);
+        // the pinned pair is what makes the prebuilt grammars loadable.
+        const mod = await import("/node_modules/web-tree-sitter/tree-sitter.js");
+        const Parser = mod.Parser ?? mod.default?.Parser;
+        const Language = mod.Language ?? mod.default?.Language;
+        await Parser.init();
+        const runtimeReadyMs = performance.now() - t0;
+
+        const t1 = performance.now();
+        const js = await Language.load(
+          "/node_modules/tree-sitter-wasms/out/tree-sitter-javascript.wasm",
+        );
+        const grammarReadyMs = performance.now() - t1;
+
+        const parser = new Parser();
+        parser.setLanguage(js);
+        const tree = parser.parse(SOURCE);
+
+        const tokens = [];
+        const cursor = tree.walk();
+        // Leaves of the tree are the tokens.
+        const collect = () => {
+          if (cursor.gotoFirstChild()) {
+            do {
+              collect();
+            } while (cursor.gotoNextSibling());
+            cursor.gotoParent();
+          } else if (cursor.nodeType === "identifier" || cursor.nodeType !== "ERROR") {
+            const text = cursor.nodeText;
+            tokens.push({
+              text,
+              start: cursor.startPosition.column,
+              end: cursor.endPosition.column,
+              nodeType: cursor.nodeType,
+              cls: CLASS_OF(cursor.nodeType, text),
+            });
+          }
+        };
+        collect();
+
+        // Compress consecutive whitespace leaves so the token map matches the
+        // chapter's table shape (whitespace is listed separately there too).
+        window.__s4 = {
+          source: SOURCE,
+          runtimeReadyMs,
+          grammarReadyMs,
+          tokens,
+          nodeTypeCount: tree.rootNode.descendantCount,
+          errorCount: tree.rootNode.hasError ? 1 : 0,
+        };
+        out.textContent = JSON.stringify(window.__s4, null, 2);
+      } catch (err) {
+        window.__s4 = { error: String(err && err.stack ? err.stack : err) };
+        out.textContent = window.__s4.error;
+      }
+    </script>
+  </body>
+</html>

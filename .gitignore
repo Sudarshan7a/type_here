@@ -14,7 +14,7 @@ test-results/
 playwright-report/
 .playwright/
 
-# environment / secrets — never commit
+# environment / secrets â€” never commit
 .env
 .env.*
 !.env.example
@@ -44,3 +44,4 @@ Thumbs.db
 spikes/s6-hidden-tab/model.js
 spikes/s3-parity/*.js
 spikes/s3-parity/tsconfig.build.tsbuildinfo
+spikes/s4-tokenizer/diag.mjs
