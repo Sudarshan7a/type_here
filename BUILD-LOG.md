@@ -2,12 +2,63 @@
 
 ## Current Position
 Phase: Phase 0 — Validate + Set Up (Track B; Track A pending human action) · Session 2 running Block A
-Last completed task: Block F (session 2 close)
-Next task: M1 continuation (state machine §4.10, error alignment/classification, aggregation) + chapter-4 edge-case fixtures E1-E10 as named tests; S4 spike (Tree-sitter WASM) is still unstarted
+Last completed task: Block A (pre-flight check on Session 2's claims — one real defect found and fixed)
+Next task: Block B (resolve carried-forward Ch8 SD + levels-05 decisions), then Block C (S4 spike, parity harness), then Block D (engine state machine, alignment, aggregation)
 Last updated: 2026-09-28
+
+## Session 3 pre-flight findings (Block A)
+
+Verified in a clean `git worktree` at HEAD 8b50e0d, exactly as a new
+contributor would: `pnpm install --frozen-lockfile`, `pnpm lint`,
+`pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm build`,
+`pnpm check:bundle` — all green.
+
+| Session 2 claim | Verified value | Verdict |
+|---|---|---|
+| engine coverage 98% | 98.45 / 97.34 / 96.29 / 98.78 (stmts/branch/funcs/lines) | ✅ CONFIRMED |
+| bundle 66.3 KB | 66.3 KB gzip (budget 200 KB) | ✅ CONFIRMED |
+| engine tests: 30 | **29** | ✏️ WRONG — see F1 |
+| telemetry tests: 97 | 97 | ✅ CONFIRMED (my first measurement of 194 was polluted by F1) |
+| docs/pr-log entries match real merges | 3 spot-checks (b1-contracts, b2-recorder, a5-web-headers) map to merges 8670208, 79a5616, 1ce9c90 | ✅ CONFIRMED |
+| chapter corrections recorded | 4 Chapter 4 entries + 4 carried-forward | ✅ CONFIRMED (numbering below) |
+
+### F1 — vitest discovered compiled test files in `dist/` (REAL DEFECT, FIXED)
+
+**Finding:** every package's vitest config used the default include glob, so
+after `tsc` emitted into `dist/`, the compiled copies of the test files
+(`dist/tests/*.test.js`) were executed as a second suite. Measured: telemetry
+194 tests instead of 97 (exactly 2×), engine 30 instead of 29.
+
+**Why it matters:** a stale compiled test can pass while the source test fails,
+which defeats rule 3 (test-first) and rule 5 (no vacuous gates). CI never saw
+it because CI runs unit tests *before* build — so this only bit developers who
+ran `build` then `test`, which is the common local loop.
+
+**Fix:** each vitest config now pins `include: ["tests/**/*.test.ts"]` (web:
+`*.test.ts?(x)`), so only sources are discovered.
+
+**Proof the fix is non-vacuous (rule 5):** with `dist/` present, engine = 29
+tests and telemetry = 97 — identical to the pre-build counts. Before the fix,
+the same runs reported 30 and 194.
+
+### F2 — Session 2 report claimed 30 engine tests (DOCUMENTATION)
+
+Off by one, caused by F1's duplicate discovery. True count: **29** (7 fixture
+suites × 2 + 13 unit + 2 contract). Session 2's report figure was never
+verified against a clean tree — exactly the gap Block A exists to close.
+
+### F3 — Session 3 prompt cross-references are off by one (PROMPT, not repo)
+
+The prompt cites "corrections-file item 4" for the Ch8 plateau decision and
+"item 7" for the levels-05 decision. In the file those are **item 5** and
+**item 8** (items 1–4 are the Chapter 4 corrections; 5–8 are carried forward).
+The repo file is internally consistent; no action needed beyond noting it.
 
 ## Autonomous decisions made
 (Newest first. Format: date | decision | 1-2 sentence reasoning | which section of this prompt justified it)
+
+- 2026-09-28 | Session 3 subagent diagnostic: the Session 2 "provider response headers timed out after 300000ms" failures are reported by the Session 3 brief to be provider-side on the previous API and not applicable now. This session therefore delegates only *after* verifying with tiny isolated probes, and every subagent output is verified locally before merge (Section 1 rule 11). | Section 1 rule 11 + brief note
+- 2026-09-28 | F1 fix: pin vitest `include` to `tests/**` rather than adding `exclude: ["dist/**"]`. A narrow include is the stronger statement of intent (sources are tests) and cannot be defeated by a new build-output directory. | Section 1 rules 3, 5
 
 - 2026-09-28 | Subagent delegation was abandoned mid-session: two agents hit the 300 s provider response cap and one was cancelled. Their on-disk work was finished by the main agent (engine E2-E6, S6 spike) rather than respawning agents that would fail identically. The contracts.md ownership model is retained for a future session. | Session 2 Section 3 blocks C/D/E; practical provider limits
 - 2026-09-28 | S6 model bug fixed, not the test: `wallStartMs === 0` was used as a "never started" sentinel, but the fake clock legitimately starts at 0, so wall duration was always 0. Replaced with a nullable sentinel. The four failing tests were correct. | Section 2.3 spirit (never weaken a test to pass)
