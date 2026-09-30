@@ -7,6 +7,7 @@
     "pnpm": ">=11"
   },
   "scripts": {
+    "dev": "pnpm --filter @realtype/web --filter @realtype/api --parallel dev",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
