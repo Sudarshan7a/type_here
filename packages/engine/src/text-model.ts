@@ -6,7 +6,18 @@
  */
 import type { KeyEvent } from "@realtype/schemas";
 
-export type ErrorMode = "free" | "must-correct" | "stop-on-error";
+/**
+ * Engine-internal error modes.
+ *
+ * `no-backspace` is implemented here but is NOT yet in the public contract:
+ * `packages/schemas` still declares a three-value `errorMode` enum, so a
+ * `no-backspace` InputLog cannot be constructed or validated yet. The engine
+ * behaviour is complete and unit-tested; the enum extension is registered as
+ * `EXTERNAL DECISION REQUIRED` in HUMAN-ACTIONS.md with the proposed bump to
+ * CONTRACT_VERSION 1.3.0. Until the human decides, the public surface keeps
+ * exactly the three modes it has always accepted.
+ */
+export type ErrorMode = "free" | "must-correct" | "stop-on-error" | "no-backspace";
 
 export interface TextModel {
   /** The target text being typed. */
@@ -84,6 +95,16 @@ export function applyPress(model: TextModel, event: KeyEvent): PressOutcome {
   }
 
   if ([...event.key].length !== 1 && event.key !== "Backspace") return "ignored";
+
+  // D03 (exam, no-backspace): Backspace is not a correction, it is simply not a
+  // key. It is ignored outright — never inserted, never counted as a
+  // keystroke, never allowed to pop the buffer. The check must come BEFORE
+  // totalAttempts is incremented, or a held-down Backspace would inflate the
+  // attempt count. KSPC is therefore unaffected, which is the point: an
+  // exam-mode result must not be improvable with a key the candidate may not
+  // use.
+  if (event.key === "Backspace" && model.mode === "no-backspace") return "ignored";
+
   model.totalAttempts += 1;
 
   if (event.key === "Backspace") {
@@ -121,7 +142,7 @@ export function applyPress(model: TextModel, event: KeyEvent): PressOutcome {
     return "rejected";
   }
 
-  if (model.mode !== "free" && !isCorrectPress(model, event.key)) {
+  if (model.mode === "must-correct" && !isCorrectPress(model, event.key)) {
     // First wrong press in must-correct mode: it is NOT inserted; it opens
     // the pending-error state that Backspace (or the correct key) clears.
     model.rejected = event;

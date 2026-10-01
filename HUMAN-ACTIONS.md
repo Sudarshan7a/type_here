@@ -14,6 +14,29 @@ to proceed; full evidence in `docs/pr-log/s4-block-f-close.md`.
 - [ ] **F1/F9: a typo in the root `dev` filter yields a silent half-stack** | `pnpm --filter @realtype/webb ...` prints "No projects matched" but still starts the remaining filters and exits 0. Today's filters are correct (verified), so this is latent. It matters because the list is a hard-coded allowlist: a third service added later is silently omitted rather than flagged. | 20 min | Nothing yet; real when a third service is added | A bad filter name fails loudly |
 - [ ] **F4: the README's "Ctrl-C stops both" is unverified** | The harness could not deliver Ctrl-C to the process group, so that claim rests on reasoning, not on a test. | 10 min | Nothing | Confirmed while doing the manual engine test below (starting/stopping the servers is the same act) |
 
+### `errorMode` enum: add `no-backspace` (D03) and, later, `word-locked` (D04)
+
+- **ITEM:** Extend the public `errorMode` enum in `packages/schemas` from three values to five.
+- **STATUS:** `EXTERNAL DECISION REQUIRED`
+- **WHY REQUIRED:** this is a **public data contract change**, and Section 9 rule 7 says a change to a public data contract must not be made silently. `TypingSettings.errorMode` is a `z.enum` in `packages/schemas/src/typing-settings.ts:19` and is stamped into every `InputLog`, so the change reaches stored data and anything that validates it. The master spec lists both modes under ENG-03 as `[V1]` additions, so they are wanted — the question is only whether to version them now.
+- **TECHNICAL WORK COMPLETED:** the **engine behaviour for both modes is implemented and unit-tested** (`packages/engine/src/text-model.ts`, `tests/engine-units.test.ts`). D03 no-backspace: Backspace is ignored before `totalAttempts` is incremented, so KSPC is unaffected and a held key cannot inflate the attempt count; mistakes still enter the text, because with no Backspace there is nowhere for them to go. D02 stop-on-error shipped in full (ENG-FIXTURE-D02) because it needed no contract change. Nothing about the public surface has changed: the schema still accepts exactly the three values it always has.
+- **TECHNICAL WORK REMAINING (blocked on this decision):** the `ENG-FIXTURE-D03` and `ENG-FIXTURE-D04` **fixtures**, because `fixtures/helpers.ts` builds a log with `errorMode` in its metadata and the schema would reject the new values. The fixture expectations themselves are already derived and need no further work.
+- **EXACT PROPOSED CHANGE** (the smallest change that unblocks both):
+  ```
+  packages/schemas/src/typing-settings.ts:19
+  - errorMode: z.enum(["free", "must-correct", "stop-on-error"]),
+  + errorMode: z.enum(["free", "must-correct", "stop-on-error", "no-backspace", "word-locked"]),
+  packages/schemas/src/index.ts:7
+  - export const CONTRACT_VERSION = "1.2.0";
+  + export const CONTRACT_VERSION = "1.3.0";
+  ```
+  **Minimal bump: 1.2.0 → 1.3.0 (minor).** It is additive — the three existing values keep their exact meaning and every previously valid log stays valid — so it is a minor bump, not a major one. This matches how CONTRACT_VERSION reached 1.2.0 in Session 2 ("extended additively").
+- **PREPARED AUTOMATION:** `packages/schemas/tests/limits.test.ts` and `contracts.test.ts` already cover the enum, so a new value gets boundary coverage for free; the fixtures become constructible the moment the enum widens.
+- **PREPARED TEST:** the engine unit tests for D03 exist and pass today. The fixture tests (which additionally assert the schema accepts the value) are written and will pass once the enum widens — they are the reason this is a contract decision and not a test-writing job.
+- **PREPARED ANALYSIS:** the `word-locked` value is the one the BUILD-LOG has flagged as a contract gap since Session 4, so folding it into the same bump resolves both open items at once. Splitting them into two bumps would mean two schema reviews for one enum.
+- **RECOMMENDATION** (a recommendation, not a decision): take the 1.3.0 minor bump and add both values. Doing `no-backspace` alone would leave D04 blocking on a second review of the same line, and the engine already implements both.
+- **LAST CHECKED:** 2026-10-01 (Session 5, recorded while implementing D03)
+
 ## EXTERNAL DECISION REQUIRED (blocks nothing technical; answer with a `docs/handoff/RESPONSE-<n>.md`)
 
 ### Retest cadence — day 0/30, day 0/30/60, or day 0/14/30
