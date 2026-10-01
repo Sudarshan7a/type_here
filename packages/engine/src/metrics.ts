@@ -218,7 +218,21 @@ function summarise(
   filtered: Filtered,
   options: ComputeOptions,
 ): EngineResult {
-  const presses = filtered.scoringPresses;
+  /**
+   * Scoring presses that belong to the attempt.
+   *
+   * In stop-on-error (D02) the run halts at the first error, so every press
+   * after `haltedAtT` happened *after the attempt was over*. The capture keeps
+   * recording them, but they are not part of the test: including them would
+   * extend the scored duration, drag IKI down, and let a halted run be dragged
+   * out to the end of the target by typing on. Truncating at the halt is what
+   * makes "elapsed time freezes at that instant" true.
+   */
+  const allPresses = filtered.scoringPresses;
+  // Captured in a local const so the narrowing survives into the closure:
+  // `model` is mutable, so TS cannot narrow `model.haltedAtT` inside `filter`.
+  const haltedAtT = model.haltedAtT;
+  const presses = haltedAtT === null ? allPresses : allPresses.filter((p) => p.t <= haltedAtT);
   const printable = presses.filter((p) => p.key !== "Backspace");
   const first = presses[0];
   const last = presses[presses.length - 1];

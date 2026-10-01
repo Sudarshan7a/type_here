@@ -16,6 +16,14 @@ export interface TextModel {
   buffer: string[];
   /** A wrong character awaiting correction (must-correct / stop-on-error). */
   rejected: KeyEvent | null;
+  /**
+   * stop-on-error: the first error ended the run (chapter 4 D02). Time freezes
+   * here and every later press is unscored. This is what separates D02 from
+   * D01 — must-correct opens a correction path and the test continues.
+   */
+  halted: boolean;
+  /** Timestamp of the halting error, or null. The frozen end of the attempt. */
+  haltedAtT: number | null;
   /** Accepted user inserts, with the time they landed (burst/IKI/consistency). */
   inserts: { key: string; t: number; correct: boolean }[];
   /** Accepted Backspaces (the KSPC numerator includes them). */
@@ -34,6 +42,8 @@ export function createTextModel(target: string, mode: ErrorMode): TextModel {
     mode,
     buffer: [],
     rejected: null,
+    halted: false,
+    haltedAtT: null,
     inserts: [],
     backspaces: 0,
     rejectedAttempts: 0,
@@ -56,6 +66,13 @@ export type PressOutcome = "inserted" | "corrected" | "rejected" | "cleared" | "
 export function applyPress(model: TextModel, event: KeyEvent): PressOutcome {
   if (event.type !== "down" || event.repeat) return "ignored";
   if (event.isTrusted === false) return "ignored";
+
+  // stop-on-error (D02): the run already ended at the first error. Later
+  // presses are real physical keystrokes, but they are past the end of the
+  // attempt, so counting them would inflate the denominator and let someone
+  // "finish" a halted test by typing on.
+  if (model.halted) return "ignored";
+
   if (event.auto) {
     // Auto-inserted characters are part of the produced text (auto-pair), but
     // they are never counted as user keystrokes.
@@ -95,8 +112,17 @@ export function applyPress(model: TextModel, event: KeyEvent): PressOutcome {
     return "rejected";
   }
 
+  if (model.mode === "stop-on-error" && !isCorrectPress(model, event.key)) {
+    // D02: the first error IS the end of the run. The press is a real physical
+    // keystroke, so totalAttempts counts it, but it is not inserted and it does
+    // not open a pending rejection — there is no correction path in this mode.
+    model.halted = true;
+    model.haltedAtT = event.t;
+    return "rejected";
+  }
+
   if (model.mode !== "free" && !isCorrectPress(model, event.key)) {
-    // First wrong press in a correcting mode: it is NOT inserted; it opens
+    // First wrong press in must-correct mode: it is NOT inserted; it opens
     // the pending-error state that Backspace (or the correct key) clears.
     model.rejected = event;
     model.rejectedAttempts += 1;
