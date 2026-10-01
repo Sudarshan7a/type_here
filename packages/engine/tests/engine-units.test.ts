@@ -153,15 +153,15 @@ describe("text model (E4)", () => {
     applyPress(model, down("c", 0));
     applyPress(model, down("x", 10));
     applyPress(model, down("a", 20));
-    applyPress(model, down("t", 30));
-    expect(model.buffer.join("")).toBe("cxat");
+    expect(model.buffer.join("")).toBe("cxa");
 
-    // The word is finished and it is wrong. The space that would advance to the
-    // next word is refused, and so is any other press, so the user cannot move
-    // on and fix it later.
-    expect(applyPress(model, down(" ", 40))).toBe("rejected");
-    expect(applyPress(model, down("s", 50))).toBe("rejected");
-    expect(model.buffer.join("")).toBe("cxat");
+    // "cat" occupies target positions 0-2, so three presses fill it. The word
+    // is now complete and wrong, so the caret is at the boundary and every
+    // forward press is refused — including the correct space, which is exactly
+    // the mistake the mode exists to prevent.
+    expect(applyPress(model, down(" ", 30))).toBe("rejected");
+    expect(applyPress(model, down("s", 40))).toBe("rejected");
+    expect(model.buffer.join("")).toBe("cxa");
     expect(model.rejectedAttempts).toBe(2);
   });
 
@@ -170,23 +170,45 @@ describe("text model (E4)", () => {
     applyPress(model, down("c", 0));
     applyPress(model, down("x", 10));
     applyPress(model, down("a", 20));
-    applyPress(model, down("t", 30));
-    expect(applyPress(model, down(" ", 40))).toBe("rejected");
+    expect(applyPress(model, down(" ", 30))).toBe("rejected");
 
     // Backspace inside the word is permitted — that is the whole point of the
-    // mode. Pop the bad character, retype it, and the caret is released.
-    expect(applyPress(model, down("Backspace", 50))).toBe("corrected");
+    // mode, and the only way out of a locked word.
+    expect(applyPress(model, down("Backspace", 40))).toBe("corrected");
+    expect(model.buffer.join("")).toBe("cx");
+
+    // Retyping the same wrong key does not help; the word must actually match.
+    expect(applyPress(model, down("a", 50))).toBe("inserted");
     expect(model.buffer.join("")).toBe("cxa");
-    expect(applyPress(model, down("t", 60))).toBe("inserted");
-    expect(model.buffer.join("")).toBe("cxat");
-    expect(applyPress(model, down(" ", 70))).toBe("rejected");
+    expect(applyPress(model, down(" ", 60))).toBe("rejected");
+
+    // Back out to the start of the word and type it properly.
+    expect(applyPress(model, down("Backspace", 70))).toBe("corrected");
     expect(applyPress(model, down("Backspace", 80))).toBe("corrected");
-    expect(applyPress(model, down("t", 90))).toBe("corrected");
-    expect(applyPress(model, down("a", 100))).toBe("inserted");
+    expect(model.buffer.join("")).toBe("c");
+    expect(applyPress(model, down("a", 90))).toBe("inserted");
+    expect(applyPress(model, down("t", 100))).toBe("inserted");
     expect(model.buffer.join("")).toBe("cat");
-    // Now the word is clean and the caret moves on.
+
+    // The word is clean, so the caret is released and the run continues.
     expect(applyPress(model, down(" ", 110))).toBe("inserted");
     expect(model.buffer.join("")).toBe("cat ");
+    expect(applyPress(model, down("s", 120))).toBe("inserted");
+    expect(model.buffer.join("")).toBe("cat s");
+  });
+
+  it("word-locked: a blocked press is still a real attempt, so KSPC is honest", () => {
+    const model = createTextModel("cat sat", "word-locked");
+    applyPress(model, down("c", 0));
+    applyPress(model, down("x", 10));
+    applyPress(model, down("a", 20));
+    applyPress(model, down(" ", 30));
+    // Four physical presses: three characters and the refused space. The
+    // refusal is a real keystroke the user made, so it must count as an attempt
+    // rather than being quietly dropped from the denominator.
+    expect(model.totalAttempts).toBe(4);
+    expect(model.rejectedAttempts).toBe(1);
+    expect(model.halted).toBe(false);
   });
 
   it("word-locked: a correct word passes straight through", () => {
@@ -200,19 +222,6 @@ describe("text model (E4)", () => {
     expect(applyPress(model, down(" ", 50))).toBe("inserted");
     expect(model.rejectedAttempts).toBe(0);
     expect(model.buffer.join("")).toBe("cat s ");
-  });
-
-  it("word-locked: a blocked press is still a real attempt, so KSPC is honest", () => {
-    const model = createTextModel("cat sat", "word-locked");
-    applyPress(model, down("c", 0));
-    applyPress(model, down("x", 10));
-    applyPress(model, down("a", 20));
-    applyPress(model, down("t", 30));
-    applyPress(model, down(" ", 40));
-    // Six physical presses: four characters plus the refused space.
-    expect(model.totalAttempts).toBe(5);
-    expect(model.rejectedAttempts).toBe(1);
-    expect(model.halted).toBe(false);
   });
 
   it("word-locked: the last word of the text is locked too (no trailing space)", () => {

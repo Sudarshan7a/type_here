@@ -9,6 +9,8 @@
  * No network. No storage. No metrics. Ever.
  */
 
+import type { ErrorMode } from "@realtype/schemas";
+
 export interface RawKeyInput {
   code: string;
   key: string;
@@ -28,7 +30,7 @@ export interface MetaInput {
   textHash: string;
   layout: string;
   settings: {
-    errorMode: "free" | "must-correct" | "stop-on-error";
+    errorMode: ErrorMode;
     autoIndent: boolean;
     autoPair: boolean;
     layout: "qwerty-us" | "qwerty-uk" | "dvorak" | "colemak-dh" | "azerty" | "qwertz";

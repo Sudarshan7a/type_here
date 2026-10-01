@@ -12,6 +12,7 @@
 import type { KeyEvent, LogMarker } from "@realtype/schemas";
 
 import { filterEvents, integrityFlags } from "./input-filter.js";
+import type { ErrorMode } from "./text-model.js";
 import { applyPress, correctCharsInFinalText, createTextModel, finalText } from "./text-model.js";
 
 /** Version of the metric formulas below. Old results keep their own stamp. */
@@ -199,7 +200,7 @@ export interface ComputeOptions {
 export function computeFromEvents(
   target: string,
   events: KeyEvent[],
-  errorMode: "free" | "must-correct" | "stop-on-error",
+  errorMode: ErrorMode,
   options: ComputeOptions = {},
 ): EngineResult {
   const filtered = filterEvents(events);

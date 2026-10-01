@@ -4,20 +4,18 @@
  * The buffer models what the user has actually produced, character by
  * character, with must-correct rejection (chapter 4 §4.5). Pure logic, no DOM.
  */
-import type { KeyEvent } from "@realtype/schemas";
+import type { ErrorMode as SchemaErrorMode, KeyEvent } from "@realtype/schemas";
 
 /**
- * Engine-internal error modes.
+ * Error modes.
  *
- * `no-backspace` is implemented here but is NOT yet in the public contract:
- * `packages/schemas` still declares a three-value `errorMode` enum, so a
- * `no-backspace` InputLog cannot be constructed or validated yet. The engine
- * behaviour is complete and unit-tested; the enum extension is registered as
- * `EXTERNAL DECISION REQUIRED` in HUMAN-ACTIONS.md with the proposed bump to
- * CONTRACT_VERSION 1.3.0. Until the human decides, the public surface keeps
- * exactly the three modes it has always accepted.
+ * Derived from the public `errorMode` enum in `@realtype/schemas` rather than
+ * written out by hand, so the engine and the contract cannot drift apart: a new
+ * mode added to the schema and forgotten here is a typecheck failure instead of
+ * a runtime surprise. `no-backspace` (D03) and `word-locked` (D04) joined the
+ * contract in CONTRACT_VERSION 1.3.0.
  */
-export type ErrorMode = "free" | "must-correct" | "stop-on-error" | "no-backspace";
+export type ErrorMode = SchemaErrorMode;
 
 export interface TextModel {
   /** The target text being typed. */
@@ -65,6 +63,35 @@ export function createTextModel(target: string, mode: ErrorMode): TextModel {
 
 function isCorrectPress(model: TextModel, key: string): boolean {
   return model.target[model.buffer.length] === key;
+}
+
+/**
+ * Index one past the last character of the word the caret is currently in.
+ * A text with no trailing space therefore ends at `target.length`, which is why
+ * the last word is locked by the same rule as every other one.
+ */
+function wordEndFor(target: string, index: number): number {
+  const space = target.indexOf(" ", index);
+  return space === -1 ? target.length : space;
+}
+
+/**
+ * D04 (word-locked): the caret may not leave the current word until every
+ * character of it is correct (chapter 4 part 2, fixture ENG-FIXTURE-D04).
+ *
+ * The mode deliberately does NOT reject a wrong key the way must-correct does.
+ * The typo is kept and visible, and Backspace keeps working, so the user can see
+ * the mistake and fix it — what they cannot do is carry the mistake into the
+ * next word. Those two halves are the whole point of the mode, so this returns
+ * false for any caret still inside the word.
+ */
+function wordLockedAtBoundary(model: TextModel): boolean {
+  if (model.mode !== "word-locked") return false;
+
+  const end = wordEndFor(model.target, model.buffer.length);
+  if (model.buffer.length < end) return false; // still inside the word
+
+  return model.buffer.slice(0, end).join("") !== model.target.slice(0, end);
 }
 
 export type PressOutcome = "inserted" | "corrected" | "rejected" | "cleared" | "ignored";
@@ -146,6 +173,15 @@ export function applyPress(model: TextModel, event: KeyEvent): PressOutcome {
     // First wrong press in must-correct mode: it is NOT inserted; it opens
     // the pending-error state that Backspace (or the correct key) clears.
     model.rejected = event;
+    model.rejectedAttempts += 1;
+    return "rejected";
+  }
+
+  if (wordLockedAtBoundary(model)) {
+    // D04: the current word is finished and it is wrong. Every forward press is
+    // refused, including the correct space, so the mistake cannot be carried
+    // into the next word. Backspace never reaches this point: it is handled
+    // above, which is what makes correction within the word possible.
     model.rejectedAttempts += 1;
     return "rejected";
   }

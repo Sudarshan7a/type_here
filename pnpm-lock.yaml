@@ -141,6 +141,9 @@ importers:
 
   packages/telemetry:
     devDependencies:
+      '@realtype/schemas':
+        specifier: workspace:*
+        version: link:../schemas
       '@types/node':
         specifier: ^24.0.0
         version: 24.19.0
