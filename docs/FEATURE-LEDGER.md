@@ -54,7 +54,15 @@ ADR-005 and only a `RESPONSE` or `STEER` file can enable it. `—` means no flag
 
 Progress is reported as:
 
-    MVP x/97 | V1 x/74 | V2 x/12 | LATER x/13 | LAUNCH-GATED n | BLOCKED-EXTERNAL n | REJECTED n | overall x/216
+    MVP x/97 | V1 x/74 | V2 x/12 | LATER x/13 | UNTAGGED x/20 | LAUNCH-GATED n | BLOCKED-EXTERNAL n | REJECTED n | overall x/216
+
+**`UNTAGGED` is not optional prose — it is 20 rows.** It was missing from this
+format until Session 6, and the effect was that every report printed denominators
+summing to 196 next to `overall x/216`. The buckets are: the 17 `NFR-*` rows, whose
+table in `docs/spec/master-spec-v1.md` §8 has **no tag column at all**, and the
+three rows the spec tags literally `[Policy]` (`INT-10`, `BIZ-06`, `RET-21`). A
+ledger with no untagged rows must still print the slot if the rows exist, which is
+what `pnpm check:ledger` now enforces against this file and `BUILD-LOG.md`.
 
 A row reaches `DONE-VERIFIED` only with test-first evidence and a green gate. A row
 is `LAUNCH-GATED` only once it has been **built and tested with its flag both ON and

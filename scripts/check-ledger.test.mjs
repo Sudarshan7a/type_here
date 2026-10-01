@@ -1,11 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import {
-  findFormatProblems,
-  findProgressProblems,
-  isProgressLine,
-} from "./check-ledger.mjs";
+import { findFormatProblems, findProgressProblems, isProgressLine } from "./check-ledger.mjs";
 
 // A tracker that reports its own progress from a format with a hole in it.
 //
@@ -34,10 +30,7 @@ const GOOD_LINE =
 
 test("a progress line is recognised; unrelated prose is not", () => {
   assert.equal(isProgressLine(GOOD_LINE), true);
-  assert.equal(
-    isProgressLine("| MVP | 97 |\n| LATER | 13 |\n| **Total** | **216** |"),
-    false,
-  );
+  assert.equal(isProgressLine("| MVP | 97 |\n| LATER | 13 |\n| **Total** | **216** |"), false);
   assert.equal(isProgressLine("Baseline: 265 tests, 0 failures."), false);
   assert.equal(isProgressLine(""), false);
 });
@@ -70,23 +63,39 @@ test("GOOD CASE: a complete line is accepted", () => {
 // --- each invariant on its own ------------------------------------------
 
 test("denominators must sum to the overall denominator", () => {
-  const line =
-    "MVP 5/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 0/25 | overall 5/221";
+  // Every denominator is the ledger's own count, so the sum can only disagree
+  // with the total because the total is wrong.
+  const line = "MVP 5/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 0/20 | overall 5/200";
   const problems = findProgressProblems(line, LEDGER);
-  assert.equal(problems.length, 1, JSON.stringify(problems));
-  assert.match(problems[0], /sum to 221/);
+  assert.ok(
+    problems.some((p) => p.includes("sum to 216") && p.includes("200")),
+    `expected the sum to be spelled out, got: ${JSON.stringify(problems)}`,
+  );
+});
+
+test("a single wrong denominator is named, and the sum and total are checked too", () => {
+  const line = "MVP 5/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 0/25 | overall 5/221";
+  const problems = findProgressProblems(line, LEDGER);
+  assert.equal(problems.length, 2, JSON.stringify(problems));
+  assert.ok(
+    problems.some((p) => p.includes("UNTAGGED") && p.includes("25") && p.includes("20")),
+    JSON.stringify(problems),
+  );
+  // 97 + 74 + 12 + 13 + 25 is 221, so the sum agrees and is correctly silent.
+  assert.ok(
+    !problems.some((p) => p.includes("sum to")),
+    `the sum does match here, so it must not be reported: ${JSON.stringify(problems)}`,
+  );
 });
 
 test("the overall denominator must equal the ledger row count", () => {
-  const line =
-    "MVP 5/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 0/20 | overall 5/215";
+  const line = "MVP 5/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 0/20 | overall 5/215";
   const problems = findProgressProblems(line, LEDGER);
   assert.ok(problems.some((p) => p.includes("215") && p.includes("216")));
 });
 
 test("each denominator must equal the ledger's own count for that family", () => {
-  const line =
-    "MVP 5/90 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 0/27 | overall 5/216";
+  const line = "MVP 5/90 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 0/27 | overall 5/216";
   const problems = findProgressProblems(line, LEDGER);
   assert.ok(
     problems.some((p) => p.includes("MVP") && p.includes("90") && p.includes("97")),
@@ -96,11 +105,22 @@ test("each denominator must equal the ledger's own count for that family", () =>
 });
 
 test("numerators must sum to the overall numerator", () => {
-  const line =
-    "MVP 4/97 | V1 1/74 | V2 0/12 | LATER 0/13 | UNTAGGED 0/20 | overall 5/216";
+  // Every denominator here is exactly right, so this can only be caught by the
+  // numerator check itself. An earlier version of this fixture used
+  // `MVP 4/97 | V1 1/74 ... overall 5/216`, where 4 + 1 happens to equal the
+  // claimed 5 — the test passed for the wrong reason and would have let a
+  // genuinely wrong numerator through.
+  const line = "MVP 3/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 0/20 | overall 5/216";
   const problems = findProgressProblems(line, LEDGER);
   assert.equal(problems.length, 1, JSON.stringify(problems));
-  assert.match(problems[0], /numerators/);
+  assert.match(problems[0], /numerators sum to 3/);
+});
+
+test("numerators that do sum are not reported even when the ledger is behind", () => {
+  // The check is arithmetic, not "does this look plausible": a line whose
+  // numerators genuinely add up must pass, however far behind the ledger is.
+  const line = "MVP 1/97 | V1 1/74 | V2 0/12 | LATER 0/13 | UNTAGGED 0/20 | overall 2/216";
+  assert.deepEqual(findProgressProblems(line, LEDGER), []);
 });
 
 test("a line with no overall figure is unverifiable, so it is rejected", () => {
@@ -117,8 +137,7 @@ test("a ledger with no untagged rows does not demand an UNTAGGED slot", () => {
     doneVerified: 5,
     byTag: { MVP: 97, V1: 74, V2: 12, LATER: 13 },
   };
-  const line =
-    "MVP 5/97 | V1 0/74 | V2 0/12 | LATER 0/13 | LAUNCH-GATED 0 | overall 5/196";
+  const line = "MVP 5/97 | V1 0/74 | V2 0/12 | LATER 0/13 | LAUNCH-GATED 0 | overall 5/196";
   assert.deepEqual(findProgressProblems(line, fullyTagged), []);
 });
 
@@ -141,7 +160,10 @@ test("BAD CASE: a format statement with no UNTAGGED slot is rejected", () => {
 });
 
 test("GOOD CASE: a format statement covering every bucket is accepted", () => {
-  assert.deepEqual(findFormatProblems(GOOD_LINE.replace(/\d+/g, "x"), LEDGER), []);
+  const format =
+    "MVP x/97 | V1 x/74 | V2 x/12 | LATER x/13 | UNTAGGED x/20 | " +
+    "LAUNCH-GATED n | BLOCKED-EXTERNAL n | REJECTED n | overall x/216";
+  assert.deepEqual(findFormatProblems(format, LEDGER), []);
 });
 
 test("a format statement for a fully tagged ledger needs no UNTAGGED slot", () => {
@@ -150,8 +172,7 @@ test("a format statement for a fully tagged ledger needs no UNTAGGED slot", () =
     doneVerified: 5,
     byTag: { MVP: 97, V1: 74, V2: 12, LATER: 13 },
   };
-  const shipped =
-    "MVP x/97 | V1 x/74 | V2 x/12 | LATER x/13 | LAUNCH-GATED n | overall x/196";
+  const shipped = "MVP x/97 | V1 x/74 | V2 x/12 | LATER x/13 | LAUNCH-GATED n | overall x/196";
   assert.deepEqual(findFormatProblems(shipped, fullyTagged), []);
 });
 
