@@ -8,12 +8,27 @@ import type { ErrorMode, InputLog, KeyEvent, LogMarker, TypingText } from "@real
 
 const NO_MODS = { shift: false, ctrl: false, alt: false, meta: false } as const;
 
-/** KeyboardEvent.code for every key used by the chapter fixtures. */
+/**
+ * KeyboardEvent.code for every key used by the chapter fixtures and by the
+ * typing-surface tests.
+ *
+ * The mapping is explicit and throws on anything unknown, on purpose: a fixture
+ * that silently invents a `code` would score against a key that does not exist,
+ * which is how a fixture ends up passing for the wrong reason.
+ */
 export function codeFor(key: string): string {
   if (key === " ") return "Space";
   if (key === "Backspace") return "Backspace";
   if (key === ".") return "Period";
+  if (key === ",") return "Comma";
+  if (key === "'") return "Quote";
+  if (key === "(") return "Digit9";
+  if (key === ")") return "Digit0";
   if (/^[a-z]$/.test(key)) return `Key${key.toUpperCase()}`;
+  // Shifted letters keep the physical key's code, which is what makes layout
+  // attribution survive a wrong-case keystroke (chapter 4 E3).
+  if (/^[A-Z]$/.test(key)) return `Key${key}`;
+  if (/^[0-9]$/.test(key)) return `Digit${key}`;
   throw new Error(`fixtures/helpers: no code mapping for key ${JSON.stringify(key)}`);
 }
 

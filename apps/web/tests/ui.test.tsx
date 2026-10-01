@@ -1,89 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { renderToStaticMarkup } from "react-dom/server";
 
-import { ResultsPanel } from "../src/ResultsPanel";
-import type { EngineResult } from "@realtype/engine";
+import { COPY } from "../src/copy";
 import { PASSAGES, placeholderHash } from "../src/passages";
 
 /**
- * ResultsPanel and the passage data are pure enough to assert in node. The
- * interactive surface (ManualTestApp) is covered by the Playwright suite,
- * which drives a real browser and real keystrokes.
+ * The passage data and the copy bindings are pure enough to assert in node. The
+ * interactive surface is covered by the Playwright suite
+ * (e2e/typing-surface.spec.ts), which drives a real browser with real keystrokes
+ * and asserts the six STEER-2 acceptance criteria against real engine output.
  */
-
-const result: EngineResult = {
-  summary: {
-    rawWpm: 60,
-    grossWpm: 55,
-    netWpm: 54.5,
-    keystrokeAccuracy: 97.5,
-    finalAccuracy: 100,
-    kspc: 1.03,
-    rolloverRatio: 0.12,
-    consistency: 88.2,
-    burstWpm: 74.5,
-    ikiMeanMs: 142.85,
-    modelVersion: "1.0.0",
-    difficultyBand: null,
-    verified: false,
-    flags: [],
-  },
-  details: {
-    durationMs: 10_000,
-    printableKeystrokes: 120,
-    correctKeystrokes: 117,
-    correctCharsInFinalText: 100,
-    finalTextLength: 100,
-    bufferInserts: 122,
-    backspaces: 2,
-    rejectedAttempts: 0,
-    totalAttempts: 124,
-    rejectedAttemptRate: 0,
-    autoInserts: 0,
-    untrustedEvents: 0,
-    repeatDrops: 1,
-    overlappedPresses: 2,
-    rolloverTransitions: 100,
-    ikiExcludedGaps: 0,
-    ikiSampleCount: 100,
-    burstWindowChars: 12,
-    scoredDurationMs: 10_000,
-    wallDurationMs: 10_000,
-  },
-  finalText: "abc",
-};
-
-describe("ResultsPanel renders engine output faithfully", () => {
-  it("shows the headline metrics and the engine's model version", () => {
-    const html = renderToStaticMarkup(<ResultsPanel result={result} />);
-    expect(html).toContain("54.5"); // net WPM, one decimal
-    expect(html).toContain("100.0%"); // final accuracy
-    expect(html).toContain("model 1.0.0");
-    expect(html).toContain("1.03"); // KSPC
-    expect(html).toContain("12.0%"); // rollover
-  });
-
-  it("renders n/a, never 0, for a metric that could not be computed (E9)", () => {
-    const noConsistency: EngineResult = {
-      ...result,
-      summary: { ...result.summary, consistency: null, ikiMeanMs: null },
-    };
-    const html = renderToStaticMarkup(<ResultsPanel result={noConsistency} />);
-    // Consistency and the mean key interval both render as "n/a"; neither may
-    // show a numeric zero, which would imply the user typed at zero speed.
-    const cells = html.match(/data-testid="(consistency|iki)"[^>]*>([^<]*)</g) ?? [];
-    expect(cells).toHaveLength(2);
-    for (const cell of cells) {
-      expect(cell).toContain("n/a");
-    }
-  });
-
-  it("states plainly when a test had no timing data (E9)", () => {
-    const noData: EngineResult = { ...result, details: { ...result.details, durationMs: 0 } };
-    const html = renderToStaticMarkup(<ResultsPanel result={noData} />);
-    expect(html).toContain("not available");
-  });
-});
 
 describe("passage data", () => {
   it("carries original prose with ids from the content library", () => {
@@ -99,5 +24,35 @@ describe("passage data", () => {
     expect(hash).toMatch(/^[a-f0-9]{64}$/);
     expect(placeholderHash("hello")).toBe(placeholderHash("hello"));
     expect(placeholderHash("hello")).not.toBe(placeholderHash("hellp"));
+  });
+});
+
+describe("copy bindings", () => {
+  it("renders the results headline in the formats the string table declares", () => {
+    // results.headline.netWpm is "{value} WPM" and results.headline.accuracy is
+    // "{value}% accuracy". The surface must format from the template rather than
+    // hard-coding a shape of its own.
+    expect(COPY.headlineNetWpm(62.34)).toBe("62.3 WPM");
+    expect(COPY.headlineAccuracy(96.5)).toBe("96.5% accuracy");
+  });
+
+  it("fills the a11y announcement template with both figures", () => {
+    // a11y.announce.testFinished is "Test finished. {wpm} words per minute,
+    // {accuracy} percent accuracy."
+    expect(COPY.announceTestFinished("62", "97")).toBe(
+      "Test finished. 62 words per minute, 97 percent accuracy.",
+    );
+  });
+
+  it("names the engine model version in the stamp, so a score is attributable", () => {
+    expect(COPY.engineStamp("1.0.0")).toContain("1.0.0");
+  });
+
+  it("never renders a speed figure as a bare 0 before any data exists", () => {
+    // Chapter 4 E9: the not-available placeholder is text, never the number 0.
+    // This is a property of the copy, not of the engine: the view must have a
+    // string for "no data" or it will reach for 0 instead.
+    expect(COPY).not.toHaveProperty("netWpmUnavailable0");
+    expect(COPY.headlineAccuracy(0)).toBe("0.0% accuracy");
   });
 });

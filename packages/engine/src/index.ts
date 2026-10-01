@@ -21,6 +21,19 @@ export {
   type EngineResult,
 } from "./metrics.js";
 
+export { perMinuteWpm } from "./wpm.js";
+
+export { computeLiveSummary, type LiveSummary, type LiveSummaryOptions } from "./live-summary.js";
+
+export {
+  CHAR_STATES,
+  charStatesForModel,
+  correctStateCount,
+  deriveCharStates,
+  type CharState,
+  type CharStateOptions,
+} from "./char-states.js";
+
 export {
   filterEvents,
   integrityFlags,

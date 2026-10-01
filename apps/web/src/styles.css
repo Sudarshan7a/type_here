@@ -1,10 +1,32 @@
+/**
+ * RealType styles.
+ *
+ * Two rules from AGENTS.md and the accessibility target shape this file:
+ *
+ *  1. No state is signalled by colour alone (WCAG 2.2 AA, and the project's own
+ *     non-negotiable). Each character state carries a distinct non-colour cue —
+ *     underline style, font weight or strikethrough — so the surface is readable
+ *     in greyscale, in forced-colours mode, and to a colour-blind reader. Colour
+ *     is added on top of those cues, never instead of them.
+ *
+ *  2. Nothing animates during typing except the caret, and the caret's movement
+ *     is a `transform` (compositor-only) so it cannot force layout. The
+ *     transition is inside `prefers-reduced-motion: no-preference`, so a reader
+ *     who asks for reduced motion gets none at all rather than a shorter one.
+ */
+
 :root {
   --fg: #16181d;
   --bg: #ffffff;
   --surface: #f4f5f7;
+  --border: #16181d;
+  --muted: #5b6270;
   --correct: #0a7d33;
-  --wrong: #d21f3c;
+  --incorrect: #c0142f;
+  --extra: #8a4b00;
+  --missed: #5b6270;
   --caret: #16181d;
+  --focus: #0b57d0;
   color-scheme: light dark;
 }
 
@@ -13,10 +35,19 @@
     --fg: #e8eaed;
     --bg: #14161a;
     --surface: #1e2126;
-    --correct: #4ade80;
-    --wrong: #fb7185;
+    --border: #e8eaed;
+    --muted: #a6adba;
+    --correct: #5ddb8b;
+    --incorrect: #ff8fa3;
+    --extra: #f0b45e;
+    --missed: #a6adba;
     --caret: #e8eaed;
+    --focus: #8ab4f8;
   }
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
@@ -27,110 +58,266 @@ body {
 }
 
 main {
-  max-width: 52rem;
+  max-width: 60rem;
   margin: 0 auto;
   padding: 1.5rem 1rem 4rem;
 }
 
 h1 {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
+  margin: 0 0 1rem;
 }
 
 .banner {
-  border: 2px dashed currentColor;
+  border: 1px solid var(--border);
+  border-radius: 6px;
   padding: 0.6rem 0.8rem;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  color: var(--muted);
 }
 
 .controls {
   display: flex;
   gap: 0.6rem;
   align-items: center;
-  margin: 1rem 0 0.5rem;
+  margin: 1rem 0 0.75rem;
   flex-wrap: wrap;
 }
 
-.hint {
-  opacity: 0.8;
-  font-size: 0.95rem;
+.note {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* ---- typing surface ----------------------------------------------------- */
+
+/*
+ * The prompt overlays the surface instead of sitting in the flow. That is a UX
+ * choice and a correctness one: the controls below the surface (Restart, New
+ * passage) are reachable by mouse, and inserting or removing a block above them
+ * on focus change moves the target inside the mousedown-to-mouseup window, which
+ * is precisely when a browser decides whether a click happened.
+ */
+.surface-row {
+  position: relative;
 }
 
 .passage {
   position: relative;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: ui-monospace, "Cascadia Mono", SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 1.25rem;
-  line-height: 1.9;
+  line-height: 2;
   padding: 1rem 0.75rem;
   background: var(--surface);
-  border: 2px solid var(--fg);
-  outline-offset: 2px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  outline-offset: 3px;
   white-space: pre-wrap;
   word-break: break-word;
+  cursor: text;
 }
 
 .passage:focus-visible {
-  outline: 3px solid var(--fg);
+  outline: 3px solid var(--focus);
 }
 
-.ch-pending {
-  opacity: 0.45;
+/* The live surface keeps focus without a visible ring being acceptable: focus is
+   shown by the prompt disappearing and the caret appearing, but a ring is still
+   the reliable signal, so it is never removed here. */
+.passage:focus {
+  outline: 3px solid var(--focus);
 }
 
-.ch-correct {
-  color: var(--correct);
+.ch {
+  /* The character the user has not reached yet. Dimmed, and no decoration — the
+     absence of a cue IS the "nothing typed yet" cue. */
+  color: var(--muted);
+  opacity: 0.65;
 }
 
-.ch-wrong {
-  color: var(--wrong);
-  text-decoration: underline wavy;
+.ch[data-char-state="correct"] {
+  /* Correct: plain and unmarked. It has to be the visually quiet state, because
+     it is by far the most common one during a test. */
+  color: var(--fg);
+  opacity: 1;
+  font-weight: 400;
+  text-decoration: none;
 }
 
+.ch[data-char-state="incorrect"] {
+  /* Incorrect: a WAVY underline plus heavier weight. Both are non-colour cues,
+     so this state survives greyscale, forced colours and colour blindness. */
+  color: var(--incorrect);
+  opacity: 1;
+  font-weight: 700;
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  text-underline-offset: 0.2em;
+}
+
+.ch[data-char-state="extra"] {
+  /* Extra: a DOUBLE underline plus italics — a shape distinct from both the wavy
+     incorrect underline and the unmarked correct character. */
+  color: var(--extra);
+  opacity: 1;
+  font-weight: 700;
+  font-style: italic;
+  text-decoration-line: underline;
+  text-decoration-style: double;
+  text-underline-offset: 0.2em;
+}
+
+.ch[data-char-state="missed"] {
+  /* Missed: struck through plus a dotted underline. A character the user never
+     produced must not be mistaken for one they produced wrongly. */
+  color: var(--missed);
+  opacity: 1;
+  font-weight: 400;
+  text-decoration-line: line-through underline;
+  text-decoration-style: dotted;
+}
+
+/*
+ * The caret. Moved with `transform` only — `left`/`top` would relayout on every
+ * keystroke, which is the difference between a compositor-only update and a
+ * forced reflow. `will-change` is declared once here rather than toggled per
+ * keystroke, since toggling it is itself a layout-affecting change.
+ */
 .caret {
   position: absolute;
   top: 1rem;
   left: 0.75rem;
   width: 2px;
-  height: 1.5em;
+  height: 1em;
   background: var(--caret);
+  pointer-events: none;
   will-change: transform;
-}
-
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: 0.75rem;
-  margin: 1rem 0;
-}
-
-.metrics div {
-  border: 1px solid currentColor;
-  padding: 0.5rem 0.7rem;
-}
-
-.metrics dt {
-  font-size: 0.85rem;
-  opacity: 0.8;
-}
-
-.metrics dd {
-  margin: 0.2rem 0 0;
-  font-size: 1.3rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.note {
-  opacity: 0.8;
-  font-size: 0.85rem;
-}
-
-button,
-select {
-  font-size: 1rem;
-  padding: 0.4rem 0.8rem;
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .caret {
-    transition: transform 40ms ease-out;
+    transition: transform 40ms linear;
+  }
+}
+
+.focus-prompt {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 0.95rem;
+  /* It must not eat the clicks aimed at the surface itself. */
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.live-bar {
+  display: flex;
+  gap: 1.25rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin: 0.75rem 0;
+  font-size: 0.95rem;
+}
+
+.live-label {
+  color: var(--muted);
+  margin-right: 0.35rem;
+}
+
+.live-value {
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.live-hint {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-left: auto;
+}
+
+.finished {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem 0.9rem;
+  margin: 1rem 0;
+}
+
+.headline {
+  display: flex;
+  gap: 1.25rem;
+  margin: 0 0 0.5rem;
+  font-size: 1.4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.finished-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 0 0 0.4rem;
+}
+
+.passage-id {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin: 1rem 0 0;
+}
+
+/* ---- utilities ---------------------------------------------------------- */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+button,
+select {
+  font: inherit;
+  font-size: 1rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* Interactive targets stay at or above 24x24 CSS px (WCAG 2.2). */
+button,
+select,
+.passage {
+  min-height: 24px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+  /* In forced-colours mode the OS palette wins and our colours are dropped, so
+     the non-colour cues above are all the user has left. Borders keep the
+     structure visible. */
+  .ch[data-char-state="correct"] {
+    color: CanvasText;
+  }
+  .ch[data-char-state="missed"] {
+    color: GrayText;
+  }
+  .caret {
+    background: CanvasText;
   }
 }

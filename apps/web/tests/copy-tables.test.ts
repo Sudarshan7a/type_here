@@ -13,7 +13,9 @@ import { fileURLToPath } from "node:url";
  * the ONLY thing ever announced, and it must never fire per keystroke.
  */
 
-const DOC = fileURLToPath(new URL("../../../docs/content-ui-copy-string-tables.md", import.meta.url));
+const DOC = fileURLToPath(
+  new URL("../../../docs/content-ui-copy-string-tables.md", import.meta.url),
+);
 const text = readFileSync(DOC, "utf8");
 
 /** Parse `| \`key\` | Text | notes |` rows out of the string tables. */
@@ -75,9 +77,7 @@ describe("typing surface copy conforms to docs/content-ui-copy-string-tables.md"
   });
 
   it("the a11y announcement is the only string marked as never per-keystroke", () => {
-    const line = text
-      .split("\n")
-      .find((l) => l.includes("`a11y.announce.testFinished`"));
+    const line = text.split("\n").find((l) => l.includes("`a11y.announce.testFinished`"));
     expect(line).toBeDefined();
     expect(line).toMatch(/never per-keystroke/i);
   });

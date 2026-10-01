@@ -17,6 +17,7 @@
 | `nav.dashboard` | Dashboard | |
 | `nav.settings` | Settings | |
 | `action.restart` | Restart | Also bound to Tab key |
+| `action.newPassage` | New passage | Loads the next passage; the typing surface never reloads the same text back at the user |
 | `action.next` | Next | |
 | `action.skip` | Skip for now | Used wherever an optional step exists |
 | `action.save` | Save | |
@@ -49,7 +50,11 @@
 | `home.duration.120s` | 120s | |
 | `home.duration.custom` | Custom | |
 | `home.hint.firstVisit` | Start typing whenever you're ready. | Shown once, first visit only, fades after first keystroke |
+| `home.hint.unfocused` | Click here to start typing. | The persistent unfocused prompt. Distinct from `home.hint.firstVisit`, which is a once-only hint: this one stays until the surface has focus |
 | `home.hint.restart` | Press Tab to restart | Small, unobtrusive hint near the mode bar |
+| `home.live.netWpm` | Net WPM | Label beside the live figure while typing |
+| `home.live.accuracy` | Accuracy | Label beside the live figure while typing |
+| `home.state.paused` | Paused — click here to continue when you're ready. | Practice mode pauses on focus loss; no timer is shown running |
 | `home.difficultyBadge.easy` | Easy | |
 | `home.difficultyBadge.typical` | Typical | |
 | `home.difficultyBadge.hard` | Hard | |

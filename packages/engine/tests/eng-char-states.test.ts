@@ -119,10 +119,7 @@ describe("deriveCharStates — the five character states", () => {
     const typed = ["t", "h", "X", " ", "c", "a", "t"];
     const result = computeFromEvents(
       target,
-      [
-        ...typed.map((k, i) => keyDown(k, i * 100)),
-        ...typed.map((k, i) => keyUp(k, i * 100 + 40)),
-      ],
+      [...typed.map((k, i) => keyDown(k, i * 100)), ...typed.map((k, i) => keyUp(k, i * 100 + 40))],
       "free",
     );
     const states = deriveCharStates(target, typed, { finished: false });

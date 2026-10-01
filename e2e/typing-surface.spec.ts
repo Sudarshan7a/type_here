@@ -12,7 +12,8 @@ import { expect, test } from "@playwright/test";
  */
 
 /** The first passage, from apps/web/src/passages.ts (PROSE-01-004). */
-const PASSAGE = "Dinner's ready whenever you are. I made extra rice in case your brother stops by later tonight.";
+const PASSAGE =
+  "Dinner's ready whenever you are. I made extra rice in case your brother stops by later tonight.";
 
 /** Type a string one character at a time, so each keydown is a real event. */
 async function typeText(page: import("@playwright/test").Page, text: string, delay = 4) {
@@ -35,16 +36,23 @@ test("AC1: a visible caret sits on the current character and moves on every keys
   expect(box!.height).toBeGreaterThan(0);
 
   // The caret must move right as the user types. One character per assertion, so
-  // a caret that jumps on the last keystroke only cannot pass.
-  const positions: number[] = [];
+  // a caret that only jumps on the final keystroke cannot pass.
+  //
+  // The position is polled rather than sampled once: the surface batches its DOM
+  // writes into a requestAnimationFrame (AGENTS.md rule 2 forbids a React render
+  // per keystroke), so the paint lands on the next frame, not synchronously with
+  // the key event. Polling still measures "this keystroke moved the caret", since
+  // only one keystroke is sent between measurements.
+  const x = async () => (await caret.boundingBox())!.x;
   for (const char of "Dinner") {
-    const before = (await caret.boundingBox())!.x;
+    const before = await x();
     await page.keyboard.press(char === " " ? "Space" : char);
-    const after = (await caret.boundingBox())!.x;
-    positions.push(after - before);
-  }
-  for (const [i, delta] of positions.entries()) {
-    expect(delta, `keystroke ${i + 1} must move the caret forward`).toBeGreaterThan(0);
+    await expect
+      .poll(async () => (await x()) > before, {
+        message: `keystroke ${char} must move the caret forward`,
+        timeout: 2_000,
+      })
+      .toBe(true);
   }
 });
 
@@ -55,33 +63,36 @@ test("AC2: every character carries exactly one data-char-state, and the states a
   await page.getByTestId("surface").click();
 
   // Before typing: every character is untyped.
-  let states = await page.locator("[data-char-state]").evaluateAll((els) =>
-    els.map((e) => e.getAttribute("data-char-state")),
-  );
+  let states = await page
+    .locator("[data-char-state]")
+    .evaluateAll((els) => els.map((e) => e.getAttribute("data-char-state")));
   expect(states.length).toBe(PASSAGE.length);
   expect(new Set(states)).toEqual(new Set(["untyped"]));
 
   // Type a correct prefix, one wrong character, then the rest.
   await typeText(page, "DinnXer's ready whenever you are.");
 
-  states = await page.locator("[data-char-state]").evaluateAll((els) =>
-    els.map((e) => e.getAttribute("data-char-state")),
-  );
-  expect(states[0]).toBe("correct");
+  states = await page
+    .locator("[data-char-state]")
+    .evaluateAll((els) => els.map((e) => e.getAttribute("data-char-state")));
+  // The typed text is scored POSITIONALLY, which is what the engine's text model
+  // does: the wrong "X" occupies position 4 and every later character is then
+  // compared one position on from where it belongs. That cascade is the engine's
+  // fixture-pinned behaviour, not a rendering bug, so it is asserted rather than
+  // wished away.
+  expect(states.slice(0, 4)).toEqual(["correct", "correct", "correct", "correct"]);
   expect(states[4]).toBe("incorrect"); // the X typed where an e was expected
-  expect(states[5]).toBe("untyped"); // nothing after it has been typed yet
+  expect(states[5]).toBe("incorrect"); // the shifted cascade, positionally
+  expect(states[40]).toBe("untyped"); // nothing that far in has been typed yet
 
   // No element may carry zero or two states: one attribute value per character.
-  const invalid = await page
-    .locator("[data-char-state]")
-    .evaluateAll((els) =>
-      els
-        .filter((e) => {
-          const v = e.getAttribute("data-char-state");
-          return v === null || !["untyped", "correct", "incorrect", "extra", "missed"].includes(v);
-        })
-        .length,
-    );
+  const invalid = await page.locator("[data-char-state]").evaluateAll(
+    (els) =>
+      els.filter((e) => {
+        const v = e.getAttribute("data-char-state");
+        return v === null || !["untyped", "correct", "incorrect", "extra", "missed"].includes(v);
+      }).length,
+  );
   expect(invalid).toBe(0);
 
   // Not-colour-alone: the non-colour cue for each state must differ from the
@@ -147,9 +158,9 @@ test("AC3: live net WPM and accuracy update while typing, from the engine", asyn
   expect(Number(accText.replace("%", ""))).toBeGreaterThan(0);
 
   // A wrong keystroke must lower the live accuracy, live.
-  const before = Number(await liveAcc.innerText());
+  const before = Number((await liveAcc.innerText()).replace("%", ""));
   await typeText(page, "ZZ", 8);
-  const after = Number(await liveAcc.innerText());
+  const after = Number((await liveAcc.innerText()).replace("%", ""));
   expect(after, "accuracy must fall when wrong characters are typed").toBeLessThan(before);
 });
 
@@ -190,39 +201,54 @@ test("AC5: a finished test shows a headline, Restart (Tab) and New passage, and 
   const finished = page.getByTestId("finished");
   await expect(finished).toBeVisible({ timeout: 15_000 });
 
-  // Headline net WPM + accuracy, per the string table's results.headline.* keys.
+  // Headline net WPM + accuracy. The regexes carry the string table's templates
+  // (results.headline.netWpm = "{value} WPM", results.headline.accuracy =
+  // "{value}% accuracy"), so this asserts the copy conforms and not merely that a
+  // number appeared.
   const headlineWpm = page.getByTestId("headline-net-wpm");
   const headlineAcc = page.getByTestId("headline-accuracy");
-  await expect(headlineWpm).toHaveText(/^\d+(\.\d+)?$/);
-  await expect(headlineAcc).toHaveText(/^\d+(\.\d+)?%$/);
+  await expect(headlineWpm).toHaveText(/^\d+(\.\d+)? WPM$/);
+  await expect(headlineAcc).toHaveText(/^\d+(\.\d+)?% accuracy$/);
 
   // Restart (Tab) and New passage are both offered.
   await expect(page.getByTestId("restart")).toBeVisible();
   await expect(page.getByTestId("new-passage")).toBeVisible();
 
+  // The engine's model version is surfaced on the finished result, which is what
+  // proves the numbers came from packages/engine and were not computed in the
+  // view. This carries over the intent of the old E1 wiring spec.
+  await expect(page.getByTestId("engine-stamp")).toContainText("model 1.0.0");
+
   // Typing after the end changes nothing: no character state moves.
-  const statesBefore = await page.locator("[data-char-state]").evaluateAll((els) =>
-    els.map((e) => e.getAttribute("data-char-state")),
-  );
+  const statesBefore = await page
+    .locator("[data-char-state]")
+    .evaluateAll((els) => els.map((e) => e.getAttribute("data-char-state")));
   await typeText(page, "XXXXXXXXXXXXXXXX", 2);
-  const statesAfter = await page.locator("[data-char-state]").evaluateAll((els) =>
-    els.map((e) => e.getAttribute("data-char-state")),
-  );
+  const statesAfter = await page
+    .locator("[data-char-state]")
+    .evaluateAll((els) => els.map((e) => e.getAttribute("data-char-state")));
   expect(statesAfter).toEqual(statesBefore);
 
-  // Tab restarts: every character is untyped again and the finished panel is gone.
-  await page.keyboard.press("Tab");
-  await expect(finished).toHaveCount(0);
-  const statesRestarted = await page.locator("[data-char-state]").evaluateAll((els) =>
-    els.map((e) => e.getAttribute("data-char-state")),
-  );
-  expect(new Set(statesRestarted)).toEqual(new Set(["untyped"]));
-
-  // New passage loads a different text.
+  // New passage loads a different text. Checked before the restart below, because
+  // restarting clears the finished panel the button lives in.
   const textBefore = await page.getByTestId("passage-id").innerText();
   await page.getByTestId("new-passage").click();
   await expect(page.getByTestId("passage-id")).not.toHaveText(textBefore);
   await expect(page.getByTestId("finished")).toHaveCount(0);
+  const statesAfterNew = await page
+    .locator("[data-char-state]")
+    .evaluateAll((els) => els.map((e) => e.getAttribute("data-char-state")));
+  expect(new Set(statesAfterNew)).toEqual(new Set(["untyped"]));
+
+  // Tab restarts: every character is untyped again and the finished panel is gone.
+  await page.getByTestId("surface").click();
+  await typeText(page, PASSAGE.slice(0, 10), 2);
+  await page.keyboard.press("Tab");
+  await expect(finished).toHaveCount(0);
+  const statesRestarted = await page
+    .locator("[data-char-state]")
+    .evaluateAll((els) => els.map((e) => e.getAttribute("data-char-state")));
+  expect(new Set(statesRestarted)).toEqual(new Set(["untyped"]));
 });
 
 test("AC6: no popups or modals on the typing surface, and reduced motion is respected", async ({
@@ -246,19 +272,53 @@ test("AC6: no popups or modals on the typing surface, and reduced motion is resp
       ".toast",
       ".tooltip",
     ];
-    return selectors.flatMap((s) => [...document.querySelectorAll(s)].map((e) => s));
+    return selectors.flatMap((selector) =>
+      [...document.querySelectorAll(selector)].map(() => selector),
+    );
   });
   expect(interrupts, "no popup, modal or toast may appear while typing").toEqual([]);
 
-  // Reduced motion: the caret's transition must be suppressed, not merely short.
+  // Reduced motion. BOTH directions are asserted, and the first one is the
+  // important one: a page with no stylesheet at all reports a transition duration
+  // of 0s, so checking only the reduced-motion case would pass on a completely
+  // unstyled page. The caret must genuinely animate by default and genuinely
+  // stop when motion is reduced.
+  const motionUnderDefault = await page.getByTestId("caret").evaluate((el) => ({
+    duration: getComputedStyle(el).transitionDuration,
+    property: getComputedStyle(el).transitionProperty,
+    width: getComputedStyle(el).width,
+  }));
+  expect(
+    parseFloat(motionUnderDefault.duration),
+    "the caret must animate by default, or this check proves nothing",
+  ).toBeGreaterThan(0);
+  expect(motionUnderDefault.property).toContain("transform");
+
   await page.emulateMedia({ reducedMotion: "reduce" });
-  const transition = await page
+  const reduced = await page
     .getByTestId("caret")
     .evaluate((el) => getComputedStyle(el).transitionDuration);
-  const durations = transition.split(",").map((t) => t.trim());
-  for (const d of durations) {
+  for (const d of reduced.split(",").map((t) => t.trim())) {
     expect(["0s", "0ms"], `transition-duration must be 0 under reduced motion, got ${d}`).toContain(
       d,
     );
   }
+
+  // The surface must actually be laid out: an unstyled app renders as a wall of
+  // unspaced text, which is exactly what shipped until the stylesheet import was
+  // added. This is the check that would have caught it.
+  const laidOut = await page.getByTestId("surface").evaluate((el) => {
+    const s = getComputedStyle(el);
+    const first = el.querySelector("[data-char-state]");
+    return {
+      fontFamily: s.fontFamily,
+      lineHeight: s.lineHeight,
+      borderTopWidth: s.borderTopWidth,
+      charFontFamily: first === null ? "" : getComputedStyle(first).fontFamily,
+    };
+  });
+  expect(laidOut.fontFamily).toMatch(/mono/i);
+  expect(laidOut.charFontFamily).toMatch(/mono/i);
+  expect(parseFloat(laidOut.lineHeight)).toBeGreaterThan(10);
+  expect(parseFloat(laidOut.borderTopWidth)).toBeGreaterThan(0);
 });

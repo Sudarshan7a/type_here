@@ -6,14 +6,22 @@ export default defineConfig({
     include: ["tests/**/*.test.ts?(x)"],
     coverage: {
       provider: "v8",
-      // Unit tests run in node and cover the pure logic (input adapter,
-      // passage data, header config). The React components are DOM-bound and
-      // are covered by the Playwright suite in CI (e2e/manual-engine-test.spec.ts),
-      // which types through a real browser and asserts real engine output —
-      // a node-environment coverage number for them would be theatre, not
-      // evidence, so they are excluded here rather than counted at 0%.
-      include: ["src/input-adapter.ts", "src/passages.ts", "src/ResultsPanel.tsx"],
-      exclude: ["src/main.tsx", "src/ManualTestApp.tsx", "src/styles.css"],
+      // The denominator is the pure logic only: the input adapter, the passage
+      // data and the copy bindings. Those can be exercised honestly in node, and
+      // the number means something.
+      //
+      // TypingSurface.tsx and App.tsx are deliberately NOT in the denominator.
+      // Their behaviour is event handlers and layout, and node cannot drive
+      // either: most of their lines would show 0% no matter how many tests were
+      // written, which is the "theatre, not evidence" case. What they do get is
+      // real coverage from two places that can actually exercise them —
+      // tests/typing-surface.test.tsx server-renders the markup (accessible name,
+      // live-region politeness, no interrupting chrome, char states), and
+      // e2e/typing-surface.spec.ts drives a real browser through the six STEER-2
+      // acceptance criteria. Counting them at 0% here would understate the suite;
+      // counting them by pretending node reached them would overstate it.
+      include: ["src/input-adapter.ts", "src/passages.ts", "src/copy.ts"],
+      exclude: ["src/main.tsx", "src/styles.css", "src/TypingSurface.tsx", "src/App.tsx"],
       thresholds: { lines: 60, branches: 60, functions: 60, statements: 60 },
     },
   },

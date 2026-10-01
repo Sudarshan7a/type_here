@@ -20,7 +20,7 @@ export interface CaptureOptions {
 }
 
 export class InputCapture {
-  private readonly events: KeyEvent[] = [];
+  private readonly captured: KeyEvent[] = [];
   private readonly markers: LogMarker[] = [];
   /** Clock origin: the first accepted keydown. Until then, time is not spent. */
   private origin: number | null = null;
@@ -74,18 +74,29 @@ export class InputCapture {
   }
 
   get eventCount(): number {
-    return this.events.length;
+    return this.captured.length;
+  }
+
+  /**
+   * The captured events, for replay by the engine.
+   *
+   * Exposed read-only so the surface can hand the SAME events to the text model
+   * and to the metrics. A surface keeping its own parallel buffer would be able
+   * to paint something the engine would never produce.
+   */
+  get events(): readonly KeyEvent[] {
+    return this.captured;
   }
 
   reset(): void {
-    this.events.length = 0;
+    this.captured.length = 0;
     this.markers.length = 0;
     this.origin = null;
   }
 
   toLog(options: CaptureOptions): InputLog {
     return {
-      events: [...this.events],
+      events: [...this.captured],
       ...(this.markers.length > 0 ? { markers: [...this.markers] } : {}),
       meta: {
         mode: options.mode,
@@ -118,7 +129,7 @@ export class InputCapture {
     // Keydowns with auto-repeat are captured with the flag so the engine can
     // drop them; keyups always pass through.
     const at = event.timeStamp > 0 ? event.timeStamp : performance.now();
-    this.events.push({
+    this.captured.push({
       code: event.code,
       key: event.key,
       type,
