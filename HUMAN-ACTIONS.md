@@ -4,15 +4,77 @@ Ordered by what blocks soonest. The agent keeps this current; check items off
 as you do them and note the date. Format: [ ] title | why it matters | time
 estimate | what it blocks | how you will know it is done.
 
+## Typing surface ready to try (Session 7, PR #5)
+
+**The typing surface is ready to try.** Run this from the repository root:
+
+```
+pnpm install
+pnpm --dir apps/web dev
+```
+
+Then open the URL it prints (http://localhost:5173) and type the passage on the
+page. There is no Start button: click the text and start typing. **Tab**
+restarts, **Escape** leaves the surface.
+
+What to look for, and what it means:
+
+- **Latency.** The first character of a word should feel instant. This is the
+  first time the surface exists in the real app, so this is the first honest
+  look at the 16 ms input-to-paint budget (NFR-01). The lab proxy is 15.2 ms,
+  only 5% under budget, so this is worth your eyes.
+- **Caret accuracy.** It should sit exactly on the character you are about to
+  type, and land at the end of the line when the text wraps. If it drifts on a
+  wrapped line, that is a real defect I did not catch — please say so.
+- **Character states.** Correct characters are plain, a mistake gets a wavy
+  underline, and a character you skipped is struck through. They must be
+  distinguishable **without colour** — the rule the project does not bend. Try
+  it in greyscale.
+- **Live numbers.** Net WPM and accuracy update as you type and fall if you stop,
+  because that is what is really happening.
+- **Focus.** Clicking away pauses and shows "Paused"; clicking back continues.
+- **Finished.** Headline net WPM + accuracy, plus Restart and New passage.
+
+- [ ] **Try the typing surface and report anything that feels wrong** | It is the first artifact where you can feel the engine's latency and correctness on a real keyboard. What I cannot test here: your physical layout, Caps Lock, dead keys, IME, and how the caret feels at real typing speed | 10 min | Confidence in M1 before Phase 2 work, and the real-device half of NFR-01 | A note in BUILD-LOG with what you observed. **A "looks fine" is not evidence either way** — the latency budget is 5% under its target, so "felt fine" and "slightly laggy" may both be inside the noise. If you notice anything at all, that is the useful signal.
+- [ ] **Try it on more than one keyboard layout** | The six layout maps were verified from physical key positions, but no human has typed on them with a debugger open | ~15 min per layout | Phase 3 layout support, Phase 6 token attribution | One word typed per layout, with anything that produced the wrong character or the wrong finger noted |
+
 ## Open defects found by the Session 5 attack pass (no human decision needed yet)
 
 Recorded so they are not lost and not rediscovered. No human action is required
 to proceed; full evidence in `docs/pr-log/s4-block-f-close.md`.
 
-- [ ] **F3 (highest): `pnpm dev` reports success with a dead API when port 3000 is busy** | `apps/api/src/server.ts` calls `process.exit(1)` on `EADDRINUSE`, but `tsx watch` swallows the child's exit, so pnpm never sees a failure and the web app comes up looking fine. Invisible today because the test surface makes no API calls; a real trap in Phase 4 when results depend on the API. | 30 min | Phase 4 | An occupied port 3000 makes `pnpm dev` fail loudly (bad case → fail) |
+- [ ] **F3 (highest): `pnpm dev` reports success with a dead API when port 3000 is busy** | `apps/api/src/server.ts` calls `process.exit(1)` on `EADDRINUSE`, but `tsx watch` swallows the child's exit, so pnpm never sees a failure and the web app comes up looking fine. **Higher priority since Session 7:** the typing surface the owner is now invited to try runs behind this exact command, so a stale process on 3000 will look like a working app. Still invisible to the surface itself, which makes no API calls — and that is exactly what makes it a trap in Phase 4, when results depend on the API. | 30 min | Phase 4 | An occupied port 3000 makes `pnpm dev` fail loudly (bad case → fail) |
 - [ ] **F2: port 5173 busy orphans the API on 3000** | pnpm exits loudly, but the `tsx watch` child survives and keeps port 3000 bound — a clean prompt plus a silently occupied port. | 20 min | Phase 4 | Killing the root leaves no listener on 3000 |
 - [ ] **F1/F9: a typo in the root `dev` filter yields a silent half-stack** | `pnpm --filter @realtype/webb ...` prints "No projects matched" but still starts the remaining filters and exits 0. Today's filters are correct (verified), so this is latent. It matters because the list is a hard-coded allowlist: a third service added later is silently omitted rather than flagged. | 20 min | Nothing yet; real when a third service is added | A bad filter name fails loudly |
-- [ ] **F4: the README's "Ctrl-C stops both" is unverified** | The harness could not deliver Ctrl-C to the process group, so that claim rests on reasoning, not on a test. | 10 min | Nothing | Confirmed while doing the manual engine test below (starting/stopping the servers is the same act) |
+- [ ] **F4: the README's "Ctrl-C stops both" is unverified** | The harness could not deliver Ctrl-C to the process group, so that claim rests on reasoning, not on a test. | 10 min | Nothing | Confirmed while starting and stopping the servers for the typing-surface try-it above — same act, and the owner is doing it anyway |
+
+### RESOLVED in Session 7 — the three `[Policy]` ledger rows
+
+- **ITEM:** `INT-10` (no public leaderboards before the integrity layer), `BIZ-06` (no
+  dark patterns) and `RET-21` (the ethics checklist in review for every engagement
+  feature) were `NOT STARTED` with the note "absolute prohibition" and nothing behind
+  them. A prohibition no gate can see is a wish.
+- **STATUS:** `SATISFIED` — enforced by `scripts/check-policies.mjs` (PR #6), wired into
+  CI beside the ledger gate, 20 tests.
+- **WHAT LANDED:** INT-10 fails the build if `CMP-01`/`CMP-02` lose their `OFF` launch
+  flag, if either is worked on before `INT-05..INT-08` are `DONE-VERIFIED`, or if a
+  leaderboard/ranking/race source file appears without stating its own gate in its
+  header. BIZ-06 scans all 95 shipped source files for a monetisation surface and for
+  guilt-framing or hidden-renewal copy, at phrase level so it does not fire on
+  legitimate vocabulary like "streak". RET-21 cannot be checked by any static analysis —
+  it is a property of a human decision — so the gate makes the review non-skippable:
+  any RET row moving past `NOT STARTED` requires a written record at
+  `docs/ethics/<ID>.md`.
+- **HOW THEY WERE VERIFIED:** each was made to fail on the real repository — flipping
+  `CMP-01`'s flag, adding a guilt phrase to a real source file, and moving `RET-01` to
+  `IN PROGRESS` each produced exit 1 naming the offending row. The gate also caught a
+  circularity in itself: it demanded a checklist record from `RET-21`, the row that
+  *defines* the checklist, so `RET-21` is now exempt and its own test pins that.
+- **NOT CLAIMED:** the ledger rows are `IN PROGRESS`, not `DONE-VERIFIED`. A gate that
+  has only ever passed against injected violations has not verified a policy. BIZ-06's
+  billing-flow half stays review-enforced and must be re-verified by a human once
+  `OPS-09` lands.
+- **LAST CHECKED:** 2026-10-02 (Session 7, PR #6)
 
 ### RESOLVED in Session 6 — `errorMode` enum: add `no-backspace` (D03) and `word-locked` (D04)
 
@@ -36,7 +98,7 @@ to proceed; full evidence in `docs/pr-log/s4-block-f-close.md`.
 
 ## Blocks soonest
 
-- [ ] **Try the manual engine test at the end** | It is the first artifact where you can feel the engine's latency and correctness on a real keyboard (Block E). Per STEER-1 this is your call and **the loop does not wait for it**. `pnpm dev` (starts web + api together), pick a passage, press Start, type it. Report anything that feels wrong: latency, wrong counts, caret drift, mis-marked characters. | 10 min | Confidence in M1 before Phase 2 UI work | A note in BUILD-LOG with what you observed (and any bug report). Starting and stopping the servers also settles **F4** above. |
+- [ ] **Set the daily AI usage cap** | The agent currently stops at session boundaries only; you wanted budget-based stops | 5 min | Run-budget honesty (Section 2.5 / Section 0 step 13) | A number exists in the execution prompt Section 6; the agent cites it in BUILD-LOG
 - [ ] **Enable branch protection on main** — **ACCEPTED BY OWNER (STEER-1, Session 6). Do not raise this again.** Session 4 proved empirically that protection was off; Session 6 re-confirmed it via the API (`gh api repos/:owner/:repo/branches/main/protection` → HTTP 404, "Branch not protected"). The owner has decided to run without it and to rely on the agent's merge discipline plus CI-before-merge instead. Recorded as an accepted risk, not an open request.
 - [ ] Live-driver confirmation of the six verified layout maps | The finger maps were derived from physical key positions and cross-checked (same-finger rates land at 14.8–16.0%, matching touch-typing research), but no human has typed on each layout with a debugger open | ~15 min per layout | Phase 3 layout support | One word typed per layout with a key-event inspector, logged in BUILD-LOG
 - [ ] Resolve the AltGr / dead-key characters (QWERTY-UK, AZERTY, QWERTZ) | They currently return `unknown` instead of a guess, which is correct but leaves those symbols un-attributable | 30 min with a live keyboard | Phase 6 token attribution on symbol drills | Each character verified against a real driver and added to (or removed from) `UNKNOWN_LAYOUT_CHARACTERS` in `packages/engine/src/layout-fingers.ts`

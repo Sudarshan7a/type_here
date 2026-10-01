@@ -1,60 +1,145 @@
 # BUILD LOG
 
 ## Current Position
-Phase: Phase 1 (M1 engine) — Session 6 complete. First session driven by owner steering (`docs/handoff/STEER-1.md`, `STEER-2.MD`).
-Last completed task: the errorMode contract bump — CONTRACT_VERSION 1.2.0 → **1.3.0** with `no-backspace` (D03) and `word-locked` (D04), every enum consumer updated, and the D04 word-locked engine behaviour implemented. PR #2. Before that, PR #1 answered the owner's question about the 216-vs-196 ledger discrepancy.
+Phase: Phase 1 (M1 engine) — Session 7 complete, and the first session with a **working typing surface**. Driven by owner steering (`docs/handoff/STEER-3.md`).
+Last completed task: the STEER-2 thin vertical slice of the real typing surface (PR #5), then the three `[Policy]` ledger rows enforced by a gate (PR #6). Both merged `--merge` after CI green.
 Next task, in the owner's stated order:
-1. **D03 + D04 fixtures** (`ENG-FIXTURE-D03`, `ENG-FIXTURE-D04`) — unblocked as of PR #2 and now the cheapest executable work, since the expectations are already derived.
-2. **F3 / F2 / F1-F9 dev-script defects** (STEER-1: "before starting Phase 4"). F3 is the real one: `pnpm dev` reports success with a dead API when port 3000 is busy.
-3. **The STEER-2 thin vertical slice of the real typing surface** — the six acceptance criteria are written out in `STEER-2.MD`. Not started. This is the Phase 3 foundation, not a throwaway.
-Not started: E3 Caps Lock, E5 dead keys, E6 graphemes, E7 paste + server backstop, E8 dual-key, A03 long test (the rest of the Chapter 4 edge fixtures); the weakness model; the content pipeline.
-Open defects: F1–F4/F9 from the Session 5 attack pass (see HUMAN-ACTIONS.md). Also carried: `input-adapter.ts` writes marker timestamps as absolute `performance.now()` while key events are origin-relative, and no test asserts any marker `t` (recorded against ENG-01).
-Ledger: MVP 5/97 DONE-VERIFIED | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 0/20 | LAUNCH-GATED 0 | BLOCKED-EXTERNAL 0 | REJECTED 1 | overall 5/216 (19 IN PROGRESS, 191 NOT STARTED)
-Baseline: **288 tests, 0 failures** (engine 84, telemetry 101, schemas 69, api 4, web 19, recorder 11) + 16 script tests in `scripts/check-ledger.test.mjs`; bundle 71.3 KB of 200 KB; engine coverage 96.21/93.17/95.23/97.46.
-Sessions since last human contact: 0 — the owner filed two STEER files this session.
-Last updated: 2026-10-01
+1. **`ENG-FIXTURE-D03` and `ENG-FIXTURE-D04`** — the two remaining Chapter 4 edge fixtures. Unblocked since PR #2 and still the cheapest executable work. Per the arithmetic protocol the expected numbers must be recomputed independently from the master-spec §6.1 formulas by a script that imports nothing from `packages/engine`, before the fixture is written.
+2. **F3 / F2 / F1-F9 dev-script defects** (STEER-1: "before starting Phase 4"). F3 is the real one: `pnpm dev` reports success with a dead API when port 3000 is busy. Now more important than when first recorded, because the surface the owner is invited to try runs behind that same command.
+3. **Measure input-to-paint in the new surface** (ENG-02 / NFR-01). The surface exists, so the 16 ms p95 budget is finally measurable against the real thing rather than a spike page. The lab proxy to beat is 15.2 ms.
+Not started: E3 Caps Lock, E5 dead keys, E6 graphemes, E7 server backstop, E8 dual-key, A03 long test; the weakness model; the content pipeline; the settings/mode-bar surface.
+Open defects carried: F1–F4/F9 from the Session 5 attack pass (see HUMAN-ACTIONS.md); `input-adapter.ts` marker timestamps are absolute `performance.now()` while key events are origin-relative, and no test asserts any marker `t` (against ENG-01).
+Ledger: MVP 6/97 DONE-VERIFIED | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 0/20 | LAUNCH-GATED 0 | BLOCKED-EXTERNAL 0 | REJECTED 1 | overall 6/216 (23 IN PROGRESS, 186 NOT STARTED)
+Baseline: **336 unit tests, 0 failures** (engine 115, telemetry 101, schemas 69, web 36, recorder 11, api 4) + 36 script tests (`check-ledger` 16, `check-policies` 20) + 10 Playwright tests; bundle 73.5 KB of 200 KB; engine coverage 95.63/92.77/91.78/96.80; web 85.36/85.71/80/84.61.
+Sessions since last human contact: 0 — the owner filed STEER-3 at the start of this session.
+Last updated: 2026-10-02
 
-## Session 6 — the ledger's missing 20 (the owner's question)
+## Session 7 — the typing surface (STEER-2), and three real defects it found
 
-**Answer: the 20 were never missing from the ledger. The report was dropping them.**
+The six acceptance criteria in `docs/handoff/STEER-2.MD` are implemented and each has a
+test named after the criterion it proves (PR #5). The point of the slice was that it
+use the **real engine path**, so two functions went into `packages/engine` rather than
+the view: `deriveCharStates` (the five character states) and `computeLiveSummary` (live
+net WPM and accuracy). The view mirrors the engine's own text model to paint, so it
+cannot show a buffer the engine would not produce.
 
-`docs/FEATURE-LEDGER.md` counts itself correctly — `MVP 97 | V1 74 | V2 12 | LATER 13 | UNTAGGED 20 | total 216` — and always did. What lost the 20 is the *progress format* that every session report, halt file and handoff is required to print (Section 18.10). Its slots are MVP / V1 / V2 / LATER / LAUNCH-GATED / BLOCKED-EXTERNAL / REJECTED. There is no UNTAGGED slot, so every report printed `97+74+12+13 = 196` next to `overall 5/216`.
+**A real engine defect, found by this change's own test (ENG-09).** `filterEvents`
+routed auto-inserted events into their own bucket, but both compute paths replayed only
+the scoring presses. An auto-paired bracket therefore landed in **neither** the produced
+text **nor** the metrics, and every character after it would have been scored against
+the wrong target position. `filterEvents` now returns `textAffecting` and both paths
+replay it, so they cannot drift apart again.
 
-What the 20 are, verified at source rather than assumed:
+**The app has been shipping completely unstyled.** `styles.css` was never imported and
+`index.html` never linked it, so every class name in the components was decoration.
+This also made one of my own gates pass **vacuously**: an unstyled page reports
+`transition-duration: 0s`, which is exactly what the reduced-motion check asserted. AC6
+now asserts both directions — the caret must genuinely animate by default and genuinely
+stop when motion is reduced — plus that the surface is actually laid out.
 
-| Count | Rows | Evidence |
+**Restart and New passage silently swallowed every click.** Losing focus *inserted* the
+focus prompt above the surface, shifting the finished panel between mousedown and
+mouseup, which is the window in which a browser decides whether a click happened. The
+prompt is now an overlay that cannot move the controls under the pointer. This one was
+invisible to unit tests and to any DOM assertion about the buttons existing.
+
+**Not claimed:** everything is `LAB PROXY (browser-inspected)`. The bridge was
+unavailable (`fetch failed`), so this is the Section 16 Playwright fallback. No
+real-device or OS-keyboard evidence, and input-to-paint in this surface is still
+unmeasured. `extra` is derived and unit-tested but not reachable from the keyboard in
+this fixed-length mode: chapter 4 E2 permits capping input at the target length, and
+STEER-2 criterion 5 requires typing after the end to do nothing.
+
+## Session 7 — the three `[Policy]` rows are enforced, not just recorded (PR #6)
+
+STEER-3 asked for the UNTAGGED rows to be handled: NFR-01..17 are ordinary rows
+verified in the phase of their area, and `INT-10`, `BIZ-06` and `RET-21` are policies
+to enforce with a test or lint rule where possible. `scripts/check-policies.mjs` does
+the first two and makes the third non-skippable:
+
+| Row | Enforcement | Honest limit |
 |---|---|---|
-| 17 | `NFR-01`..`NFR-17` | `docs/spec/master-spec-v1.md` §8 is a three-column table, `\| ID \| Area \| Requirement (targets are proposals) \|`. **No tag column exists.** |
-| 3 | `INT-10`, `BIZ-06`, `RET-21` | The spec tags them literally: `**INT-10 [Policy]**`, `**BIZ-06 [Policy]**`, `**RET-21 [Policy]**`. |
+| INT-10 | Competitive rows must hold an `OFF` flag and may not be worked on before INT-05..08 pass; an ungated leaderboard file fails | Only observed failing on injected violations so far |
+| BIZ-06 | Scans 95 source files for a monetisation surface and for guilt-framing / hidden-renewal copy, at phrase level so it does not fire on "streak" | The billing flow does not exist, so the rest stays review-enforced |
+| RET-21 | Requires a written `docs/ethics/<ID>.md` record before any RET row leaves NOT STARTED | It is a property of a human decision; no static check can replace the review |
 
-So `UNTAGGED` is the truthful tag, not a seeding gap. Giving them MVP or V1 labels would have been inventing source metadata the spec does not contain. (NFR-04/05/12 carry `[V1]` markers *inside* their requirement text for a sub-clause only; the row itself is untagged.)
+All three proven to exit 1 on the real repository. The gate also **caught a circularity
+in itself**: run against the real ledger it demanded a checklist record from `RET-21`,
+the row that *defines* the checklist. Applying the rule to the rule is circular, so
+RET-21 is exempt and its own test pins that.
 
-**Fixed in two parts (PR #1).** The format gains an `UNTAGGED` slot; and `check-ledger.mjs` §7 now checks the **report**, which it had never done — every bucket holding rows must be counted, each denominator must equal the ledger's count for that family, denominators must sum to the overall denominator, numerators to the overall numerator, and the overall denominator to the row count. The gate could not see this before because it only ever inspected the tracker, and the tracker was right.
+**None of the three is marked `DONE-VERIFIED`.** A gate that has only ever passed
+against injected violations has not verified a policy, and recording otherwise would be
+exactly the false claim that status exists to prevent.
 
-## Session 6 — decisions taken by the owner (STEER-1, applied and recorded)
+## Session 7 — the owner's ledger question, re-verified rather than repeated
 
-- **errorMode enum:** APPROVED as proposed → CONTRACT_VERSION 1.3.0, `no-backspace` + `word-locked` (PR #2). The hand-written unions in the engine, fixtures and recorder were **deleted** rather than extended, so each now derives `ErrorMode` from `@realtype/schemas` and drift is a typecheck error. Telemetry cannot import schemas, so `packages/telemetry/tests/enum-drift.test.ts` pins `ERROR_MODES` to `ErrorModeSchema.options` exactly — a drift that had already occurred once inside this very change.
-- **Retest cadence:** day 0/30. 0/30/60 and 0/14/30 stay as presets.
-- **Branch protection:** OFF by owner decision. Re-confirmed via the API this session (`gh api …/branches/main/protection` → HTTP 404 "Branch not protected"). Marked ACCEPTED BY OWNER and not raised again.
-- **`gh`:** authenticated. Real PRs from this session: **#1** and **#2**, both `--merge` (never squash, never fast-forward), each verified green before merge.
-- **Manual engine test:** the owner's call at the end; the loop does not wait for it.
+The 20 were already explained and fixed in Session 6 (PR #1). This session re-derived
+the answer from source rather than quoting it, and proved the gate is non-vacuous by
+restoring the pre-fix documents in an isolated copy:
 
-## Session 6 — mistakes found in my own work
+```
+BAD  (UNTAGGED slot removed from the report and the format)
+     gate vs the documents as they shipped -> exit 1, three findings:
+       - UNTAGGED: 20 rows exist but the reported progress line does not count them
+       - reported tag denominators sum to 196, but the line claims overall 216
+       - the documented progress format has no UNTAGGED slot
+GOOD gate vs the fixed documents -> exit 0
+```
 
-- **A PowerShell `Set-Content -Encoding UTF8` rewrote `check-ledger.mjs` with a BOM and mojibake'd every em-dash.** Caught by reviewing the diff; the file was reverted and redone with encoding-safe edits only. Checked: no BOM, 6 em-dashes intact, 0 mojibake, and `git diff -w` shows the change is purely additive apart from one import line.
-- **Three of my own ledger-gate fixtures were wrong and the implementation was stricter than my assertions.** `97+74+12+13+25` is 221, not 220; a fixture whose numerators summed to the claimed total was passing for the wrong reason and would have let a genuinely wrong numerator through. Both fixed, and both cases are now pinned by name in the test file.
-- **One word-locked test fixture was wrong and the engine was right.** I read `cat` as taking four presses and expected a fourth character inside the word; it takes three, so the fourth press is already leaving it. Tests corrected, not the implementation. A duplicate test block left by that edit was removed.
-- **The telemetry allowlist drift was caught only because I thought to check it** after widening the schema — not by any gate. That is why the drift test exists now.
+Independently recounted from the table rows: **216 rows = MVP 97 + V1 74 + V2 12 +
+LATER 13 + UNTAGGED 20**, no duplicate IDs, and the 20 are `NFR-01`..`NFR-17` (master
+spec §8 has no tag column at all) plus `INT-10`, `BIZ-06`, `RET-21` (tagged literally
+`[Policy]`). No new MVP/V1 labels were invented, per STEER-3.
+
+## Session 7 — mistakes found in my own work
+
+1. **Five of my own fixtures were wrong and the engine was right.** Key repeat is
+   dropped so accuracy is 100%, not 50%; stop-on-error does not insert the wrong
+   character so the buffer is 1 char, not 2; word-locked needs three presses to fill a
+   word; and two keystroke-accuracy expectations were miscomputed. Tests corrected, not
+   the implementation. `codeFor` in the fixture helpers was also too narrow (no uppercase
+   or digits) and was widened explicitly rather than made to guess.
+2. **I duplicated the chars-to-WPM conversion** in the first draft of
+   `computeLiveSummary` — precisely the second-implementation failure AGENTS.md rule 3
+   exists to prevent, committed in the change meant to uphold it. Extracted to
+   `packages/engine/src/wpm.ts` with both paths importing it.
+3. **`captureRef` was only created in `restart()`**, which nothing called on mount, so
+   the first keystroke returned early and the surface looked inert. Found by the very
+   first e2e run.
+4. **The first keystroke's feedback was deferred** to the second, because the phase
+   bookkeeping returned before mirroring the buffer. Found by AC1, which asserts the
+   caret moves on *every* keystroke.
+5. **My first e2e assertions were wrong three times**: a headline regex that forbade the
+   string table's mandatory " WPM" suffix, `Number("97.0%")` giving NaN, and asserting
+   a character was untyped when the positional model correctly cascades a substitution.
+6. **The policy gate required `RET-21` to satisfy its own rule**, found only by running
+   it against the real ledger rather than fixtures.
+7. **AC6 could pass on an unstyled page** — my own gate, vacuous by construction until
+   the stylesheet import made it meaningful. Found by asking what a page with no CSS
+   reports for `transition-duration`.
 
 ## Autonomous decisions made
 (Newest first. Format: date | decision | 1-2 sentence reasoning | which section of this prompt justified it)
+
+- 2026-10-02 | **The three `[Policy]` rows are recorded as `IN PROGRESS`, not `DONE-VERIFIED`, even though a working gate now enforces two of them.** A gate that has only ever passed against injected violations has not verified a policy; the honest status names what is true and what is not, and each row's notes state what would finish the job. | Section 13 rule 2 (never fabricate), Section 18.2 (`DONE-VERIFIED` requires verified evidence)
+- 2026-10-02 | **The focus prompt is an overlay rather than a block in the flow.** Inserting it on focus change moved the finished panel inside the mousedown-to-mouseup window, which is exactly when a browser decides whether a click happened — so the owner's Restart and New passage buttons were dead. | Section 4 item 10 (a blind spot becomes a regression test), Section 2 rule 6 (show the gate failing)
+- 2026-10-02 | **`TypingSurface.tsx` and `App.tsx` are excluded from the web coverage denominator**, with the reason written into `vitest.config.ts`. Node cannot drive event handlers or layout, so counting them would show ~37% and mean nothing. What they get instead is real coverage from two places that can reach them: an SSR test in node and the Playwright acceptance criteria. | Section 4 item 10, AGENTS.md rule 3, and the pre-existing convention in that config
+- 2026-10-02 | **BIZ-06 matches phrases, not words.** A word ban would have fired on "streak" the day the streak feature landed; a gate that cries wolf on real product vocabulary gets switched off. A test pins that it does not fire on legitimate copy. | Section 4 item 10
+- 2026-10-02 | **`e2e/manual-engine-test.spec.ts`, `ManualTestApp.tsx` and `ResultsPanel.tsx` were deleted** rather than kept as dead code. The old surface re-implemented character states in the view, which STEER-2 explicitly forbids. All three of the spec's intents are preserved in `typing-surface.spec.ts` (engine-stamp proof, accuracy fall, E9 `n/a`) and the deletion is disclosed in the PR rather than done quietly. | Section 2 rule 4 (never weaken a test for green CI — the intents are kept and the change is disclosed), STEER-2
+- 2026-10-02 | **The chars-to-WPM conversion was extracted to `packages/engine/src/wpm.ts`** after the first draft duplicated it. Two implementations of one metric wearing the same name is the exact failure AGENTS.md rule 3 names, and it would have shipped inside the change written to prevent it. | Section 2 rule 7, AGENTS.md rule 3
+
+## Process incidents (logged plainly)
+
+- 2026-10-02 | **`.gitignore` gained an unrelated line.** `claude-openrouter.ps1` appeared in the working tree during this session, not from my work. It was left uncommitted and unstaged rather than swept into either PR, and is flagged here so it is not mistaken for project state. If it belongs in the repo it needs its own commit and a reason.
+
+## Autonomous decisions made (earlier sessions)
 
 - 2026-10-01 | **The 20 untagged rows stay UNTAGGED rather than being assigned MVP/V1 tags.** The master spec's NFR table has no tag column and the three policy rows are tagged `[Policy]`, so any MVP/V1 label would be invented metadata. The smallest truthful fix was to report the bucket and gate the report. Recorded in `docs/FEATURE-LEDGER.md` and enforced by `check-ledger.mjs` §7. | Section 13 rule 2 (never fabricate), Section 9 (smallest reversible change), Section 4 item 10
 - 2026-10-01 | **`check-ledger.mjs` was made importable** by wrapping the gate in `main()` behind the same `import.meta.url` guard `check-licenses.mjs` already uses, so the pure checks can be unit-tested. Without this the test file could not import the module at all — it exited the process on load. | Section 2 rule 3 (test-first), Section 4 item 12 (attack)
 - 2026-10-01 | **The report gate checks only `BUILD-LOG.md`'s "Current Position"**, not historical session reports. An older report legitimately records older counts; checking those would make the gate lie about history. "Current Position" is current by definition. | Section 4 item 10 (blind spots become regression tests)
 - 2026-10-01 | **`@realtype/schemas` added as a devDependency of `@realtype/telemetry`** so the enum-drift test can compare the allowlist to the contract instead of to a hand-written copy. Dev-only, workspace-internal, MIT. | Section 2 rule 7 (close a blind spot at the source), AGENTS.md rule 3
-- 2026-10-01 | **Real PRs via `gh` for every merge from this session**, per STEER-1. PR #1 and PR #2, both merged `--merge` after CI green. | Section 3 preferred workflow, STEER-1
-- 2026-09-28 | Session 3 subagent diagnostic: the Session 2 "provider response headers timed out after 300000ms" failures are reported by the Session 3 brief to be provider-side on the previous API and not applicable now. This session therefore delegates only *after* verifying with tiny isolated probes, and every subagent output is verified locally before merge (Section 1 rule 11). | Section 1 rule 11 + brief note
+- 2026-10-01 | **Real PRs via `gh` for every merge from this session**, per STEER-1. PRs #1 and #2, both merged `--merge` after CI green. | Section 3 preferred workflow, STEER-1
 
 ## Session 3 pre-flight findings (Block A)
 
@@ -236,6 +321,9 @@ License flags (Section 2.5): every direct dependency is MIT except **typescript 
 
 ## Task history
 (Newest first. Format: date | task ID | branch | PR link | status [merged/awaiting human merge/blocked] | tests added | one-line summary)
+
+- 2026-10-02 | S7-B (policy gate) | task/s7-policy-gate | PR #6, run 36910022081 green, merged `--merge` | merged | 20 (scripts/check-policies.test.mjs) | INT-10, BIZ-06 and RET-21 enforced by a gate instead of sitting as prose; each proven to fail on the real repository; the gate caught a circularity in itself (RET-21 must not satisfy its own rule)
+- 2026-10-02 | S7-A (typing surface) | task/s7-typing-surface | PR #5, runs 36879410876 (red, test-first) + 36908571267 (green), merged `--merge` | merged | 62 (engine +31, web +17, e2e +6, copy +5, script +3 net) | The six STEER-2 acceptance criteria on the real engine path; fixed an engine defect that dropped auto-inserted characters from the text, found that the app has been shipping unstyled so a reduced-motion gate was passing vacuously, and found that the finished panel's buttons swallowed every click
 
 - 2026-10-01 | S6-B (errorMode 1.3.0) | task/s6-b-errormode-130 | PR #2, run 36858729219 green, merged `--merge` | merged | 23 (schemas +13, engine +6, telemetry +4) | CONTRACT_VERSION 1.3.0 with `no-backspace` + `word-locked`; every enum consumer updated and the hand-written unions deleted in favour of types derived from the contract; D04 word-locked implemented; telemetry enum drift is now a test failure
 - 2026-10-01 | S6-A (ledger report gate) | task/s6-a-ledger-progress-line | PR #1, runs 36850614189 (red, test-first) + 36852643188 (green), merged `--merge` | merged | 16 (scripts/check-ledger.test.mjs) | The 20 untagged rows were never missing from the ledger; the mandated report format dropped them. Format fixed, and check-ledger.mjs §7 now checks the report itself.
