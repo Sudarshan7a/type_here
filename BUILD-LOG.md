@@ -1,12 +1,14 @@
 # BUILD LOG
 
 ## Current Position
-Phase: Phase 1 (M1 engine) — Session 5 complete
-Last completed task: A (root `pnpm dev` script added and proven; README corrected after it documented a command that did not exist). Two commits that had been stranded off `main` are reconciled.
-Next task: remaining Chapter 4 edge fixtures — E3 Caps Lock, E5 dead keys, E6 graphemes, E7 paste, E8 dual-key, A03 long test, D02 stop-on-error, D03 no-backspace. D04 (word-locked) needs a TypingSettings contract change first (CONTRACT_VERSION bump — a scope decision).
+Phase: Phase 1 (M1 engine) — Session 5 in progress
+Last completed task: E (D03 no-backspace engine behaviour). Also this session: the Section 18.2 feature ledger (216 rows) with a gate that derives its expected ID set from the specs; the C9 marker/keystroke clock fix; an api test flake; and D02 stop-on-error, which was a mode string carrying must-correct's behaviour since Session 2.
+Next task: remaining Chapter 4 edge fixtures — E3 Caps Lock, E5 dead keys, E6 graphemes, E7 paste + server backstop, E8 dual-key, A03 long test. D03's and D04's *fixtures* are blocked on the `errorMode` enum decision (EXTERNAL DECISION REQUIRED, exact diff in HUMAN-ACTIONS.md); their engine work is done or not started.
 Not started: E7's server-side paste backstop; the weakness model; the content pipeline.
 Open defects: F1–F4/F9 from the Session 5 attack pass (see HUMAN-ACTIONS.md). F3 is the one that matters — `pnpm dev` reports success with a dead API when port 3000 is busy; harmless now, a real trap in Phase 4.
-Sessions since last human contact: 2 (Session 4 close, Session 5)
+Ledger: MVP 5/97 DONE-VERIFIED | V1 0/74 | V2 0/12 | LATER 0/13 | LAUNCH-GATED 0 | BLOCKED-EXTERNAL 0 | REJECTED 1 | overall 5/216 (19 IN PROGRESS, 191 NOT STARTED)
+Baseline: 265 tests, 0 failures; bundle 71.2 KB of 200 KB; engine coverage 96.19/93.06/95.23/97.45.
+Sessions since last human contact: 1 (this one)
 Last updated: 2026-10-01
 
 ## Session 3 pre-flight findings (Block A)
