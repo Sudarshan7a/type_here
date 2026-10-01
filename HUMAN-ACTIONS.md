@@ -14,56 +14,32 @@ to proceed; full evidence in `docs/pr-log/s4-block-f-close.md`.
 - [ ] **F1/F9: a typo in the root `dev` filter yields a silent half-stack** | `pnpm --filter @realtype/webb ...` prints "No projects matched" but still starts the remaining filters and exits 0. Today's filters are correct (verified), so this is latent. It matters because the list is a hard-coded allowlist: a third service added later is silently omitted rather than flagged. | 20 min | Nothing yet; real when a third service is added | A bad filter name fails loudly |
 - [ ] **F4: the README's "Ctrl-C stops both" is unverified** | The harness could not deliver Ctrl-C to the process group, so that claim rests on reasoning, not on a test. | 10 min | Nothing | Confirmed while doing the manual engine test below (starting/stopping the servers is the same act) |
 
-### `errorMode` enum: add `no-backspace` (D03) and, later, `word-locked` (D04)
+### RESOLVED in Session 6 — `errorMode` enum: add `no-backspace` (D03) and `word-locked` (D04)
 
 - **ITEM:** Extend the public `errorMode` enum in `packages/schemas` from three values to five.
-- **STATUS:** `EXTERNAL DECISION REQUIRED`
-- **WHY REQUIRED:** this is a **public data contract change**, and Section 9 rule 7 says a change to a public data contract must not be made silently. `TypingSettings.errorMode` is a `z.enum` in `packages/schemas/src/typing-settings.ts:19` and is stamped into every `InputLog`, so the change reaches stored data and anything that validates it. The master spec lists both modes under ENG-03 as `[V1]` additions, so they are wanted — the question is only whether to version them now.
-- **TECHNICAL WORK COMPLETED:** the **engine behaviour for both modes is implemented and unit-tested** (`packages/engine/src/text-model.ts`, `tests/engine-units.test.ts`). D03 no-backspace: Backspace is ignored before `totalAttempts` is incremented, so KSPC is unaffected and a held key cannot inflate the attempt count; mistakes still enter the text, because with no Backspace there is nowhere for them to go. D02 stop-on-error shipped in full (ENG-FIXTURE-D02) because it needed no contract change. Nothing about the public surface has changed: the schema still accepts exactly the three values it always has.
-- **TECHNICAL WORK REMAINING (blocked on this decision):** the `ENG-FIXTURE-D03` and `ENG-FIXTURE-D04` **fixtures**, because `fixtures/helpers.ts` builds a log with `errorMode` in its metadata and the schema would reject the new values. The fixture expectations themselves are already derived and need no further work.
-- **EXACT PROPOSED CHANGE** (the smallest change that unblocks both):
-  ```
-  packages/schemas/src/typing-settings.ts:19
-  - errorMode: z.enum(["free", "must-correct", "stop-on-error"]),
-  + errorMode: z.enum(["free", "must-correct", "stop-on-error", "no-backspace", "word-locked"]),
-  packages/schemas/src/index.ts:7
-  - export const CONTRACT_VERSION = "1.2.0";
-  + export const CONTRACT_VERSION = "1.3.0";
-  ```
-  **Minimal bump: 1.2.0 → 1.3.0 (minor).** It is additive — the three existing values keep their exact meaning and every previously valid log stays valid — so it is a minor bump, not a major one. This matches how CONTRACT_VERSION reached 1.2.0 in Session 2 ("extended additively").
-- **PREPARED AUTOMATION:** `packages/schemas/tests/limits.test.ts` and `contracts.test.ts` already cover the enum, so a new value gets boundary coverage for free; the fixtures become constructible the moment the enum widens.
-- **PREPARED TEST:** the engine unit tests for D03 exist and pass today. The fixture tests (which additionally assert the schema accepts the value) are written and will pass once the enum widens — they are the reason this is a contract decision and not a test-writing job.
-- **PREPARED ANALYSIS:** the `word-locked` value is the one the BUILD-LOG has flagged as a contract gap since Session 4, so folding it into the same bump resolves both open items at once. Splitting them into two bumps would mean two schema reviews for one enum.
-- **RECOMMENDATION** (a recommendation, not a decision): take the 1.3.0 minor bump and add both values. Doing `no-backspace` alone would leave D04 blocking on a second review of the same line, and the engine already implements both.
-- **LAST CHECKED:** 2026-10-01 (Session 5, recorded while implementing D03)
+- **STATUS:** `SATISFIED` — approved as proposed by `docs/handoff/STEER-1.md`, Session 6.
+- **WHAT LANDED:** `CONTRACT_VERSION` 1.2.0 → **1.3.0**. `ErrorModeSchema` in `packages/schemas/src/typing-settings.ts` is now named and exported, because five other files need the same list. Every consumer that validates the enum was updated in the same change, and the hand-written unions were **deleted** rather than extended: `packages/engine/src/text-model.ts`, `packages/engine/src/metrics.ts`, `packages/engine/fixtures/helpers.ts` and `tools/fixture-recorder/src/capture.ts` now derive `ErrorMode` from `@realtype/schemas`, so a mode added to the contract and forgotten downstream is a typecheck failure. `packages/telemetry` gained `packages/telemetry/tests/enum-drift.test.ts`, which pins `ERROR_MODES` to `ErrorModeSchema.options` exactly — that copy had already drifted once, in this very change.
+- **ALSO LANDED:** the D04 word-locked engine behaviour (6 unit tests). Per chapter 4 part 2 / `ENG-FIXTURE-D04`: a wrong character inside a word is **kept and visible**, Backspace still works, and the caret is held at the word boundary until the word is correct. It is deliberately *not* must-correct, which rejects the wrong key instead.
+- **LAST CHECKED:** 2026-10-01 (Session 6, PR #2)
 
-## EXTERNAL DECISION REQUIRED (blocks nothing technical; answer with a `docs/handoff/RESPONSE-<n>.md`)
-
-### Retest cadence — day 0/30, day 0/30/60, or day 0/14/30
+## Retest cadence — RESOLVED: day 0/30
 
 - **ITEM:** Choose the retest cadence for baselines and the efficacy readout.
-- **STATUS:** `EXTERNAL DECISION REQUIRED`
-- **WHY REQUIRED:** Three different cadences coexist in the project's own sources, and this changes **metric semantics** — it alters what a "retest" means in a number that gets published. Section 18.11 rule 5 forbids picking silently. The sources disagree:
-  - `master-spec-v1.md` §6.6 — **day 0 → day 30**
-  - `master-spec-v1.md` §7.5 (programmer baseline) — **day 0 / 30 / 60**
-  - `BUILD-ROADMAP-START-TO-END.md` Phase 5 — **day 0 / 14 / 30**
-- **TECHNICAL WORK COMPLETED:** ADR-008 records the conflict. The cadence is implemented as a **configuration value**, not a hardcoded constant, with day 0/30 as the default and the other two as named presets. Dependent code (ANA-09 efficacy instrumentation, PRG-17 programmer baseline, MOD-05 baseline) is isolated behind that config, so switching costs one value and a test-fixture change.
-- **TECHNICAL WORK REMAINING:** The presets' fixture sets (which text is "matched difficulty" at each retest) depend on the content pipeline (Phase 2) and cannot be written until content exists.
-- **EXACT EVIDENCE REQUIRED:** `docs/handoff/RESPONSE-<n>.md` containing one line: `RETEST CADENCE: day-0-30 | day-0-30-60 | day-0-14-30`
-- **PREPARED AUTOMATION:** `pnpm check:ledger` verifies the ledger stays consistent; the cadence value is a single exported config with tests on all three presets.
-- **PREPARED TEST:** Each preset has a determinism test asserting the retest interval in days for day 14, 30 and 60.
-- **PREPARED ANALYSIS:** The efficacy readout template (Phase 8) already parameterises the interval, so a later change does not invalidate collected data.
-- **LAST CHECKED:** 2026-10-01 (Session 5, recorded with ADR-008)
-
-**Recommendation** (a recommendation, not a decision): **day 0/30**. It is the cadence the master spec states as the efficacy design, it has the most evidence behind it, and a 30-day gap is long enough to show real change and short enough that people still remember the first test. Choosing it costs nothing, because all three remain available as presets.
+- **STATUS:** `SATISFIED` — `day-0-30`, decided by `docs/handoff/STEER-1.md`, Session 6.
+- **WHY THIS WAS OPEN:** three cadences coexisted in the project's own sources, and the choice changes **metric semantics** — what a "retest" means in a published number. Section 18.11 rule 5 forbids picking silently.
+  - `master-spec-v1.md` §6.6 — day 0 → 30
+  - `master-spec-v1.md` §7.5 (programmer baseline) — day 0 / 30 / 60
+  - `BUILD-ROADMAP-START-TO-END.md` Phase 5 — day 0 / 14 / 30
+- **WHY day 0/30:** it is the cadence the master spec states as the efficacy design, so it is the one the project's own evidence plan was written around. The other two remain implemented as presets (`0/30/60`, `0/14/30`), so the decision costs nothing to reverse.
+- **STILL OPEN (unchanged):** the presets' fixture sets — which text counts as "matched difficulty" at each retest — depend on the content pipeline (Phase 2) and cannot be written until content exists.
+- **LAST CHECKED:** 2026-10-01 (Session 6, `STEER-1.md`)
 
 ## Blocks soonest
 
-- [ ] **Try the manual engine test now** | It is the first artifact where you can feel the engine's latency and correctness on a real keyboard (Block E). `pnpm dev` (starts web + api together), pick a passage, press Start, type it. Report anything that feels wrong: latency, wrong counts, caret drift, mis-marked characters. | 10 min | Confidence in M1 before Phase 2 UI work | A note in BUILD-LOG with what you observed (and any bug report)
-- [ ] Enable branch protection on main (require CI, no direct pushes) | **Session 4 verified empirically that protection is NOT on**: a dry-run push of a throwaway commit to `main` was ACCEPTED by GitHub. Direct pushes remain possible, which is why the merge protocol was violated twice in Session 3. | 10 min | Everything in Section 1 rules 2–3 depends on this | A real (non-dry-run) direct push to main is rejected by GitHub
+- [ ] **Try the manual engine test at the end** | It is the first artifact where you can feel the engine's latency and correctness on a real keyboard (Block E). Per STEER-1 this is your call and **the loop does not wait for it**. `pnpm dev` (starts web + api together), pick a passage, press Start, type it. Report anything that feels wrong: latency, wrong counts, caret drift, mis-marked characters. | 10 min | Confidence in M1 before Phase 2 UI work | A note in BUILD-LOG with what you observed (and any bug report). Starting and stopping the servers also settles **F4** above. |
+- [ ] **Enable branch protection on main** — **ACCEPTED BY OWNER (STEER-1, Session 6). Do not raise this again.** Session 4 proved empirically that protection was off; Session 6 re-confirmed it via the API (`gh api repos/:owner/:repo/branches/main/protection` → HTTP 404, "Branch not protected"). The owner has decided to run without it and to rely on the agent's merge discipline plus CI-before-merge instead. Recorded as an accepted risk, not an open request.
 - [ ] Live-driver confirmation of the six verified layout maps | The finger maps were derived from physical key positions and cross-checked (same-finger rates land at 14.8–16.0%, matching touch-typing research), but no human has typed on each layout with a debugger open | ~15 min per layout | Phase 3 layout support | One word typed per layout with a key-event inspector, logged in BUILD-LOG
 - [ ] Resolve the AltGr / dead-key characters (QWERTY-UK, AZERTY, QWERTZ) | They currently return `unknown` instead of a guess, which is correct but leaves those symbols un-attributable | 30 min with a live keyboard | Phase 6 token attribution on symbol drills | Each character verified against a real driver and added to (or removed from) `UNKNOWN_LAYOUT_CHARACTERS` in `packages/engine/src/layout-fingers.ts`
-- [ ] Install and authenticate the GitHub CLI (`gh`) | Restores real PRs with review records instead of local merges (ADR-001 interim) | 10 min | Real PR flow; the GitHub project board; branch protection via CLI | `gh pr list` works; agent opens PRs instead of merging locally
 - [ ] Set the daily AI usage cap | The agent currently stops at session boundaries only; you wanted budget-based stops | 5 min | Run-budget honesty (Section 2.5 / Section 0 step 13) | A number exists in the execution prompt Section 6; the agent cites it in BUILD-LOG
 - [ ] Recruit Track A: name list, then 12-15 interviews | Scheduling takes days and gates the Phase 0 go/no-go decision | start today; ~2-3 weeks elapsed | Phase 0 exit criteria; the Day-14 gate memo | 10+ interviews synthesized into a one-page summary
 - [ ] Save the Session 1 autonomous prompt as docs/AUTONOMOUS-BUILD-EXECUTION-PROMPT.md | Preserves the standing rules as in-repo background | 5 min | Nothing technical (background reference) | The file exists in docs/
