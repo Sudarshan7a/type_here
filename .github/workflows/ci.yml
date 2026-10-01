@@ -50,6 +50,11 @@ jobs:
           pnpm check:ledger
           node --test scripts/check-ledger.test.mjs
 
+      - name: Product-policy gate (INT-10, BIZ-06, RET-21)
+        run: |
+          pnpm check:policies
+          node --test scripts/check-policies.test.mjs
+
       - name: E2E smoke (Chromium)
         run: |
           pnpm --dir e2e exec playwright install --with-deps chromium
