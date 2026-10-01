@@ -42,15 +42,35 @@ export class InputCapture {
   }
 
   handleFocus(): void {
-    this.markers.push({ kind: "focus", t: this.now() });
+    this.mark(this.now(), "focus");
   }
 
   handleBlur(): void {
-    this.markers.push({ kind: "blur", t: this.now() });
+    this.mark(this.now(), "blur");
   }
 
   handleVisibilityChange(state: DocumentVisibilityState): void {
-    this.markers.push({ kind: "visibility", t: this.now(), detail: state });
+    this.mark(this.now(), "visibility", state);
+  }
+
+  /**
+   * Record a marker on the SAME clock as keystrokes (Session 5 attack pass, C9).
+   *
+   * Markers used to be written as raw absolute `performance.now()` while
+   * keystrokes are origin-relative, so the two were on different scales inside
+   * one InputLog. Returns the stamp that was recorded, or null if the marker
+   * preceded the clock origin and therefore cannot be expressed.
+   *
+   * A marker that arrives before the first accepted keystroke is DROPPED, not
+   * clamped: the origin is the first keystroke by design (chapter 4 edge E1), so
+   * there is no meaningful "time before zero". Clamping would fabricate a
+   * blur at t=0 and silently invent an exclusion window.
+   */
+  markAt(at: number, kind: LogMarker["kind"], detail?: LogMarker["detail"]): number | null {
+    if (this.origin === null) return null;
+    const t = at - this.origin;
+    this.markers.push(detail === undefined ? { kind, t } : { kind, t, detail });
+    return t;
   }
 
   get eventCount(): number {
@@ -84,6 +104,10 @@ export class InputCapture {
         engineVersion: ENGINE_VERSION_STAMP,
       },
     };
+  }
+
+  private mark(at: number, kind: LogMarker["kind"], detail?: LogMarker["detail"]): void {
+    this.markAt(at, kind, detail);
   }
 
   private now(): number {

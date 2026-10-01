@@ -14,6 +14,26 @@ to proceed; full evidence in `docs/pr-log/s4-block-f-close.md`.
 - [ ] **F1/F9: a typo in the root `dev` filter yields a silent half-stack** | `pnpm --filter @realtype/webb ...` prints "No projects matched" but still starts the remaining filters and exits 0. Today's filters are correct (verified), so this is latent. It matters because the list is a hard-coded allowlist: a third service added later is silently omitted rather than flagged. | 20 min | Nothing yet; real when a third service is added | A bad filter name fails loudly |
 - [ ] **F4: the README's "Ctrl-C stops both" is unverified** | The harness could not deliver Ctrl-C to the process group, so that claim rests on reasoning, not on a test. | 10 min | Nothing | Confirmed while doing the manual engine test below (starting/stopping the servers is the same act) |
 
+## EXTERNAL DECISION REQUIRED (blocks nothing technical; answer with a `docs/handoff/RESPONSE-<n>.md`)
+
+### Retest cadence — day 0/30, day 0/30/60, or day 0/14/30
+
+- **ITEM:** Choose the retest cadence for baselines and the efficacy readout.
+- **STATUS:** `EXTERNAL DECISION REQUIRED`
+- **WHY REQUIRED:** Three different cadences coexist in the project's own sources, and this changes **metric semantics** — it alters what a "retest" means in a number that gets published. Section 18.11 rule 5 forbids picking silently. The sources disagree:
+  - `master-spec-v1.md` §6.6 — **day 0 → day 30**
+  - `master-spec-v1.md` §7.5 (programmer baseline) — **day 0 / 30 / 60**
+  - `BUILD-ROADMAP-START-TO-END.md` Phase 5 — **day 0 / 14 / 30**
+- **TECHNICAL WORK COMPLETED:** ADR-008 records the conflict. The cadence is implemented as a **configuration value**, not a hardcoded constant, with day 0/30 as the default and the other two as named presets. Dependent code (ANA-09 efficacy instrumentation, PRG-17 programmer baseline, MOD-05 baseline) is isolated behind that config, so switching costs one value and a test-fixture change.
+- **TECHNICAL WORK REMAINING:** The presets' fixture sets (which text is "matched difficulty" at each retest) depend on the content pipeline (Phase 2) and cannot be written until content exists.
+- **EXACT EVIDENCE REQUIRED:** `docs/handoff/RESPONSE-<n>.md` containing one line: `RETEST CADENCE: day-0-30 | day-0-30-60 | day-0-14-30`
+- **PREPARED AUTOMATION:** `pnpm check:ledger` verifies the ledger stays consistent; the cadence value is a single exported config with tests on all three presets.
+- **PREPARED TEST:** Each preset has a determinism test asserting the retest interval in days for day 14, 30 and 60.
+- **PREPARED ANALYSIS:** The efficacy readout template (Phase 8) already parameterises the interval, so a later change does not invalidate collected data.
+- **LAST CHECKED:** 2026-10-01 (Session 5, recorded with ADR-008)
+
+**Recommendation** (a recommendation, not a decision): **day 0/30**. It is the cadence the master spec states as the efficacy design, it has the most evidence behind it, and a 30-day gap is long enough to show real change and short enough that people still remember the first test. Choosing it costs nothing, because all three remain available as presets.
+
 ## Blocks soonest
 
 - [ ] **Try the manual engine test now** | It is the first artifact where you can feel the engine's latency and correctness on a real keyboard (Block E). `pnpm dev` (starts web + api together), pick a passage, press Start, type it. Report anything that feels wrong: latency, wrong counts, caret drift, mis-marked characters. | 10 min | Confidence in M1 before Phase 2 UI work | A note in BUILD-LOG with what you observed (and any bug report)

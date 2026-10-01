@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { InputLogSchema } from "@realtype/schemas";
 
 import { InputCapture } from "../src/input-adapter";
@@ -83,6 +83,88 @@ describe("input adapter produces a contract-valid log", () => {
     expect(log.markers?.find((m) => m.kind === "visibility")?.detail).toBe("hidden");
     // Markers are never keystrokes.
     expect(log.events.every((e) => e.type === "down" || e.type === "up")).toBe(true);
+  });
+
+  /**
+   * Markers and keystrokes must share ONE clock (Session 5 attack pass, C9).
+   *
+   * The events are written origin-relative: the first accepted keystroke is t=0
+   * (chapter 4 edge E1). The markers used to be written as raw absolute
+   * `performance.now()`, so a blur 12s into a test landed at ~12000 while the
+   * keystroke beside it read 200. Nothing asserted any marker `t`, so the
+   * mismatch was invisible.
+   *
+   * It is benign today only because the engine tests marker *presence* and
+   * never its timestamp. The pause/exclusion logic ENG-04 depends on will read
+   * these numbers, so the invariant is pinned here before anything does.
+   *
+   * This drives the REAL `handleBlur()` / `handleVisibilityChange()` path with a
+   * mocked `performance.now()`. An earlier draft of this test called the
+   * private `markAt` directly and therefore passed even with the original bug
+   * reintroduced — it tested the helper, not the behaviour.
+   */
+  it("stamps markers on the same origin-relative clock as keystrokes", () => {
+    let clock = 1000;
+    const now = vi.spyOn(performance, "now").mockImplementation(() => clock);
+
+    try {
+      const capture = new InputCapture();
+      // Origin is set by the first accepted keydown (event timeStamp 1000).
+      capture.handleKeyDown(fakeKeyEvent({ key: "a", timeStamp: 1000 }));
+
+      // 500ms after the keystroke, on the same clock.
+      clock = 1500;
+      capture.handleBlur();
+      clock = 2500;
+      capture.handleVisibilityChange("hidden");
+
+      clock = 3000;
+      capture.handleKeyDown(fakeKeyEvent({ key: "b", timeStamp: 3000 }));
+
+      const log = capture.toLog({
+        mode: "classic",
+        textId: "x",
+        textHash: "ab".repeat(32),
+        layout: "qwerty-us",
+        errorMode: "free",
+      });
+
+      // Keystrokes are 0 and 2000 relative to the 1000 origin.
+      expect(log.events[0]?.t).toBe(0);
+      expect(log.events[1]?.t).toBe(2000);
+      // Markers must be on that same scale: 500 and 1500, NOT 1500 and 2500.
+      expect(log.markers?.map((m) => m.t)).toEqual([500, 1500]);
+    } finally {
+      now.mockRestore();
+    }
+  });
+
+  it("does not start the clock on a marker alone (E1: reading is not typing)", () => {
+    const clock = 9000;
+    const now = vi.spyOn(performance, "now").mockImplementation(() => clock);
+
+    try {
+      const capture = new InputCapture();
+      // A blur before any keystroke must not become the t=0 origin.
+      capture.handleBlur();
+      capture.handleKeyDown(fakeKeyEvent({ key: "a", timeStamp: 1000 }));
+
+      const log = capture.toLog({
+        mode: "classic",
+        textId: "x",
+        textHash: "ab".repeat(32),
+        layout: "qwerty-us",
+        errorMode: "free",
+      });
+      // The keystroke is still the origin at 0.
+      expect(log.events[0]?.t).toBe(0);
+      // The marker precedes the origin, so it cannot be expressed relative to
+      // it. It must be dropped rather than emitted as a huge or negative number:
+      // clamping would fabricate a blur at t=0 and invent an exclusion window.
+      expect(log.markers).toBeUndefined();
+    } finally {
+      now.mockRestore();
+    }
   });
 
   it("marks untrusted (synthetic) events rather than trusting them", () => {
