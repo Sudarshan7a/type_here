@@ -45,6 +45,9 @@ jobs:
       - name: Bundle-size check (200 KB gzip budget, test page JS)
         run: pnpm check:bundle
 
+      - name: Feature-ledger integrity (counts, status vocabulary, evidence)
+        run: pnpm check:ledger
+
       - name: E2E smoke (Chromium)
         run: |
           pnpm --dir e2e exec playwright install --with-deps chromium

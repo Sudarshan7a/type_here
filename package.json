@@ -17,6 +17,7 @@
     "audit:prod": "pnpm audit --prod",
     "check:licenses": "node scripts/check-licenses.mjs",
     "check:bundle": "node scripts/check-bundle-size.mjs",
+    "check:ledger": "node scripts/check-ledger.mjs",
     "e2e": "pnpm --dir e2e run e2e"
   },
   "devDependencies": {
