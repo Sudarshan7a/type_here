@@ -85,6 +85,66 @@ describe("input adapter produces a contract-valid log", () => {
     expect(log.events.every((e) => e.type === "down" || e.type === "up")).toBe(true);
   });
 
+  /**
+   * Markers and keystrokes must share ONE clock (Session 5 attack pass, C9).
+   *
+   * The events are written origin-relative: the first accepted keystroke is t=0
+   * (chapter 4 edge E1). The markers used to be written as raw absolute
+   * `performance.now()`, so a blur at 12s after the test started landed at
+   * ~12000 while the keystroke next to it read 200. Nothing asserted any
+   * marker `t`, so the mismatch was invisible.
+   *
+   * It is benign today only because the engine tests marker *presence* and
+   * never its timestamp. The pause/exclusion logic ENG-04 depends on will read
+   * these numbers, so the invariant is pinned here before anything does.
+   */
+  it("stamps markers on the same origin-relative clock as keystrokes", () => {
+    const capture = new InputCapture();
+    // Origin is set by the first accepted keydown at timeStamp 1000.
+    capture.handleKeyDown(fakeKeyEvent({ key: "a", timeStamp: 1000 }));
+    // Each marker reads performance.now() through the adapter's own clock.
+    // Drive it deterministically rather than depending on real time.
+    const blur = capture.markAt(1500, "blur");
+    const hidden = capture.markAt(2500, "visibility", "hidden");
+    capture.handleKeyDown(fakeKeyEvent({ key: "b", timeStamp: 3000 }));
+
+    const log = capture.toLog({
+      mode: "classic",
+      textId: "x",
+      textHash: "ab".repeat(32),
+      layout: "qwerty-us",
+      errorMode: "free",
+    });
+
+    // Keystrokes are 0 and 2000 relative to the 1000 origin.
+    expect(log.events[0]?.t).toBe(0);
+    expect(log.events[1]?.t).toBe(2000);
+    // Markers must be on that same scale: 500 and 1500, NOT 1500 and 2500.
+    expect(blur).toBe(500);
+    expect(hidden).toBe(1500);
+    expect(log.markers?.map((m) => m.t)).toEqual([500, 1500]);
+  });
+
+  it("does not start the clock on a marker alone (E1: reading is not typing)", () => {
+    const capture = new InputCapture();
+    // A blur before any keystroke must not become the t=0 origin.
+    capture.markAt(9000, "blur");
+    capture.handleKeyDown(fakeKeyEvent({ key: "a", timeStamp: 1000 }));
+
+    const log = capture.toLog({
+      mode: "classic",
+      textId: "x",
+      textHash: "ab".repeat(32),
+      layout: "qwerty-us",
+      errorMode: "free",
+    });
+    // The keystroke is still the origin at 0.
+    expect(log.events[0]?.t).toBe(0);
+    // The marker precedes the origin, so it cannot be expressed relative to it.
+    // It must be dropped rather than emitted as a huge or negative number.
+    expect(log.markers).toBeUndefined();
+  });
+
   it("marks untrusted (synthetic) events rather than trusting them", () => {
     const capture = new InputCapture();
     capture.handleKeyDown(fakeKeyEvent({ key: "a", timeStamp: 0, isTrusted: false }));
