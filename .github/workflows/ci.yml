@@ -46,7 +46,9 @@ jobs:
         run: pnpm check:bundle
 
       - name: Feature-ledger integrity (counts, status vocabulary, evidence)
-        run: pnpm check:ledger
+        run: |
+          pnpm check:ledger
+          node --test scripts/check-ledger.test.mjs
 
       - name: E2E smoke (Chromium)
         run: |
