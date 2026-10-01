@@ -1,15 +1,60 @@
 # BUILD LOG
 
 ## Current Position
-Phase: Phase 1 (M1 engine) — Session 5 in progress
-Last completed task: E (D03 no-backspace engine behaviour). Also this session: the Section 18.2 feature ledger (216 rows) with a gate that derives its expected ID set from the specs; the C9 marker/keystroke clock fix; an api test flake; and D02 stop-on-error, which was a mode string carrying must-correct's behaviour since Session 2.
-Next task: remaining Chapter 4 edge fixtures — E3 Caps Lock, E5 dead keys, E6 graphemes, E7 paste + server backstop, E8 dual-key, A03 long test. D03's and D04's *fixtures* are blocked on the `errorMode` enum decision (EXTERNAL DECISION REQUIRED, exact diff in HUMAN-ACTIONS.md); their engine work is done or not started.
-Not started: E7's server-side paste backstop; the weakness model; the content pipeline.
-Open defects: F1–F4/F9 from the Session 5 attack pass (see HUMAN-ACTIONS.md). F3 is the one that matters — `pnpm dev` reports success with a dead API when port 3000 is busy; harmless now, a real trap in Phase 4.
+Phase: Phase 1 (M1 engine) — Session 6 complete. First session driven by owner steering (`docs/handoff/STEER-1.md`, `STEER-2.MD`).
+Last completed task: the errorMode contract bump — CONTRACT_VERSION 1.2.0 → **1.3.0** with `no-backspace` (D03) and `word-locked` (D04), every enum consumer updated, and the D04 word-locked engine behaviour implemented. PR #2. Before that, PR #1 answered the owner's question about the 216-vs-196 ledger discrepancy.
+Next task, in the owner's stated order:
+1. **D03 + D04 fixtures** (`ENG-FIXTURE-D03`, `ENG-FIXTURE-D04`) — unblocked as of PR #2 and now the cheapest executable work, since the expectations are already derived.
+2. **F3 / F2 / F1-F9 dev-script defects** (STEER-1: "before starting Phase 4"). F3 is the real one: `pnpm dev` reports success with a dead API when port 3000 is busy.
+3. **The STEER-2 thin vertical slice of the real typing surface** — the six acceptance criteria are written out in `STEER-2.MD`. Not started. This is the Phase 3 foundation, not a throwaway.
+Not started: E3 Caps Lock, E5 dead keys, E6 graphemes, E7 paste + server backstop, E8 dual-key, A03 long test (the rest of the Chapter 4 edge fixtures); the weakness model; the content pipeline.
+Open defects: F1–F4/F9 from the Session 5 attack pass (see HUMAN-ACTIONS.md). Also carried: `input-adapter.ts` writes marker timestamps as absolute `performance.now()` while key events are origin-relative, and no test asserts any marker `t` (recorded against ENG-01).
 Ledger: MVP 5/97 DONE-VERIFIED | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 0/20 | LAUNCH-GATED 0 | BLOCKED-EXTERNAL 0 | REJECTED 1 | overall 5/216 (19 IN PROGRESS, 191 NOT STARTED)
-Baseline: 265 tests, 0 failures; bundle 71.2 KB of 200 KB; engine coverage 96.19/93.06/95.23/97.45.
-Sessions since last human contact: 1 (this one)
+Baseline: **288 tests, 0 failures** (engine 84, telemetry 101, schemas 69, api 4, web 19, recorder 11) + 16 script tests in `scripts/check-ledger.test.mjs`; bundle 71.3 KB of 200 KB; engine coverage 96.21/93.17/95.23/97.46.
+Sessions since last human contact: 0 — the owner filed two STEER files this session.
 Last updated: 2026-10-01
+
+## Session 6 — the ledger's missing 20 (the owner's question)
+
+**Answer: the 20 were never missing from the ledger. The report was dropping them.**
+
+`docs/FEATURE-LEDGER.md` counts itself correctly — `MVP 97 | V1 74 | V2 12 | LATER 13 | UNTAGGED 20 | total 216` — and always did. What lost the 20 is the *progress format* that every session report, halt file and handoff is required to print (Section 18.10). Its slots are MVP / V1 / V2 / LATER / LAUNCH-GATED / BLOCKED-EXTERNAL / REJECTED. There is no UNTAGGED slot, so every report printed `97+74+12+13 = 196` next to `overall 5/216`.
+
+What the 20 are, verified at source rather than assumed:
+
+| Count | Rows | Evidence |
+|---|---|---|
+| 17 | `NFR-01`..`NFR-17` | `docs/spec/master-spec-v1.md` §8 is a three-column table, `\| ID \| Area \| Requirement (targets are proposals) \|`. **No tag column exists.** |
+| 3 | `INT-10`, `BIZ-06`, `RET-21` | The spec tags them literally: `**INT-10 [Policy]**`, `**BIZ-06 [Policy]**`, `**RET-21 [Policy]**`. |
+
+So `UNTAGGED` is the truthful tag, not a seeding gap. Giving them MVP or V1 labels would have been inventing source metadata the spec does not contain. (NFR-04/05/12 carry `[V1]` markers *inside* their requirement text for a sub-clause only; the row itself is untagged.)
+
+**Fixed in two parts (PR #1).** The format gains an `UNTAGGED` slot; and `check-ledger.mjs` §7 now checks the **report**, which it had never done — every bucket holding rows must be counted, each denominator must equal the ledger's count for that family, denominators must sum to the overall denominator, numerators to the overall numerator, and the overall denominator to the row count. The gate could not see this before because it only ever inspected the tracker, and the tracker was right.
+
+## Session 6 — decisions taken by the owner (STEER-1, applied and recorded)
+
+- **errorMode enum:** APPROVED as proposed → CONTRACT_VERSION 1.3.0, `no-backspace` + `word-locked` (PR #2). The hand-written unions in the engine, fixtures and recorder were **deleted** rather than extended, so each now derives `ErrorMode` from `@realtype/schemas` and drift is a typecheck error. Telemetry cannot import schemas, so `packages/telemetry/tests/enum-drift.test.ts` pins `ERROR_MODES` to `ErrorModeSchema.options` exactly — a drift that had already occurred once inside this very change.
+- **Retest cadence:** day 0/30. 0/30/60 and 0/14/30 stay as presets.
+- **Branch protection:** OFF by owner decision. Re-confirmed via the API this session (`gh api …/branches/main/protection` → HTTP 404 "Branch not protected"). Marked ACCEPTED BY OWNER and not raised again.
+- **`gh`:** authenticated. Real PRs from this session: **#1** and **#2**, both `--merge` (never squash, never fast-forward), each verified green before merge.
+- **Manual engine test:** the owner's call at the end; the loop does not wait for it.
+
+## Session 6 — mistakes found in my own work
+
+- **A PowerShell `Set-Content -Encoding UTF8` rewrote `check-ledger.mjs` with a BOM and mojibake'd every em-dash.** Caught by reviewing the diff; the file was reverted and redone with encoding-safe edits only. Checked: no BOM, 6 em-dashes intact, 0 mojibake, and `git diff -w` shows the change is purely additive apart from one import line.
+- **Three of my own ledger-gate fixtures were wrong and the implementation was stricter than my assertions.** `97+74+12+13+25` is 221, not 220; a fixture whose numerators summed to the claimed total was passing for the wrong reason and would have let a genuinely wrong numerator through. Both fixed, and both cases are now pinned by name in the test file.
+- **One word-locked test fixture was wrong and the engine was right.** I read `cat` as taking four presses and expected a fourth character inside the word; it takes three, so the fourth press is already leaving it. Tests corrected, not the implementation. A duplicate test block left by that edit was removed.
+- **The telemetry allowlist drift was caught only because I thought to check it** after widening the schema — not by any gate. That is why the drift test exists now.
+
+## Autonomous decisions made
+(Newest first. Format: date | decision | 1-2 sentence reasoning | which section of this prompt justified it)
+
+- 2026-10-01 | **The 20 untagged rows stay UNTAGGED rather than being assigned MVP/V1 tags.** The master spec's NFR table has no tag column and the three policy rows are tagged `[Policy]`, so any MVP/V1 label would be invented metadata. The smallest truthful fix was to report the bucket and gate the report. Recorded in `docs/FEATURE-LEDGER.md` and enforced by `check-ledger.mjs` §7. | Section 13 rule 2 (never fabricate), Section 9 (smallest reversible change), Section 4 item 10
+- 2026-10-01 | **`check-ledger.mjs` was made importable** by wrapping the gate in `main()` behind the same `import.meta.url` guard `check-licenses.mjs` already uses, so the pure checks can be unit-tested. Without this the test file could not import the module at all — it exited the process on load. | Section 2 rule 3 (test-first), Section 4 item 12 (attack)
+- 2026-10-01 | **The report gate checks only `BUILD-LOG.md`'s "Current Position"**, not historical session reports. An older report legitimately records older counts; checking those would make the gate lie about history. "Current Position" is current by definition. | Section 4 item 10 (blind spots become regression tests)
+- 2026-10-01 | **`@realtype/schemas` added as a devDependency of `@realtype/telemetry`** so the enum-drift test can compare the allowlist to the contract instead of to a hand-written copy. Dev-only, workspace-internal, MIT. | Section 2 rule 7 (close a blind spot at the source), AGENTS.md rule 3
+- 2026-10-01 | **Real PRs via `gh` for every merge from this session**, per STEER-1. PR #1 and PR #2, both merged `--merge` after CI green. | Section 3 preferred workflow, STEER-1
+- 2026-09-28 | Session 3 subagent diagnostic: the Session 2 "provider response headers timed out after 300000ms" failures are reported by the Session 3 brief to be provider-side on the previous API and not applicable now. This session therefore delegates only *after* verifying with tiny isolated probes, and every subagent output is verified locally before merge (Section 1 rule 11). | Section 1 rule 11 + brief note
 
 ## Session 3 pre-flight findings (Block A)
 
@@ -191,6 +236,9 @@ License flags (Section 2.5): every direct dependency is MIT except **typescript 
 
 ## Task history
 (Newest first. Format: date | task ID | branch | PR link | status [merged/awaiting human merge/blocked] | tests added | one-line summary)
+
+- 2026-10-01 | S6-B (errorMode 1.3.0) | task/s6-b-errormode-130 | PR #2, run 36858729219 green, merged `--merge` | merged | 23 (schemas +13, engine +6, telemetry +4) | CONTRACT_VERSION 1.3.0 with `no-backspace` + `word-locked`; every enum consumer updated and the hand-written unions deleted in favour of types derived from the contract; D04 word-locked implemented; telemetry enum drift is now a test failure
+- 2026-10-01 | S6-A (ledger report gate) | task/s6-a-ledger-progress-line | PR #1, runs 36850614189 (red, test-first) + 36852643188 (green), merged `--merge` | merged | 16 (scripts/check-ledger.test.mjs) | The 20 untagged rows were never missing from the ledger; the mandated report format dropped them. Format fixed, and check-ledger.mjs §7 now checks the report itself.
 
 - 2026-09-28 | S4-E (wiring) | task/s4-e-wiring | run 36730995564 green, local merge | merged | 5 adapter + 6 UI + 3 e2e | Engine wired into the web app: type real text, see live engine metrics (the first hands-on artifact)
 - 2026-09-28 | S4-D (robustness, partial) | task/s4-d-fixtures | run 36724471613 green, local merge | merged | 8 tests | E09 zero-keystrokes, A02 short-test, corrupted-log (fixed a real negative-duration bug); E10 as an enforced lint rule
