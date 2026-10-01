@@ -61,11 +61,43 @@ describe("text model (E4)", () => {
     expect(model.rejected).toBeNull();
   });
 
-  it("stop-on-error rejects the wrong press and then everything until corrected", () => {
+  it("stop-on-error halts at the first error: there is no correction path", () => {
     const model = createTextModel("cat", "stop-on-error");
+    expect(applyPress(model, down("c", 0))).toBe("inserted");
+    expect(applyPress(model, down("a", 10))).toBe("inserted");
+
+    // The first error IS the end of the run.
+    expect(applyPress(model, down("x", 20))).toBe("rejected");
+    expect(model.halted).toBe(true);
+    expect(model.haltedAtT).toBe(20);
+
+    // Everything after the halt is past the end of the attempt. The capture
+    // keeps recording, but nothing more can be scored: in particular a
+    // Backspace must NOT "clear" the error and let the run continue, which is
+    // the whole difference from must-correct.
+    expect(applyPress(model, down("t", 30))).toBe("ignored");
+    expect(applyPress(model, down("Backspace", 40))).toBe("ignored");
+    expect(applyPress(model, down("a", 50))).toBe("ignored");
+
+    // The buffer froze at the correct prefix; the wrong press never entered it.
+    expect(model.buffer.join("")).toBe("ca");
+    expect(model.rejected).toBeNull();
+    expect(model.rejectedAttempts).toBe(0);
+    // Only the three real presses up to the halt counted as attempts.
+    expect(model.totalAttempts).toBe(3);
+    expect(model.backspaces).toBe(0);
+  });
+
+  it("must-correct rejects the wrong press and continues after a correction", () => {
+    // This is the behaviour the stop-on-error test above used to assert. The
+    // mode string existed before the two modes were actually differentiated,
+    // and the test was written against must-correct's contract, so stop-on-error
+    // silently behaved like must-correct from Session 2 until ENG-FIXTURE-D02.
+    const model = createTextModel("cat", "must-correct");
     expect(applyPress(model, down("c", 0))).toBe("inserted");
     expect(applyPress(model, down("x", 10))).toBe("rejected");
     expect(applyPress(model, down("d", 20))).toBe("rejected");
+    expect(model.halted).toBe(false);
     expect(model.buffer.join("")).toBe("c");
     expect(model.rejectedAttempts).toBe(2);
     expect(applyPress(model, down("Backspace", 30))).toBe("cleared");
