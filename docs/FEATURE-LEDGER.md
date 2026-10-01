@@ -41,8 +41,8 @@ ADR-005 and only a `RESPONSE` or `STEER` file can enable it. `—` means no flag
 | Status | Rows |
 |---|---|
 | DONE-VERIFIED | 6 |
-| IN PROGRESS | 20 |
-| NOT STARTED | 189 |
+| IN PROGRESS | 23 |
+| NOT STARTED | 186 |
 | LAUNCH-GATED | 0 |
 | BLOCKED-EXTERNAL | 0 |
 | DEFERRED-BY-HUMAN | 0 |
@@ -195,7 +195,7 @@ OFF** and the flag is OFF — so those two states are distinct on purpose.
 | INT-07 | Public policy, categorised reasons, appeal form, false-positive rate | V1 | INT-05 | NOT STARTED | — | — | — | **gates public boards.** hold rather than instant-ban when unsure |
 | INT-08 | Separate ranked (strict) from practice modes | V1 | INT-05 | NOT STARTED | — | — | — | **gates public boards** |
 | INT-09 | Community reports, moderator replay review, ML on IKI | LATER | INT-05, ADM-02 | NOT STARTED | OFF | — | — | |
-| INT-10 | No public leaderboards until INT-05…INT-08 are live | Policy | INT-05..08 | NOT STARTED | — | — | — | **absolute prohibition.** build-order constraint: INT-05..08 before CMP-01/CMP-02 |
+| INT-10 | No public leaderboards until INT-05…INT-08 are live | Policy | INT-05..08 | IN PROGRESS | — | scripts/check-policies.test.mjs | LAB PROXY | **ENFORCED BY A GATE (Session 7), not by review.** `scripts/check-policies.mjs` fails the build if CMP-01/CMP-02 lose their OFF launch flag, if either is worked on while INT-05…INT-08 are not DONE-VERIFIED, or if a leaderboard/ranking/race source file appears without stating its own INT-10 gate in its header. Most of the 18 tests assert the FAILING direction, and all three policies were proven to exit 1 on the real repository with an injected violation. Stays IN PROGRESS rather than DONE-VERIFIED because the honest label for "a gate exists and works on known violations" is not "the policy has been verified" — the first real leaderboard code is what tests it |
 
 ## CMP — Competition and social (master spec §5.8, all V1+)
 
@@ -290,7 +290,7 @@ OFF** and the flag is OFF — so those two states are distinct on purpose.
 | BIZ-03 | Pro tier (deep analytics, cloud replays, own-code drills) | V1 test | OPS-09 | NOT STARTED | OFF | — | — | **CONFLICT:** paid deep analytics can read as selling competitive advantage, contradicting MOT-03. HARD RULE: a paid tier must never affect ranking or comparison |
 | BIZ-04 | Teams/coach dashboards, pilot with 1–2 bootcamps | V2 pilot | USR-07 | NOT STARTED | OFF | — | — | **CONFLICT:** V2 pilot vs impl-guide V1-15. impl guide writes "privacy rules for minors/adults" which contradicts USR-06 (18+ only) |
 | BIZ-05 | Verified certificates/assessments | V2 validate | INT-06 | NOT STARTED | OFF | — | — | **highest outcome-claim risk.** spec says "decide only after data". Claims prohibition stays attached |
-| BIZ-06 | No dark patterns | Policy | — | NOT STARTED | — | — | — | **absolute prohibition.** DEMOTED from DONE-VERIFIED: the row itself conceded it is 'trivially true' because no billing exists. Trivially true is not verified. Re-verify when OPS-09 lands |
+| BIZ-06 | No dark patterns | Policy | — | IN PROGRESS | — | scripts/check-policies.test.mjs, apps/web/tests/copy-tables.test.ts | LAB PROXY | **PARTIALLY ENFORCED BY A GATE (Session 7).** Previously DEMOTED from DONE-VERIFIED because the row was "trivially true" — no billing exists, so nothing could violate it. A gate that only ever passes proves nothing, so the gate now scans all 95 shipped source files for the two things that can violate this today: a monetisation surface (checkout/billing/paywall/upgrade-wall/subscribe by path) and guilt-based or hidden-renewal copy (phrase-level, so it does not fire on legitimate vocabulary like "streak"). `copy-tables.test.ts` additionally holds the UI copy against the string table, whose `notification.bannedExample.*` rows mark the forbidden phrasings. **Still review-enforced:** the rest — hidden trials, surprise renewals and cancel flows inside a billing flow that does not exist yet — cannot be checked until OPS-09 lands, and then this row must be re-verified by a human reading the flow |
 
 ## OPS — Operations, legal, support (master spec §5.16)
 
@@ -373,7 +373,7 @@ OFF** and the flag is OFF — so those two states are distinct on purpose.
 | RET-18 | Cosmetic unlocks earned by consistency | V1 | MOT-03 | NOT STARTED | — | — | — | cosmetic only, never competitive advantage |
 | RET-19 | Coach/teacher plans and cohort challenges | V2 | BIZ-04 | NOT STARTED | OFF | — | — | **TENSION with USR-06** (18+ only) via student personas |
 | RET-20 | Retention + guardrail instrumentation (events, cohorts, assignment) | MVP | ANA-09, ADM-03 | NOT STARTED | — | — | — | must not become engagement analytics on keystroke content |
-| RET-21 | Ethics checklist enforced in review for every engagement feature | Policy | — | NOT STARTED | — | — | — | **absolute gate on all RET rows** |
+| RET-21 | Ethics checklist enforced in review for every engagement feature | Policy | — | IN PROGRESS | — | scripts/check-policies.test.mjs | LAB PROXY | **POLICY, ENFORCED BY REVIEW — with the review made checkable (Session 7).** The rule is the six-question checklist in `docs/spec/retention-and-mastery-playbook.md` §12 (line 472), and it is a property of a human decision, not of the code: no static check can decide whether a streak design encourages good behaviour or causes anxiety. What the gate does is make the review non-skippable — any RET row moving past NOT STARTED requires a written record at `docs/ethics/<ID>.md`, and the build fails without it. So the enforcement is a process gate whose artefact is the review itself. **No RET row has started, so no record exists yet; the first engagement feature to be built is what will exercise this** |
 
 ## NFR — Non-functional requirements (master spec §8, untagged in source)
 
