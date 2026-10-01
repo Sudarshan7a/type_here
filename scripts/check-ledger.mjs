@@ -16,6 +16,7 @@ import { dirname, join } from "node:path";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const LEDGER = join(root, "docs", "FEATURE-LEDGER.md");
+const MANIFEST = join(root, "scripts", "ledger-manifest.json");
 
 const PREFIXES = [
   "ENG",
@@ -103,7 +104,82 @@ for (const r of rows) {
   }
 }
 
-// --- 2. Status vocabulary ----------------------------------------------
+// --- 2. The row SET must match the manifest -----------------------------
+//
+// Self-consistency is not integrity. The first version of this gate recomputed
+// counts from the rows and compared them to the file's own header, so deleting a
+// row (or an entire prefix) and updating the header honestly passed. The
+// manifest is generated from the spec sources by
+// scripts/build-ledger-manifest.mjs, so the expected row set comes from outside
+// the ledger. Removing a row now requires editing the manifest on purpose, which
+// is a reviewable diff.
+const manifest = JSON.parse(readFileSync(MANIFEST, "utf8"));
+const expectedIds = new Set(manifest.ids);
+
+if (manifest.count !== manifest.ids.length) {
+  problems.push(
+    `manifest: count field says ${manifest.count} but the ids array has ${manifest.ids.length}`,
+  );
+}
+
+const ledgerIds = new Set(rows.map((r) => r.id));
+
+for (const id of expectedIds) {
+  if (!ledgerIds.has(id)) {
+    problems.push(
+      `${id}: in the manifest (found in the spec sources) but has NO row in the ledger`,
+    );
+  }
+}
+for (const id of ledgerIds) {
+  if (!expectedIds.has(id)) {
+    problems.push(
+      `${id}: has a ledger row but appears in NO spec source — invented, or the spec ID was renumbered`,
+    );
+  }
+}
+
+// --- 2b. depends-on must point at rows that exist -----------------------
+// Ranges are allowed and are expanded ("INT-05..08" -> INT-05..INT-08),
+// because the ledger uses them for the INT-10 gate.
+function expandDeps(raw) {
+  const out = [];
+  for (const part of raw.split(",")) {
+    const token = part.trim();
+    if (token === "" || token === "—" || token === "none") continue;
+    const range = token.match(/^([A-Z0-9]+)-(\d{2})\.\.(\d{2})$/);
+    if (range) {
+      const [, prefix, from, to] = range;
+      for (let n = Number(from); n <= Number(to); n++) {
+        out.push(`${prefix}-${String(n).padStart(2, "0")}`);
+      }
+      continue;
+    }
+    const single = token.match(/^([A-Z0-9]+)-(\d{1,3})$/);
+    if (single) {
+      out.push(`${single[1]}-${String(Number(single[2])).padStart(2, "0")}`);
+      continue;
+    }
+    // Free-text reference (e.g. "V1 part", "OPS-08 (V1 part)"). Only the leading
+    // ID, if any, is checkable; anything else is a note, not a dependency.
+    const lead = token.match(/^([A-Z0-9]+-\d{1,3})\b/);
+    if (lead)
+      out.push(
+        `${lead[1].split("-")[0]}-${String(Number(lead[1].split("-")[1])).padStart(2, "0")}`,
+      );
+  }
+  return out;
+}
+
+for (const r of rows) {
+  const deps = expandDeps(r.cells[3] ?? "");
+  for (const dep of deps) {
+    if (!ledgerIds.has(dep)) {
+      problems.push(`${r.id}: depends-on references ${dep}, which has no row in the ledger`);
+    }
+  }
+}
+// --- 2c. Status vocabulary ---------------------------------------------
 for (const r of rows) {
   if (!STATUSES.has(r.status)) {
     problems.push(`${r.id}: status "${r.status}" is not in the Section 18.2 vocabulary`);
@@ -132,14 +208,28 @@ for (const r of rows) {
 const flagged = rows.filter((r) => r.flag === "OFF").length;
 
 // --- 5. Compare against what the file claims ----------------------------
-function claimed(label) {
-  // "| MVP | 97 |" inside the counts table. Match on the cell's leading word
-  // so a descriptive label like "UNTAGGED (17 NFR + 3 policies)" still counts.
-  // The label may contain regex metacharacters (the bold "**Total**" row).
+/**
+ * Every number the counts tables claim for a given row label.
+ *
+ * This returns ALL matches, not the first. The file has two "**Total**" rows
+ * (one per counts table) and the first version of this gate only ever read the
+ * tag table's, which left the status table's total completely unchecked.
+ */
+function claimedAll(label) {
+  // The label is anchored to the start of a cell and must be followed by a
+  // space, an open bracket, or the cell's closing pipe. That accepts
+  // "MVP |", "**Total** |" and "UNTAGGED (17 NFR + 3 policies) |" while
+  // rejecting a longer ID that merely starts with the label (e.g. "MVP-FOO").
+  // The count itself may be bold ("| **Total** | **216** |"), so allow **.
+  // The label may contain regex metacharacters, so escape it.
   const safe = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const re = new RegExp(`^\\|\\s*${safe}\\b[^|]*\\|\\s*(\\d+)\\s*\\|`, "m");
-  const m = text.match(re);
-  return m === null ? null : Number(m[1]);
+  const re = new RegExp(`^\\|\\s*${safe}(?=[\\s(|])[^|]*\\|\\s*\\**(\\d+)\\**\\s*\\|`, "gm");
+  return [...text.matchAll(re)].map((m) => Number(m[1]));
+}
+
+function claimed(label) {
+  const all = claimedAll(label);
+  return all.length === 0 ? null : all[0];
 }
 
 const EXPECTED_TAGS = ["MVP", "V1", "V2", "LATER", "UNTAGGED"];
@@ -171,21 +261,35 @@ for (const status of STATUSES) {
   }
 }
 
-const claimedStatusTotal = claimed("**Total**");
-if (rows.length !== expectedTotal) {
-  problems.push(`internal: row count ${rows.length} != tag sum ${expectedTotal}`);
+const statusSum = [...STATUSES].reduce((n, s) => n + (byStatus.get(s) ?? 0), 0);
+if (statusSum !== expectedTotal) {
+  problems.push(`status sum ${statusSum} != tag sum ${expectedTotal}`);
 }
 
-const claimedFlagged = claimed("flagged");
-if (claimedFlagged !== null && claimedFlagged !== flagged) {
-  problems.push(`flag count: file claims ${claimedFlagged}, rows say ${flagged}`);
+// Both "**Total**" rows — the tag table's and the status table's — must equal
+// the number of rows. The first version of this gate read only the first match,
+// so the status table's total was dead prose.
+const claimedTotals = claimedAll("**Total**");
+if (claimedTotals.length === 0) {
+  problems.push("no '**Total**' row found in the counts tables");
 }
-
-if (claimedStatusTotal !== null) {
-  const statusSum = [...STATUSES].reduce((n, s) => n + (byStatus.get(s) ?? 0), 0);
-  if (statusSum !== expectedTotal) {
-    problems.push(`status sum ${statusSum} != tag sum ${expectedTotal}`);
+for (const [i, value] of claimedTotals.entries()) {
+  if (value !== expectedTotal) {
+    problems.push(
+      `counts table ${i === 0 ? "(by tag)" : i === 1 ? "(by status)" : `#${i + 1}`} claims total ${value}, rows sum to ${expectedTotal}`,
+    );
   }
+}
+
+// The launch-flag count must be a checkable table row, not prose. It used to be
+// a sentence, which meant this check could never fire.
+const claimedFlagged = claimed("rows carrying a launch flag");
+if (claimedFlagged === null) {
+  problems.push(
+    'no "| rows carrying a launch flag | n |" row found — the flag count must be a table row so it can be checked',
+  );
+} else if (claimedFlagged !== flagged) {
+  problems.push(`flag count: file claims ${claimedFlagged}, rows say ${flagged}`);
 }
 
 // --- 6. A DONE-VERIFIED row must cite evidence --------------------------

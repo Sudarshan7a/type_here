@@ -40,16 +40,17 @@ ADR-005 and only a `RESPONSE` or `STEER` file can enable it. `—` means no flag
 
 | Status | Rows |
 |---|---|
-| DONE-VERIFIED | 14 |
-| IN PROGRESS | 15 |
-| NOT STARTED | 186 |
+| DONE-VERIFIED | 5 |
+| IN PROGRESS | 19 |
+| NOT STARTED | 191 |
 | LAUNCH-GATED | 0 |
 | BLOCKED-EXTERNAL | 0 |
 | DEFERRED-BY-HUMAN | 0 |
 | REJECTED-BY-ANTI-GOAL | 1 |
 | **Total** | **216** |
 
-**By launch flag:** 45 rows carry a flag, all currently `OFF`. 171 rows carry no flag.
+| rows carrying a launch flag | 45 |
+| rows with no flag | 171 |
 
 Progress is reported as:
 
@@ -65,7 +66,7 @@ OFF** and the flag is OFF — so those two states are distinct on purpose.
 
 | ID | name | tag | depends-on | status | flag | test IDs | evidence | notes |
 |---|---|---|---|---|---|---|---|---|
-| ENG-01 | Keystroke capture, high-res timestamps, order preserved | MVP | — | DONE-VERIFIED | — | ENG-FIXTURE-A01, ENG-STATE-PROP-01 | LAB PROXY | keydown+keyup both captured; overlapping keys kept in order |
+| ENG-01 | Keystroke capture, high-res timestamps, order preserved | MVP | — | DONE-VERIFIED | — | ENG-FIXTURE-E01/E02/E03, ENG-STATE-PROP-01, apps/web/tests/input-adapter.test.ts | LAB PROXY | keydown+keyup both captured; overlapping keys kept in order (proven by the E01/E02/E03 fixtures, not by A01 — A01 builds synthetic keyups). **Known defect found by the attack pass:** `input-adapter.ts` writes marker timestamps as absolute `performance.now()` while events are origin-relative, and no test asserts any marker `t`. Benign today (the engine only tests marker *presence*) but a live trap for the pause logic ENG-04 depends on |
 | ENG-02 | Feedback within one frame; no network during a test | MVP | — | IN PROGRESS | — | spike S1 | LAB PROXY | spike p95 15.2 ms (only 5% under the 16 ms budget); the product surface does not exist yet, so this is not verified in the real app |
 | ENG-03 | Char states + error modes free/must-correct/stop-on-error | MVP | ENG-01 | IN PROGRESS | — | ENG-FIXTURE-D01, D02, D03, D04 | LAB PROXY | free + must-correct land. **D02 stop-on-error, D03 no-backspace, D04 word-locked not built** |
 | ENG-04 | Start on first keystroke; timer from timestamps | MVP | ENG-01 | DONE-VERIFIED | — | ENG-STATE-01..07, ENG-STATE-PROP-01 | LAB PROXY | scored duration excludes pauses exactly; backgrounding cannot inflate speed (1000-sequence property test) |
@@ -121,8 +122,8 @@ OFF** and the flag is OFF — so those two states are distinct on purpose.
 | PRG-01 | Token-aware engine (Tree-sitter WASM / lexer) | MVP | ENG-01, ENG-05 | IN PROGRESS | — | TOK-FIXTURE-001..007 | LAB PROXY | real Tree-sitter WASM reproduces chapter 9 §9.2.1's token map |
 | PRG-02 | Language packs (initial set) | MVP | CNT-04 | NOT STARTED | — | TOK-FIXTURE-004 | — | ADR-007: build the **listed** set — JS/TS/JSX, Python, Java, SQL, HTML/CSS (6), not "3–5" |
 | PRG-03 | Layout-aware symbol maps, Shift/AltGr, OS profiles | MVP | LOC-01 | NOT STARTED | — | T0-GEN-008, T0-GEN-009 | — | AltGr chars currently return `unknown` (human action) |
-| PRG-04 | Safety: display-only, sanitized, never execute | MVP | PRG-01 | DONE-VERIFIED | — | — | LAB PROXY | **absolute prohibition.** no execution path exists; safety audit at Phase 6 exit |
-| PRG-05 | Positioning: no ability/hiring claims in copy | MVP | — | DONE-VERIFIED | — | — | LAB PROXY | **absolute prohibition.** enforced as a copy rule |
+| PRG-04 | Safety: display-only, sanitized, never execute | MVP | PRG-01 | IN PROGRESS | — | — | LAB PROXY | **absolute prohibition.** DEMOTED from DONE-VERIFIED: it held only because no snippet renderer exists yet (grep for `sanitiz`/`dangerouslySetInnerHTML`/`eval`/`new Function` in `apps/` finds nothing). The row's own note said 'safety audit at Phase 6 exit' — a *pending* audit cannot be a verified row. Must be re-verified when the renderer lands |
+| PRG-05 | Positioning: no ability/hiring claims in copy | MVP | — | NOT STARTED | — | — | — | **absolute prohibition.** DEMOTED from DONE-VERIFIED: the attack pass found **no enforcement of any kind** — no lint rule, no test, no gate. `eslint.config.mjs` has exactly one custom rule (`no-restricted-properties` on `Date.now`). Needs a copy-claims check before it can be verified |
 | PRG-10 | Symbol Gym: categories, chords, symbol of the day | MVP | PRG-01, PRG-03 | NOT STARTED | — | — | — | |
 | PRG-11 | Bracket Balance: nesting ladder, open→close latency | MVP | PRG-01 | NOT STARTED | — | TOK-FIXTURE-002, LVL-FIXTURE-006 | — | |
 | PRG-12 | Strings & Escapes | MVP | PRG-01 | NOT STARTED | — | TOK-FIXTURE-003 | — | |
@@ -167,7 +168,7 @@ OFF** and the flag is OFF — so those two states are distinct on purpose.
 | CNT-04 | Code snippet library, permissive licences only | MVP | CNT-01 | IN PROGRESS | — | CODE-JS-P01/P02/P03 (DO NOT SHIP) | LAB PROXY | 34 original JS snippets + 58 specs written. **P01/P02/P03 blocked** |
 | CNT-05 | Seeded generators: numbers, IDs, naming, brackets, strings | MVP | CNT-01 | NOT STARTED | — | T0-GEN-001..010 | — | deterministic per seed; **no real data** |
 | CNT-06 | Attribution page + takedown process | MVP | CNT-01 | NOT STARTED | — | — | — | |
-| CNT-07 | Do NOT import Monkeytype (GPL-3.0) word lists/quotes | MVP policy | — | DONE-VERIFIED | — | — | LAB PROXY | **absolute prohibition.** enforced by the license gate; content is original/public-domain |
+| CNT-07 | Do NOT import Monkeytype (GPL-3.0) word lists/quotes | MVP policy | — | NOT STARTED | — | — | — | **absolute prohibition.** DEMOTED from DONE-VERIFIED: the row claimed it was 'enforced by the license gate'. **That is false.** `scripts/check-licenses.mjs` scans npm production deps in `apps/`+`packages/` only; it never reads `content/` or `docs/content-*.md`. It enforces D12 (dependency copyleft), a different rule. Needs a content-corpus licence gate |
 | CNT-08 | Real-world business text (original or synthetic) | V1 | CNT-01 | NOT STARTED | — | — | — | PII/secret scan required |
 | CNT-09 | User-submitted content + moderation queue | V1 | CNT-01, ADM-02 | NOT STARTED | — | — | — | private custom text stays local |
 | CNT-10 | Freshness: track seen items, daily passage | V1 | CNT-01 | NOT STARTED | — | — | — | |
@@ -180,7 +181,7 @@ OFF** and the flag is OFF — so those two states are distinct on purpose.
 | INT-01 | Server recomputes metrics; reject mismatches | MVP | ENG-05 | NOT STARTED | — | — | — | **never skipped or flagged away** (18.4) |
 | INT-02 | Plausibility checks: key-rate floor, min IKI, impossible rollover, timing distribution | MVP | INT-01 | NOT STARTED | — | INT-FIXTURE-001..006, INT-CHECK-006/007 | — | flags, does not ban |
 | INT-03 | Signed sessions: server seed/nonce/text hash, TTL, single use | MVP | INT-01 | NOT STARTED | — | — | — | **never skipped or flagged away** (18.4) |
-| INT-04 | Rate limiting / abuse protection per IP/account/device | MVP | — | DONE-VERIFIED | — | apps/api/tests/security.test.ts | LAB PROXY | 100/min default, proven by a 429 test |
+| INT-04 | Rate limiting / abuse protection per IP/account/device | MVP | — | IN PROGRESS | — | apps/api/tests/security.test.ts | LAB PROXY | DEMOTED from DONE-VERIFIED: `@fastify/rate-limit` is `max: 100`, `timeWindow: 1 minute`, keyed by **IP only**. The spec asks per **IP/account/device**; account and device are absent. The row also claimed the 100/min default was 'proven by a 429 test' — that test passes `rateLimitMax: 3`, so it proves the limiter fires, not the default |
 | INT-05 | Risk-scoring workers; flagged results held with visible "under review" | V1 | INT-01, INT-02 | NOT STARTED | — | INT-FIXTURE-005 | — | **gates public boards (INT-10)** |
 | INT-06 | Verification re-test (fresh text) or video proof for top ranks | V1 | INT-05 | NOT STARTED | — | — | — | **gates public boards** |
 | INT-07 | Public policy, categorised reasons, appeal form, false-positive rate | V1 | INT-05 | NOT STARTED | — | — | — | **gates public boards.** hold rather than instant-ban when unsure |
@@ -208,7 +209,7 @@ OFF** and the flag is OFF — so those two states are distinct on purpose.
 |---|---|---|---|---|---|---|---|---|
 | MOT-01 | Streaks with grace/freeze; day counts at ≥ 5 focused minutes | MVP | — | REJECTED-BY-ANTI-GOAL | — | — | — | **ADR-006.** superseded by RET-05/06/07 (≥ 3 min, weekly-goal primary). As literally written it is a rigid single-attempt daily gate — a forbidden anti-goal. Not built in this form |
 | MOT-02 | Session summary: improved / regressed / next | MVP | ANA-04 | NOT STARTED | — | — | — | extended by RET-10 |
-| MOT-03 | No pay-to-win; paid items cosmetic only | MVP policy | — | DONE-VERIFIED | — | — | LAB PROXY | **absolute prohibition.** binding on BIZ-02/03 |
+| MOT-03 | No pay-to-win; paid items cosmetic only | MVP policy | — | NOT STARTED | — | — | — | **absolute prohibition.** DEMOTED from DONE-VERIFIED: vacuously true. No billing or monetisation code exists, and `BIZ-02`/`BIZ-03`/`OPS-09` are all NOT STARTED flag-OFF. 'Binding on BIZ-02/03' is enforced by nothing. Re-verify when billing lands |
 | MOT-04 | XP/badges for improvement **quality**, not volume | V1 | ANA-04 | NOT STARTED | — | — | — | overlaps RET-14 |
 | MOT-05 | Optional adult mini-games, off by default | LATER | — | NOT STARTED | OFF | — | — | off by default; never forced on adults |
 
@@ -228,7 +229,7 @@ OFF** and the flag is OFF — so those two states are distinct on purpose.
 
 | ID | name | tag | depends-on | status | flag | test IDs | evidence | notes |
 |---|---|---|---|---|---|---|---|---|
-| CUS-01 | Instant start; no ads/popups/modals on the typing surface | MVP | — | DONE-VERIFIED | — | e2e/manual-engine-test.spec.ts | LAB PROXY | **absolute prohibition.** the test surface has no popups; must survive every later feature |
+| CUS-01 | Instant start; no ads/popups/modals on the typing surface | MVP | — | IN PROGRESS | — | — | — | **absolute prohibition.** DEMOTED from DONE-VERIFIED: the row cited `e2e/manual-engine-test.spec.ts`, which asserts nothing about popups, modals or ads (its 3 tests are typing/metrics). No such test exists. Needs a real test that the typing surface renders no overlay |
 | CUS-02 | Themes, fonts (incl. dyslexia-friendly), caret style, focus mode | MVP | — | NOT STARTED | — | — | — | |
 | CUS-03 | Full keyboard navigation + shortcuts | MVP | — | IN PROGRESS | — | e2e | LAB PROXY | Tab=restart works; Esc=menu not built. keyboard-only flow unverified |
 | CUS-04 | On-screen keyboard overlay, theme builder, sound packs, command palette | V1 | CUS-02 | NOT STARTED | — | — | — | |
@@ -276,12 +277,12 @@ OFF** and the flag is OFF — so those two states are distinct on purpose.
 
 | ID | name | tag | depends-on | status | flag | test IDs | evidence | notes |
 |---|---|---|---|---|---|---|---|---|
-| BIZ-01 | Free core; no interstitial ads or upsell popups | MVP | — | DONE-VERIFIED | — | — | LAB PROXY | **absolute prohibition.** nothing monetised exists yet |
+| BIZ-01 | Free core; no interstitial ads or upsell popups | MVP | — | NOT STARTED | — | — | — | **absolute prohibition.** DEMOTED from DONE-VERIFIED: vacuously true — nothing is monetised. The 'LAB PROXY' label was a category error; there was no lab. Re-verify when billing lands |
 | BIZ-02 | Supporters (donation/one-time/recurring), cosmetic perks | V1 | OPS-09 | NOT STARTED | OFF | — | — | ADR-005. payments = BLOCKED-EXTERNAL boundary |
 | BIZ-03 | Pro tier (deep analytics, cloud replays, own-code drills) | V1 test | OPS-09 | NOT STARTED | OFF | — | — | **CONFLICT:** paid deep analytics can read as selling competitive advantage, contradicting MOT-03. HARD RULE: a paid tier must never affect ranking or comparison |
 | BIZ-04 | Teams/coach dashboards, pilot with 1–2 bootcamps | V2 pilot | USR-07 | NOT STARTED | OFF | — | — | **CONFLICT:** V2 pilot vs impl-guide V1-15. impl guide writes "privacy rules for minors/adults" which contradicts USR-06 (18+ only) |
 | BIZ-05 | Verified certificates/assessments | V2 validate | INT-06 | NOT STARTED | OFF | — | — | **highest outcome-claim risk.** spec says "decide only after data". Claims prohibition stays attached |
-| BIZ-06 | No dark patterns | Policy | — | DONE-VERIFIED | — | — | LAB PROXY | **absolute prohibition.** no billing exists, so trivially true; must be re-checked when OPS-09 lands |
+| BIZ-06 | No dark patterns | Policy | — | NOT STARTED | — | — | — | **absolute prohibition.** DEMOTED from DONE-VERIFIED: the row itself conceded it is 'trivially true' because no billing exists. Trivially true is not verified. Re-verify when OPS-09 lands |
 
 ## OPS — Operations, legal, support (master spec §5.16)
 
@@ -292,14 +293,14 @@ OFF** and the flag is OFF — so those two states are distinct on purpose.
 | OPS-03 | Marketing/SEO pages, docs, "How we calculate" | MVP-lite | OPS-06 | NOT STARTED | — | — | — | **CONFLICT:** `[MVP-lite]` vs `[MVP-lite → V1]` inside one document |
 | OPS-04 | In-app feedback, public roadmap, changelog | MVP | — | NOT STARTED | — | — | — | |
 | OPS-05 | Backups with tested restore; retention job expiring raw logs | MVP | NFR-17 | NOT STARTED | — | — | — | must be tested with a fake clock |
-| OPS-06 | Metric-model versioning: stamp every result, recalc policy, changelog | MVP | ENG-05 | DONE-VERIFIED | — | packages/engine modelVersion | LAB PROXY | `ENGINE_MODEL_VERSION 1.0.0` stamped on every result; ResultsPanel shows it |
+| OPS-06 | Metric-model versioning: stamp every result, recalc policy, changelog | MVP | ENG-05 | IN PROGRESS | — | e2e/manual-engine-test.spec.ts, e2e/parity/parity.spec.ts | LAB PROXY | DEMOTED from DONE-VERIFIED: `ENGINE_MODEL_VERSION 1.0.0` is really stamped and really asserted, but the spec asks for **three** things and only one exists — the **recalculation policy** and the **public changelog** are missing. Also contradicted NFR-15 (`How we calculate` + changelog) marked NOT STARTED in this same file |
 | OPS-07 | Physical keyboard/OS quirks; ANSI vs ISO; Mac vs Win; auto-detect + override | MVP | LOC-01 | NOT STARTED | — | — | — | |
 | OPS-08 | Notifications with preferences and quiet hours | V1 | USR-02 | NOT STARTED | — | — | — | ≤ 1/day, opt-in, no guilt. extended by RET-11 |
 | OPS-09 | Billing: cards + UPI, invoices/tax, refunds, dunning, regional pricing | V1 | BIZ-02 | NOT STARTED | OFF | — | — | **BLOCKED-EXTERNAL at the boundary** (18.6). never execute a real charge |
 | OPS-10 | Support desk, help centre, community, moderation policy | V1 | OPS-04 | NOT STARTED | — | — | — | |
 | OPS-11 | Account security: 2FA, device/session list, recovery | V1 | USR-02 | NOT STARTED | — | — | — | |
 | OPS-12 | Status page + incident runbook | V1 | — | NOT STARTED | — | — | — | |
-| OPS-13 | Privacy-friendly analytics; no third-party trackers in the test flow | MVP | NFR-09 | DONE-VERIFIED | — | packages/telemetry 97 tests, canary | LAB PROXY | **absolute prohibition.** 22-event allowlist, compile-time + runtime rejection, `CANARY_TYPED_TEXT_9F3A` proven absent in all six paths |
+| OPS-13 | Privacy-friendly analytics; no third-party trackers in the test flow | MVP | NFR-09 | DONE-VERIFIED | — | packages/telemetry 97 tests, canary | LAB PROXY | **absolute prohibition.** 22-event allowlist, compile-time + runtime rejection, `CANARY_TYPED_TEXT_9F3A` proven absent across the canary suite. **Correction:** the row claimed 'all six paths'; the canary file has more `it()` blocks than that. Also: `@realtype/telemetry` is imported by nothing in `apps/` yet, so 'no third-party trackers in the test flow' currently holds by total absence — the package is not wired in yet |
 | OPS-14 | Accessibility statement + periodic audits | V1 | A11Y-01 | NOT STARTED | — | — | — | |
 
 ## ADM — Admin and experimentation (master spec §5.17)
@@ -385,7 +386,7 @@ OFF** and the flag is OFF — so those two states are distinct on purpose.
 | NFR-13 | Observability: structured logs, metrics, error tracking, dashboards | UNTAGGED | OPS-13 | NOT STARTED | — | — | — | real error tracking is an external account |
 | NFR-14 | i18n: externalised strings; RTL-ready | UNTAGGED | LOC-03 | NOT STARTED | — | — | — | |
 | NFR-15 | Docs: "How we calculate", privacy, anti-cheat policy, changelog | UNTAGGED | OPS-06 | NOT STARTED | — | — | — | |
-| NFR-16 | Bundle budget enforced in CI | UNTAGGED | NFR-02 | DONE-VERIFIED | — | `pnpm check:bundle` | LAB PROXY | gate measures the whole `dist/`, source maps excluded. proven on 4 vectors |
+| NFR-16 | Bundle budget enforced in CI | UNTAGGED | NFR-02 | DONE-VERIFIED | — | `pnpm check:bundle` | LAB PROXY | gate measures the whole `dist/`, source maps excluded, so it caught a CSS data-URI and a `public/` asset that the previous whole-JS-only version missed. **Correction:** 'proven on 4 vectors' was manual probing in Session 4, not an automated proof — there is no `check-bundle-size.test.mjs`, unlike `check-licenses.test.mjs`. A non-vacuity test is owed |
 | NFR-17 | Data integrity: versioned schemas + migrations; tested backups | UNTAGGED | OPS-05 | NOT STARTED | — | — | — | |
 
 ---
