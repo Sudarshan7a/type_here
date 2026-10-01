@@ -127,6 +127,110 @@ describe("text model (E4)", () => {
     expect(model.buffer.join("")).toBe("xa");
   });
 
+  /**
+   * D04 — word-locked mode (chapter 4 part 2, fixture ENG-FIXTURE-D04):
+   * "the caret cannot move to a new word until the current word is fully
+   * correct, and that partial-word corrections within the word ARE allowed".
+   *
+   * This is the mode that distinguishes the two halves of that sentence. Unlike
+   * must-correct it does NOT reject a wrong key — the typo enters the text and
+   * is visible, and Backspace works — but the caret is trapped at the word
+   * boundary until the word is clean. So the user sees their error, can fix it,
+   * and cannot skate past it into the next word.
+   */
+  it("word-locked: a wrong character inside a word is kept, not rejected", () => {
+    const model = createTextModel("cat sat", "word-locked");
+    expect(applyPress(model, down("c", 0))).toBe("inserted");
+    expect(applyPress(model, down("x", 10))).toBe("inserted");
+    expect(model.buffer.join("")).toBe("cx");
+    // No pending-rejection state: unlike must-correct there is nothing to clear.
+    expect(model.rejected).toBeNull();
+    expect(model.rejectedAttempts).toBe(0);
+  });
+
+  it("word-locked: the caret cannot leave a word until that word is correct", () => {
+    const model = createTextModel("cat sat", "word-locked");
+    applyPress(model, down("c", 0));
+    applyPress(model, down("x", 10));
+    applyPress(model, down("a", 20));
+    applyPress(model, down("t", 30));
+    expect(model.buffer.join("")).toBe("cxat");
+
+    // The word is finished and it is wrong. The space that would advance to the
+    // next word is refused, and so is any other press, so the user cannot move
+    // on and fix it later.
+    expect(applyPress(model, down(" ", 40))).toBe("rejected");
+    expect(applyPress(model, down("s", 50))).toBe("rejected");
+    expect(model.buffer.join("")).toBe("cxat");
+    expect(model.rejectedAttempts).toBe(2);
+  });
+
+  it("word-locked: corrections within the word ARE allowed", () => {
+    const model = createTextModel("cat sat", "word-locked");
+    applyPress(model, down("c", 0));
+    applyPress(model, down("x", 10));
+    applyPress(model, down("a", 20));
+    applyPress(model, down("t", 30));
+    expect(applyPress(model, down(" ", 40))).toBe("rejected");
+
+    // Backspace inside the word is permitted — that is the whole point of the
+    // mode. Pop the bad character, retype it, and the caret is released.
+    expect(applyPress(model, down("Backspace", 50))).toBe("corrected");
+    expect(model.buffer.join("")).toBe("cxa");
+    expect(applyPress(model, down("t", 60))).toBe("inserted");
+    expect(model.buffer.join("")).toBe("cxat");
+    expect(applyPress(model, down(" ", 70))).toBe("rejected");
+    expect(applyPress(model, down("Backspace", 80))).toBe("corrected");
+    expect(applyPress(model, down("t", 90))).toBe("corrected");
+    expect(applyPress(model, down("a", 100))).toBe("inserted");
+    expect(model.buffer.join("")).toBe("cat");
+    // Now the word is clean and the caret moves on.
+    expect(applyPress(model, down(" ", 110))).toBe("inserted");
+    expect(model.buffer.join("")).toBe("cat ");
+  });
+
+  it("word-locked: a correct word passes straight through", () => {
+    const model = createTextModel("cat sat", "word-locked");
+    expect(applyPress(model, down("c", 0))).toBe("inserted");
+    expect(applyPress(model, down("a", 10))).toBe("inserted");
+    expect(applyPress(model, down("t", 20))).toBe("inserted");
+    expect(model.rejectedAttempts).toBe(0);
+    expect(applyPress(model, down(" ", 30))).toBe("inserted");
+    expect(applyPress(model, down("s", 40))).toBe("inserted");
+    expect(applyPress(model, down(" ", 50))).toBe("inserted");
+    expect(model.rejectedAttempts).toBe(0);
+    expect(model.buffer.join("")).toBe("cat s ");
+  });
+
+  it("word-locked: a blocked press is still a real attempt, so KSPC is honest", () => {
+    const model = createTextModel("cat sat", "word-locked");
+    applyPress(model, down("c", 0));
+    applyPress(model, down("x", 10));
+    applyPress(model, down("a", 20));
+    applyPress(model, down("t", 30));
+    applyPress(model, down(" ", 40));
+    // Six physical presses: four characters plus the refused space.
+    expect(model.totalAttempts).toBe(5);
+    expect(model.rejectedAttempts).toBe(1);
+    expect(model.halted).toBe(false);
+  });
+
+  it("word-locked: the last word of the text is locked too (no trailing space)", () => {
+    const model = createTextModel("the cat", "word-locked");
+    for (const [i, k] of [..."the ".split("")].entries()) {
+      applyPress(model, down(k, i * 10));
+    }
+    expect(model.buffer.join("")).toBe("the ");
+    applyPress(model, down("c", 100));
+    applyPress(model, down("x", 110));
+    applyPress(model, down("a", 120));
+    applyPress(model, down("t", 130));
+    // 'the cat' has no trailing space, so the boundary is the end of the text.
+    // The caret is still held at the end, because the word is wrong.
+    expect(applyPress(model, down("d", 140))).toBe("rejected");
+    expect(model.buffer.join("")).toBe("the cxa");
+  });
+
   it("must-correct rejects the wrong press and continues after a correction", () => {
     // This is the behaviour the stop-on-error test above used to assert. The
     // mode string existed before the two modes were actually differentiated,
