@@ -88,6 +88,45 @@ describe("text model (E4)", () => {
     expect(model.backspaces).toBe(0);
   });
 
+  /**
+   * D03 — no-backspace (exam) mode. Engine-internal only for now: the public
+   * `errorMode` enum in packages/schemas still has three values, so this mode
+   * cannot yet appear in a validated InputLog. The behaviour is complete and
+   * pinned here; the enum extension is registered as EXTERNAL DECISION REQUIRED.
+   */
+  it("no-backspace ignores Backspace entirely and leaves KSPC unaffected", () => {
+    const model = createTextModel("cat", "no-backspace");
+    expect(applyPress(model, down("c", 0))).toBe("inserted");
+    expect(applyPress(model, down("a", 10))).toBe("inserted");
+
+    // A Backspace the user is not allowed to press changes nothing at all.
+    expect(applyPress(model, down("Backspace", 20))).toBe("ignored");
+    expect(applyPress(model, down("Backspace", 30))).toBe("ignored");
+    expect(model.buffer.join("")).toBe("ca");
+    // Not counted as a keystroke, so KSPC (inserts+backspaces)/chars is
+    // unchanged at 2/2 = 1.00. If Backspace were counted, KSPC would read
+    // 4/2 = 2.00 and a candidate could inflate the ratio at will.
+    expect(model.backspaces).toBe(0);
+    expect(model.totalAttempts).toBe(2);
+    expect(model.rejectedAttempts).toBe(0);
+
+    // The test still runs to completion; mistakes stay in the text.
+    expect(applyPress(model, down("x", 40))).toBe("inserted");
+    expect(applyPress(model, down("t", 50))).toBe("inserted");
+    expect(model.buffer.join("")).toBe("caxt");
+    expect(model.halted).toBe(false);
+  });
+
+  it("no-backspace still allows a wrong character into the text (no correction exists)", () => {
+    const model = createTextModel("cat", "no-backspace");
+    applyPress(model, down("x", 0));
+    expect(model.buffer.join("")).toBe("x");
+    // There is no pending rejection to clear, because there is no Backspace.
+    expect(model.rejected).toBeNull();
+    expect(applyPress(model, down("a", 10))).toBe("inserted");
+    expect(model.buffer.join("")).toBe("xa");
+  });
+
   it("must-correct rejects the wrong press and continues after a correction", () => {
     // This is the behaviour the stop-on-error test above used to assert. The
     // mode string existed before the two modes were actually differentiated,
