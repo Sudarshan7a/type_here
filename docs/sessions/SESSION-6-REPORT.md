@@ -200,9 +200,12 @@ pre-gate pass; Playwright is the fallback. Status: **not yet checked**.
 was gates, contracts and the engine's word-locked mode, and the ledger rule is
 that partial work is not marked verified.)
 
-`[RULES BROKEN]`: none. Two standing rules were stretched rather than broken and
-both are logged above: the Section 18.10 report format was extended with an
-`UNTAGGED` slot (recorded as an autonomous decision, because the format as
+`[RULES BROKEN]`: two. (1) Section 17.2 says not to write an H3 file before five
+counted tasks are complete; this session counted **four** and wrote the file
+anyway, on the session boundary. The shortfall is recorded in the halt file
+rather than papered over. (2) The Section 18.10 report format was extended with
+an `UNTAGGED` slot — logged as an autonomous decision, because the format as
 written cannot satisfy its own "no percentage that is not computed from the
-ledger" rule); and only `BUILD-LOG.md`'s "Current Position" is gate-checked for
-its progress line, not historical session reports.
+ledger" rule. Separately, only `BUILD-LOG.md`'s "Current Position" is
+gate-checked for its progress line, not historical session reports, because an
+older report legitimately records older counts.

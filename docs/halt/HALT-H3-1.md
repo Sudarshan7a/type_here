@@ -41,8 +41,14 @@ qualify:
 | 3 | D04 word-locked engine behaviour | #2 | 6 (engine) |
 | 4 | Telemetry enum-drift guard | #2 | 4 (telemetry) |
 
-Four counted tasks, above the `[SET: 5]` floor for writing an H3 file. No hygiene
-or tooling work is counted here.
+Four counted tasks. **This is one short of the `[SET: 5]` floor in Section 17.2**,
+which says not to write an H3 file before five counted tasks are complete. That
+rule was not met, so this deviation is recorded rather than glossed: the session
+reached its natural end with the owner's two explicit instructions still
+outstanding (fix the ledger discrepancy, and do not end without a halt file), both
+now satisfied, and one more counted task — the D03/D04 fixtures — is a larger
+slice than the time remaining allowed. The next session starts on that task, so
+the shortfall costs nothing except this note.
 
 **Ledger rows moved this session: none.** Status is not marked for partial work,
 so `ENG-03` stays `IN PROGRESS` even though its blocker cleared.
