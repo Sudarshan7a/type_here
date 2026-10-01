@@ -21,7 +21,13 @@ export const MODES = ["classic", "real-world", "numbers-symbols", "custom", "cod
 export const DURATION_BUCKETS = ["15s", "30s", "60s", "120s"] as const;
 
 /** Error handling modes (values match @realtype/schemas TypingSettings). */
-export const ERROR_MODES = ["free", "must-correct", "stop-on-error"] as const;
+export const ERROR_MODES = [
+  "free",
+  "must-correct",
+  "stop-on-error",
+  "no-backspace",
+  "word-locked",
+] as const;
 
 /** Keyboard layouts (build order per decision D-log; values match schemas). */
 export const LAYOUTS = [
@@ -44,6 +50,8 @@ export const SETTING_VALUES = [
   "free",
   "must-correct",
   "stop-on-error",
+  "no-backspace",
+  "word-locked",
   "on",
   "off",
   "enabled",

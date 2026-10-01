@@ -1,4 +1,4 @@
-import type { InputLog, KeyEvent, LogMarker, TypingText } from "@realtype/schemas";
+import type { ErrorMode, InputLog, KeyEvent, LogMarker, TypingText } from "@realtype/schemas";
 
 /**
  * Shared builders for the synthetic ENG-* fixture logs (chapter-4 deep-dive
@@ -54,7 +54,8 @@ export function withKeyups(downs: KeyEvent[], holdMs = 100): KeyEvent[] {
   return events.sort((a, b) => a.t - b.t);
 }
 
-export type FixtureErrorMode = "free" | "must-correct" | "stop-on-error";
+/** Derived from the contract, so a fixture can never name a mode the schema rejects. */
+export type FixtureErrorMode = ErrorMode;
 
 export interface BuildLogOptions {
   events: KeyEvent[];
