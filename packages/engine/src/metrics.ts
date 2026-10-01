@@ -14,6 +14,7 @@ import type { KeyEvent, LogMarker } from "@realtype/schemas";
 import { filterEvents, integrityFlags } from "./input-filter.js";
 import type { ErrorMode } from "./text-model.js";
 import { applyPress, correctCharsInFinalText, createTextModel, finalText } from "./text-model.js";
+import { perMinuteWpm } from "./wpm.js";
 
 /** Version of the metric formulas below. Old results keep their own stamp. */
 export const ENGINE_MODEL_VERSION = "1.0.0";
@@ -79,15 +80,13 @@ export interface EngineResult {
   finalText: string;
 }
 
-function perMinuteWpm(chars: number, durationMs: number): number {
-  if (durationMs <= 0) return 0;
-  return chars / 5 / (durationMs / 60_000);
-}
-
 /**
  * Rollover ratio (E5): presses typed while the immediately preceding press's
  * physical key was still down, over presses that have a predecessor. Key
  * matching is by `event.code` so a shifted key still matches its physical key.
+ *
+ * The characters-per-minute conversion it shares with the burst and live
+ * figures lives in ./wpm.ts, so all three cannot drift apart.
  */
 function rollover(
   presses: KeyEvent[],
@@ -205,7 +204,9 @@ export function computeFromEvents(
 ): EngineResult {
   const filtered = filterEvents(events);
   const model = createTextModel(target, errorMode);
-  for (const press of filtered.scoringPresses) {
+  // `textAffecting`, not `scoringPresses`: auto-inserted characters belong in the
+  // produced text even though they are not user keystrokes (ENG-09).
+  for (const press of filtered.textAffecting) {
     applyPress(model, press);
   }
   return summarise(target, model, filtered, options);

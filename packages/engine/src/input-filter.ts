@@ -40,9 +40,21 @@ export interface FilteredEvents {
   keyUps: KeyEvent[];
   /** Non-printable, non-Backspace keydowns (Shift, Enter, modifiers). */
   ignored: KeyEvent[];
+  /**
+   * Every event that may change the produced text, in capture order: the scoring
+   * presses plus the app's auto-inserted characters.
+   *
+   * The text model must replay THIS list, not `scoringPresses` alone. Filtering
+   * auto events into a separate bucket and then replaying only the presses meant
+   * an auto-paired bracket appeared in neither the produced text nor the
+   * metrics, so every character after it was scored against the wrong target
+   * position (ENG-09). Both compute paths read this list, which is what keeps
+   * them from drifting apart again.
+   */
+  textAffecting: KeyEvent[];
 }
 
-export function filterEvents(events: KeyEvent[]): FilteredEvents {
+export function filterEvents(events: readonly KeyEvent[]): FilteredEvents {
   const out: FilteredEvents = {
     scoringPresses: [],
     repeatDrops: [],
@@ -50,6 +62,7 @@ export function filterEvents(events: KeyEvent[]): FilteredEvents {
     auto: [],
     keyUps: [],
     ignored: [],
+    textAffecting: [],
   };
   for (const event of events) {
     if (event.type === "up") {
@@ -66,10 +79,12 @@ export function filterEvents(events: KeyEvent[]): FilteredEvents {
     }
     if (event.auto) {
       out.auto.push(event);
+      out.textAffecting.push(event);
       continue;
     }
     if (isScoringPress(event)) {
       out.scoringPresses.push(event);
+      out.textAffecting.push(event);
     } else {
       out.ignored.push(event);
     }
