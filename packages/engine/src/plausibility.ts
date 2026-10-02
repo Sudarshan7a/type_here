@@ -36,6 +36,10 @@ export const PASTE_BURST_CODE = "paste-burst" as const;
  * Fewer presses than one full window yields zero windows (never an error —
  * a short log simply has no sustained-rate evidence either way). Carries no
  * verdict; the caller applies its own injected floor to the result.
+ *
+ * @param events pre-filtered scoring presses only (WAVE-1: pass the
+ * `filterEvents` output, never raw log events — untrusted/auto/repeat/
+ * composition events would dilute the means and corrupt the verdict).
  */
 export function windowMeans(
   events: ReadonlyArray<Pick<KeyEvent, "t">>,
@@ -108,6 +112,9 @@ export interface SingleOutlierResult {
  * injected floor. Pairs whose finger attribution is unknown are skipped, not
  * guessed: flagging on a guessed finger would punish legitimate typists with
  * atypical mappings (the integrity skill's false-positive discipline).
+ *
+ * @param events pre-filtered scoring presses only (same contract as
+ * `windowMeans` — raw log events corrupt the verdict).
  */
 export function singleOutliers(
   events: readonly KeyEvent[],
@@ -144,6 +151,9 @@ export interface PasteBurstResult {
  * the client-side paste block is bypassed. A sliding run (not whole-log
  * span) so a burst buried inside a longer log is still caught. Reports the
  * first triggering run's position and duration only.
+ *
+ * @param events pre-filtered scoring presses only (same contract as
+ * `windowMeans` — raw log events corrupt the verdict).
  */
 export function flagPasteBurst(
   events: ReadonlyArray<Pick<KeyEvent, "t">>,
