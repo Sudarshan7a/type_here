@@ -7,7 +7,7 @@ import { ENGINE_MODEL_VERSION, computeResult } from "../src/index";
 // the rest of the app depends on.
 describe("engine package contract", () => {
   it("exposes the metric-model version that ResultSummary stamps carry", () => {
-    expect(ENGINE_MODEL_VERSION).toBe("1.0.0");
+    expect(ENGINE_MODEL_VERSION).toBe("1.1.0");
   });
 
   it("exports a single computeResult entry point for client and server", () => {

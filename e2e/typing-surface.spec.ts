@@ -217,7 +217,7 @@ test("AC5: a finished test shows a headline, Restart (Tab) and New passage, and 
   // The engine's model version is surfaced on the finished result, which is what
   // proves the numbers came from packages/engine and were not computed in the
   // view. This carries over the intent of the old E1 wiring spec.
-  await expect(page.getByTestId("engine-stamp")).toContainText("model 1.0.0");
+  await expect(page.getByTestId("engine-stamp")).toContainText("model 1.1.0");
 
   // Typing after the end changes nothing: no character state moves.
   const statesBefore = await page

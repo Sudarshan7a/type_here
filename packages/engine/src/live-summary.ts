@@ -17,10 +17,11 @@
  *    freezes there. Keystrokes after the halt are real but unscored, and letting
  *    them extend the duration would let a halted test be dragged out by typing on.
  */
-import type { KeyEvent } from "@realtype/schemas";
+import type { KeyEvent, LogMarker } from "@realtype/schemas";
 
 import { filterEvents } from "./input-filter.js";
 import { ENGINE_MODEL_VERSION } from "./metrics.js";
+import { scoredDurationMs } from "./pauses.js";
 import type { ErrorMode } from "./text-model.js";
 import { applyPress, correctCharsInFinalText, createTextModel, finalText } from "./text-model.js";
 import { perMinuteWpm } from "./wpm.js";
@@ -35,6 +36,17 @@ export interface LiveSummaryOptions {
    * time is measured to *now*, not to the last keystroke.
    */
   nowMs: number;
+  /**
+   * Focus / blur / visibility markers from the same capture, on the same clock.
+   *
+   * These exist so the live clock subtracts time the user was AWAY, exactly as
+   * `computeFromEvents` does (chapter 4 §4.10). Without them the live figure
+   * sagged every time the user switched tabs and then disagreed with the
+   * headline at the end of the same test — the defect the owner reported as
+   * "14.3 WPM live, 58.0 WPM finished". Time spent THINKING has no marker and is
+   * still counted, which is the point: absence is not slowness.
+   */
+  markers?: readonly LogMarker[];
 }
 
 export interface LiveSummary {
@@ -92,7 +104,10 @@ export function computeLiveSummary(
   // live clock has to stop there too, or the figure would keep drifting after the
   // attempt was over and would not match the number finally reported (D02).
   const clockEnd = haltedAtT === null ? options.nowMs : Math.min(options.nowMs, haltedAtT);
-  const elapsedMs = first === undefined ? 0 : Math.max(0, clockEnd - first.t);
+  // The same duration rule `summarise` uses, from the same module. If this ever
+  // becomes its own arithmetic the live figure and the headline drift apart
+  // again, which is the defect this option exists to close (see pauses.ts).
+  const elapsedMs = first === undefined ? 0 : scoredDurationMs(options.markers, first.t, clockEnd);
 
   // No character of the text was produced, so there is no speed to report. A
   // Backspace on an empty buffer, or a must-correct rejection, both land here.

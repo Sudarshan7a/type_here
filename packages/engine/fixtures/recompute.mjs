@@ -250,7 +250,7 @@ function computeMetrics(events, target, mode) {
       consistency: cons.value,
       burstWpm: burst.wpm,
       ikiMeanMs: iki.mean,
-      modelVersion: "1.0.0",
+      modelVersion: "1.1.0",
       difficultyBand: null,
       verified: false,
       flags: [],

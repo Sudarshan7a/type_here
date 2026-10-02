@@ -41,8 +41,8 @@ ADR-005 and only a `RESPONSE` or `STEER` file can enable it. `—` means no flag
 | Status | Rows |
 |---|---|
 | DONE-VERIFIED | 6 |
-| IN PROGRESS | 23 |
-| NOT STARTED | 186 |
+| IN PROGRESS | 24 |
+| NOT STARTED | 185 |
 | LAUNCH-GATED | 0 |
 | BLOCKED-EXTERNAL | 0 |
 | DEFERRED-BY-HUMAN | 0 |
@@ -238,7 +238,7 @@ OFF** and the flag is OFF — so those two states are distinct on purpose.
 | ID | name | tag | depends-on | status | flag | test IDs | evidence | notes |
 |---|---|---|---|---|---|---|---|---|
 | CUS-01 | Instant start; no ads/popups/modals on the typing surface | MVP | — | DONE-VERIFIED | — | e2e/typing-surface.spec.ts AC4/AC6, apps/web/tests/typing-surface.test.tsx | LAB PROXY | **RESTORED to DONE-VERIFIED in Session 7, on the test it was demoted for.** It had been demoted because the row cited `e2e/manual-engine-test.spec.ts`, which asserts nothing about overlays. That spec is gone (it tested a surface the owner ordered replaced) and two real tests replace it. AC6 queries the live DOM during typing for `dialog`, `[role=dialog]`, `[role=alert]`, `[role=alertdialog]`, `[popover]`, `.modal`, `.popup`, `.toast` and `.tooltip` and requires the list to be empty; the SSR test runs the same list against the server-rendered markup, so an overlay cannot appear from a portal or a late script either. AC4 proves instant start: there is no Start button, the surface takes focus directly, and the clock starts on the first keystroke. The surface makes no network call of any kind |
-| CUS-02 | Themes, fonts (incl. dyslexia-friendly), caret style, focus mode | MVP | — | NOT STARTED | — | — | — | |
+| CUS-02 | Themes, fonts (incl. dyslexia-friendly), caret style, focus mode | MVP | — | IN PROGRESS | — | e2e/typing-surface-design.spec.ts DESIGN, apps/web/tests/design-tokens.test.ts, docs/visual-evidence/ | LAB PROXY | **Session 8: the theme system exists** — every colour, size, radius, duration and easing is a custom property in `apps/web/src/styles/tokens.css`, transcribed from the owner's design pack, and `design-tokens.test.ts` fails the build if a raw colour literal appears in a component. Both the Daylight and Night Ink palettes are asserted on the COMPUTED style, so a token cannot quietly stop resolving. Seven LAB PROXY screenshots in `docs/visual-evidence/`, each of which records the layout it measured and refuses to be written if the capture changed it. **Still open:** the theme switcher UI, a dyslexia-friendly face, a user-selectable caret style, and focus mode |
 | CUS-03 | Full keyboard navigation + shortcuts | MVP | — | IN PROGRESS | — | e2e | LAB PROXY | Tab=restart works; Esc=menu not built. keyboard-only flow unverified |
 | CUS-04 | On-screen keyboard overlay, theme builder, sound packs, command palette | V1 | CUS-02 | NOT STARTED | — | — | — | |
 

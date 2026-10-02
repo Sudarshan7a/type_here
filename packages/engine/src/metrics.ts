@@ -12,12 +12,20 @@
 import type { KeyEvent, LogMarker } from "@realtype/schemas";
 
 import { filterEvents, integrityFlags } from "./input-filter.js";
+import { scoredDurationMs } from "./pauses.js";
 import type { ErrorMode } from "./text-model.js";
 import { applyPress, correctCharsInFinalText, createTextModel, finalText } from "./text-model.js";
 import { perMinuteWpm } from "./wpm.js";
 
-/** Version of the metric formulas below. Old results keep their own stamp. */
-export const ENGINE_MODEL_VERSION = "1.0.0";
+/**
+ * Version of the metric formulas below. Old results keep their own stamp.
+ *
+ * 1.1.0 (Session 8): the scored duration now subtracts paused time, per chapter
+ * 4 §4.10. A result stamped 1.0.0 was computed on wall-clock duration with any
+ * absence still in it, so 1.0.0 and 1.1.0 figures are not comparable for a test
+ * that was interrupted — which is why `/how-we-calculate` carries the version.
+ */
+export const ENGINE_MODEL_VERSION = "1.1.0";
 
 /** IKI statistics exclude gaps longer than this (typing-metrics-spec). */
 export const IKI_GAP_EXCLUSION_MS = 5_000;
@@ -242,8 +250,13 @@ function summarise(
   // claiming an earlier time). A negative span would make every speed metric
   // negative or NaN, so the span is clamped to zero and the log is reported as
   // unusable for speed rather than silently producing nonsense.
-  const rawDuration = first === undefined || last === undefined ? 0 : last.t - first.t;
-  const durationMs = Math.max(0, rawDuration);
+  // §4.10: the pause is subtracted entirely, from EVERY speed formula. This line
+  // was `last.t - first.t` until Session 8, which meant a ten-second absence
+  // stayed in the clock — the state machine implemented the rule correctly and
+  // was never called (see pauses.ts).
+  const fromT = first?.t ?? 0;
+  const toT = last?.t ?? fromT;
+  const durationMs = scoredDurationMs(options.markers, fromT, toT);
 
   const final = finalText(model);
   const correctFinal = correctCharsInFinalText(model);

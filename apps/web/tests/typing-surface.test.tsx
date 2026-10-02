@@ -29,6 +29,66 @@ describe("TypingSurface markup", () => {
     expect(html).toMatch(/Press Escape/);
   });
 
+  it("puts every character inside a word box, and every space at the END of one", () => {
+    // STEER-2 bug (d) and bug (f) are both about where the browser is allowed to
+    // break the line, and CSS Text permits a break between any two adjacent
+    // ATOMIC INLINES. So the structure is the whole defence:
+    //
+    //   - a character at top level is atomic, which is how "whenever" came to be
+    //     split as "wh / enever" at 360px;
+    //   - a space at top level is atomic too, which lets a break land BEFORE it
+    //     and opens the next line with a space.
+    //
+    // Both were once handled by measuring the laid-out result and correcting it,
+    // and that measurement was found to settle on the wrong side of the break at
+    // every width where the wrap sat within a couple of pixels of fitting. This
+    // asserts the structure instead, which needs no layout and no browser to know
+    // it holds. Character spans hold no child elements, so a word box is exactly a
+    // run of them and this pattern cannot run past the end of one.
+    const WORD_BOX = /<span class="word">((?:<span class="ch[^"]*"[^>]*>[^<]*<\/span>)+)<\/span>/g;
+
+    const boxes = [...html.matchAll(WORD_BOX)].map(([, body = ""]) =>
+      [...body.matchAll(/>([^<]*)<\/span>/g)].map(([, text = ""]) => text).join(""),
+    );
+    expect(boxes.length, "the passage must render as more than one word box").toBeGreaterThan(1);
+
+    for (const [i, text] of boxes.entries()) {
+      const isLast = i === boxes.length - 1;
+      // A box is a run of non-space characters followed by AT MOST one space, and
+      // that space is last. This is the whole of bug (d): a break can only occur
+      // BETWEEN two atomic boxes, and there is no longer a break opportunity in
+      // front of a space, so a wrapped line can never open with one.
+      expect(
+        text,
+        `word box ${i} must be non-space characters followed by at most one trailing ` +
+          `space, never an interior one: ${JSON.stringify(text)}`,
+      ).toMatch(/^\S*(?:\u00A0)?$/);
+      expect(
+        isLast ? text : text.slice(0, -1),
+        `word box ${i} ${isLast ? "must not" : "must only"} end with a space`,
+      ).not.toMatch(/\s$/);
+      if (!isLast) {
+        expect(text, `word box ${i} must own the space that follows it`).toMatch(/\u00A0$/);
+      }
+    }
+
+    // Nothing is left outside: the boxes account for every character, and the
+    // text they render is the passage itself, spaces and all.
+    const rendered = boxes.join("");
+    // The apostrophe in the passage is an HTML entity in the rendered markup,
+    // and the space is U+00A0 rather than U+0020 by design — see groupIntoWords.
+    expect(rendered.replace(/&#x27;/g, "'").replace(/\u00A0/g, " ")).toBe(passage.text);
+
+    // And nothing was left out of the boxes: no character span sits beside one.
+    const inBoxes = [...html.matchAll(WORD_BOX)].reduce(
+      (n, [, body = ""]) => n + (body.match(/data-char-state/g) ?? []).length,
+      0,
+    );
+    expect(inBoxes, "every character span must live inside a word box").toBe(
+      [...passage.text].length,
+    );
+  });
+
   it("renders one span per character, each already carrying a char state", () => {
     const spans = html.match(/data-char-state="[a-z]+"/g) ?? [];
     expect(spans.length).toBe([...passage.text].length);

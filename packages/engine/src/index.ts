@@ -23,6 +23,8 @@ export {
 
 export { perMinuteWpm } from "./wpm.js";
 
+export { pausedMs, pausedSpans, scoredDurationMs } from "./pauses.js";
+
 export { computeLiveSummary, type LiveSummary, type LiveSummaryOptions } from "./live-summary.js";
 
 export {
