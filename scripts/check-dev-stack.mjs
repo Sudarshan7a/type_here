@@ -301,6 +301,37 @@ async function waitForStack(apiPort, webPort, budgetMs) {
   return seen;
 }
 
+/**
+ * Wait until both ports are free, or the budget runs out.
+ *
+ * The stop side needs this for the same reason the start side does. The first
+ * version slept a flat second between the tree kill and the port probe, and CI
+ * failed on exactly that: the kill is delivered immediately but the kernel
+ * reaps the tree and releases the sockets a beat later, so on a loaded runner
+ * the probe ran first and reported `ports still bound after stop` for a stack
+ * that had in fact stopped. The launcher was never broken; the measurement was
+ * racing it.
+ *
+ * A sleep is a guess about someone else's timing. Polling until the thing we
+ * actually care about is true, with a budget, is a measurement — and the budget
+ * still means a genuine leak fails rather than hanging.
+ *
+ * @returns {Promise<string[]>} the hosts still holding a port, empty if all free
+ */
+async function waitForPortsFree(apiPort, webPort, budgetMs) {
+  const deadline = Date.now() + budgetMs;
+  let leftBound;
+  do {
+    leftBound = [
+      ...(await busyHosts(apiPort)).map((h) => `${apiPort}/${h}`),
+      ...(await busyHosts(webPort)).map((h) => `${webPort}/${h}`),
+    ];
+    if (leftBound.length === 0) return [];
+    await delay(250);
+  } while (Date.now() < deadline);
+  return leftBound;
+}
+
 // --- Cases -----------------------------------------------------------------
 
 const results = [];
@@ -353,7 +384,28 @@ async function portsUsable(ports) {
   return busy;
 }
 
+/**
+ * Ports this gate itself left bound by an earlier case.
+ *
+ * Without this, a case that leaks a server makes every LATER case report
+ * `SKIPPED-BLOCKED: held by something this gate did not start` — which is a lie
+ * about provenance, and a costly one: it turns a leak the gate found into a
+ * skip the gate excuses, and points the reader at their own running dev server
+ * instead of at the code under test. The first CI run of this gate did exactly
+ * that, and read as a confusing three-way failure rather than the single
+ * stop-path race it was.
+ */
+const leakedByThisGate = new Set();
+
 function preconditionDetail(busy, opts) {
+  const mine = busy.filter((b) => leakedByThisGate.has(b.split("/")[0]));
+  if (mine.length > 0) {
+    return (
+      `SKIPPED-BLOCKED: ${mine.join(", ")} is still held by an EARLIER CASE OF THIS GATE, ` +
+      `which is itself the defect — the stop path leaked a server. Fix that first; the cases ` +
+      `after it cannot be measured while its ports are still bound.`
+    );
+  }
   return (
     `SKIPPED-BLOCKED: ${busy.join(", ")} already held by something this gate did not start ` +
     `(most likely a dev stack you already have running). Stop it, or pass ` +
@@ -477,14 +529,13 @@ async function caseGoodStack(opts) {
   } finally {
     // "Ctrl-C stops both" (F4) is exactly this: signal the tree, then prove the
     // ports came back. Asserting the README sentence is the only way it can be
-    // more than a hope.
+    // more than a hope. The wait polls rather than sleeps — see waitForPortsFree.
     await killTree(child);
-    await delay(1000);
   }
-  const leftBound = [
-    ...(await busyHosts(opts.apiPort)).map((h) => `${opts.apiPort}/${h}`),
-    ...(await busyHosts(opts.webPort)).map((h) => `${opts.webPort}/${h}`),
-  ];
+  const leftBound = await waitForPortsFree(opts.apiPort, opts.webPort, 15_000);
+  // Remembered so the cases after this one report a leak as a leak, rather than
+  // excusing it as a port the reader left bound themselves.
+  for (const entry of leftBound) leakedByThisGate.add(entry.split("/")[0]);
   const ok = seen.api && seen.web && leftBound.length === 0;
   record(
     name,
