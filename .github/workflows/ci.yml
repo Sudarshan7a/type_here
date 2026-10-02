@@ -56,6 +56,8 @@ jobs:
           node --test scripts/check-policies.test.mjs
 
       - name: Dev-stack start-up gate (F1, F2, F3, F9)
+        env:
+          MUTATE_GROUP_KILL: "1"
         run: |
           pnpm check:devstack
           node --test scripts/dev-stack.test.mjs
