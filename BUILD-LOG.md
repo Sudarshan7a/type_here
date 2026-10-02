@@ -1,7 +1,15 @@
 # BUILD LOG
 
 ## Current Position
-Phase: Phase 1 (M1 engine) — loop WAVE 0 running. WAVE 0.1 + 0.2 landed via two parallel workers.
+Phase: Phase 1 (M1 engine) — loop WAVE 0: first two rows CLOSED. ENG-02 and ENG-03 moved IN PROGRESS → DONE-VERIFIED.
+Last completed task: **ENG-02 closeout:** no-network assertion `e2e/no-network.spec.ts` (PR #17, mutant-proven) + latency attribution fix measuring the typing window not boot (PR #18, mutant-proven; fixed a real CI flake where boot work on a loaded runner failed the zero-long-task gate) + spec-checker review (no missing/divergent AC; LAB PROXY Chromium-only accepted for ENG-02, follow-ups on NFR-01). **ENG-03 closeout:** parity lists now cover d02/d03/d04 (PR #19, mutant-proven) + spec-checker review (all five modes + char states DONE, §6 numbers independently recomputed). PRs #17/#18/#19 all merged after CI green.
+Ledger: MVP 6/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 1/20 | overall 7/216 DONE-VERIFIED (23 IN PROGRESS, 185 NOT STARTED, 1 REJECTED).
+NFR-01 stays IN PROGRESS by rule (REAL-DEVICE CONFIRMED required to close; human action filed in HUMAN-ACTIONS.md).
+Next task, in the loop order (LOOP-TO-DONE-PROMPT.md WAVE 0):
+1. **WAVE 0.3** — ENG-06/LOC-01 (caps-lock, dead-keys, rollover attribution, graphemes/emoji) + LOC-01 maps into app.
+2. **WAVE 0.4** — ENG-07 server plausibility backstop (INT-02 floors).
+Process (fix for the shared-directory collision): parallel WRITER workers now get separate worktrees at `type_here-wt/<branch>` (proven this round: the latency-window slice ran entirely in a worktree — install 6s via shared pnpm store, full verify green, committed/pushed from there; worktree removed after merge). Rules: one writer per worktree, `pnpm install` per worktree, e2e runs staggered (fixed dev-server ports 5173/4173/5176 collide across worktrees). Read-only reviewers stay in the main tree. Worktree leftovers with node_modules hit Windows MAX_PATH on remove — clear with robocopy /MIR of an empty dir first.
+Previous position (WAVE 0.1 + 0.2 landings):
 Last completed task: **WAVE 0.1 (ENG-02/NFR-01, PR #15):** input-to-paint measured on the REAL surface — `e2e/latency-surface.spec.ts`, n=320, p50 ~6ms, p95 14.1–14.9ms local, green on CI hardware, 0 long tasks; mutant-proven (25ms spin → p95 26.2 FAIL, reverted PASS); suite pinned to 1 worker. **WAVE 0.2 (ENG-03, PR #14):** D03 + D04 golden fixtures with hand-computed expectations, engine 137/137, mutant-proven, `src/` untouched. Integrator re-ran both key claims locally (D03 pin mutant killed with right message; latency spec reproduced p95 14.9). Both PRs merged after CI green.
 Ledger: MVP 4/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 1/20 | overall 5/216 DONE-VERIFIED (25 IN PROGRESS, 185 NOT STARTED, 1 REJECTED). No status moved — ENG-02/NFR-01/ENG-03 stay IN PROGRESS (notes updated).
 Next task, in the loop order (LOOP-TO-DONE-PROMPT.md WAVE 0):
