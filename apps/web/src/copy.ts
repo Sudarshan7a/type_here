@@ -21,6 +21,45 @@ export const COPY = {
     underline: "Underline",
   },
 
+  /**
+   * settings.layout.label — LOC-01 (M2-06 §2). The selector is a plain labelled
+   * control beside the passage picker, always visible, never covering the text.
+   */
+  layoutLabel: "Keyboard layout",
+
+  /** settings.layout.{option} — the six contract layouts, roadmap build order. */
+  layoutOptions: {
+    "qwerty-us": "QWERTY (US)",
+    "qwerty-uk": "QWERTY (UK)",
+    dvorak: "Dvorak",
+    "colemak-dh": "Colemak-DH",
+    azerty: "AZERTY",
+    qwertz: "QWERTZ",
+  } as const,
+
+  /**
+   * First-run layout prompt (M2-06 §2). Names the guess as a guess: detection
+   * reads the browser language only, which is weak evidence for hardware.
+   */
+  layoutFirstRun:
+    "New here? Confirm the keyboard you type on. We guess from your browser language, and the guess can be wrong — you can change it any time.",
+
+  /**
+   * Why the layout choice matters (M2-06 §2). Factual only: what the value is
+   * used for, and the honest MVP limit that passages stay English whatever is
+   * selected. No outcome is promised.
+   */
+  layoutWhy:
+    "Your layout decides which finger map a result is read against. It does not change the passages, which are English for now.",
+
+  /**
+   * IME notice (M1-04 §6). Shown beside the settings, never over the text:
+   * partial input is never scored, so it says so rather than mis-scoring
+   * silently. Names carry no keystroke content (keystroke-privacy skill).
+   */
+  imeNotice:
+    "Typing with an IME (for example Chinese, Japanese, or Korean entry): suggestions shown while you compose are never scored. Only the text you confirm counts.",
+
   /** home.hint.restart */
   hintRestart: "Press Tab to restart",
 

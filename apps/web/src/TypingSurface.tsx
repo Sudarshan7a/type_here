@@ -23,7 +23,7 @@ import {
   type EngineResult,
   type ErrorMode,
 } from "@realtype/engine";
-import type { CaretStyle } from "@realtype/schemas";
+import type { CaretStyle, Layout } from "@realtype/schemas";
 
 import { COPY } from "./copy";
 import { InputCapture } from "./input-adapter";
@@ -43,6 +43,14 @@ export interface TypingSurfaceProps {
    * Defaults to "line", which is what the design pack specifies.
    */
   caretStyle?: CaretStyle;
+  /**
+   * The keyboard layout the user declared (LOC-01). Carried into the log's meta
+   * AND settings unchanged — attribution, not passage language: the passages
+   * stay English for the MVP whatever is selected. Required, so no caller can
+   * produce an unattributed run by forgetting it. The parent remounts the
+   * surface when it changes, so one run never mixes two layouts.
+   */
+  layout: Layout;
   /** Notified once per finished test, for the parent's history or telemetry. */
   onFinish?: (result: EngineResult) => void;
   /** Offered on the finished panel. Omitted when the host has nowhere to go. */
@@ -86,6 +94,7 @@ export function TypingSurface({
   passage,
   errorMode,
   caretStyle = "line",
+  layout,
   onFinish,
   onNewPassage,
 }: TypingSurfaceProps) {
@@ -307,7 +316,9 @@ export function TypingSurface({
       mode: "classic",
       textId: passage.id,
       textHash: textHashFor(passage.text),
-      layout: "qwerty-us",
+      // LOC-01: the declared layout, carried as-is (the adapter no longer
+      // coerces). Attribution for this run; passages stay English for the MVP.
+      layout,
       errorMode,
     });
     // Flush, then cancel: the readout is updated to the instant the test ended
@@ -319,7 +330,7 @@ export function TypingSurface({
     const computed = computeResult(log, text);
     setResult(computed);
     onFinish?.(computed);
-  }, [cancelFrame, errorMode, onFinish, passage.id, passage.text, paint, runFrame]);
+  }, [cancelFrame, errorMode, layout, onFinish, passage.id, passage.text, paint, runFrame]);
 
   /**
    * The live figures must keep moving while the user is idle mid-test, because
@@ -409,6 +420,41 @@ export function TypingSurface({
     captureRef.current?.handleKeyUp(event.nativeEvent);
   }, []);
 
+  /**
+   * IME composition lifecycle (M1-04 §6, ENG-06). Keydowns that arrive while a
+   * composition is open are flagged by the adapter and dropped by the engine,
+   * so partial input paints nothing; the confirmed string scores once. No React
+   * state is touched here except the same idle/paused → running transition a
+   * first keystroke performs (AGENTS.md rule 2).
+   */
+  const handleCompositionStart = useCallback(() => {
+    captureRef.current?.handleCompositionStart();
+  }, []);
+
+  const handleCompositionUpdate = useCallback(() => {
+    captureRef.current?.handleCompositionUpdate();
+  }, []);
+
+  const handleCompositionEnd = useCallback(
+    (event: React.CompositionEvent<HTMLDivElement>) => {
+      const capture = captureRef.current;
+      if (capture === null) return;
+      // After the test is over nothing is scored, committed text included.
+      if (phase === "finished") return;
+      capture.handleCompositionEnd(event.data);
+      bufferRef.current = mirrorBuffer(capture, passage.text, errorMode);
+      // A confirmed composition is accepted input, so it starts the clock like
+      // a first keystroke (ENG-04, chapter 4 edge E1).
+      if (phase === "idle" || phase === "paused") {
+        pausedAtRef.current = 0;
+        setPhase("running");
+      }
+      scheduleFrame();
+      if (bufferRef.current.length >= chars.length) finish();
+    },
+    [chars.length, errorMode, finish, passage.text, phase, scheduleFrame],
+  );
+
   const handleFocus = useCallback(() => {
     setFocused(true);
     captureRef.current?.handleFocus();
@@ -455,6 +501,9 @@ export function TypingSurface({
         data-testid="surface"
         id="surface"
         data-phase={phase}
+        // The declared layout this run is attributed to (LOC-01). A readout
+        // hook for the layout-selector acceptance test, not a visual.
+        data-layout={layout}
         // Drives the caret's shape from CSS alone. Setting it on the surface
         // rather than on the caret means changing style costs no React render of
         // the caret element, and the caret's own DOM stays untouched.
@@ -464,6 +513,9 @@ export function TypingSurface({
         data-idle={phase === "idle" ? "true" : "false"}
         onKeyDown={handleKeyDown}
         onKeyUp={handleKeyUp}
+        onCompositionStart={handleCompositionStart}
+        onCompositionUpdate={handleCompositionUpdate}
+        onCompositionEnd={handleCompositionEnd}
         onFocus={handleFocus}
         onBlur={handleBlur}
         onPaste={handlePaste}
