@@ -9,7 +9,20 @@ import { expect, test } from "@playwright/test";
  * every verified result is silently downgraded to "unverified".
  */
 
-const FIXTURES = ["a01", "b01", "c01", "d01", "e01", "e02", "e03", "f01", "g01"] as const;
+const FIXTURES = [
+  "a01",
+  "b01",
+  "c01",
+  "d01",
+  "d02",
+  "d03",
+  "d04",
+  "e01",
+  "e02",
+  "e03",
+  "f01",
+  "g01",
+] as const;
 
 interface Summary {
   rawWpm: number;

@@ -89,10 +89,10 @@ describe("text model (E4)", () => {
   });
 
   /**
-   * D03 — no-backspace (exam) mode. Engine-internal only for now: the public
-   * `errorMode` enum in packages/schemas still has three values, so this mode
-   * cannot yet appear in a validated InputLog. The behaviour is complete and
-   * pinned here; the enum extension is registered as EXTERNAL DECISION REQUIRED.
+   * D03 — no-backspace (exam) mode. The public `errorMode` enum in
+   * packages/schemas carries all five values since Session 6 (CONTRACT 1.3.0),
+   * so this mode appears in validated InputLogs; the golden fixture D03 pins
+   * the full computation and this block pins the behaviour edges.
    */
   it("no-backspace ignores Backspace entirely and leaves KSPC unaffected", () => {
     const model = createTextModel("cat", "no-backspace");
