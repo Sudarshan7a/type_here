@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import { fingerTag } from "../src/aggregation.js";
-import { LAYOUT_FINGER_MAPS, UNKNOWN_LAYOUT_CHARACTERS } from "../src/layout-fingers.js";
+import {
+  fingerForCode,
+  interpretCode,
+  LAYOUT_FINGER_MAPS,
+  productionFor,
+  UNKNOWN_LAYOUT_CHARACTERS,
+} from "../src/layout-fingers.js";
 
 /**
  * Session 4, Block C — LAYOUT PROTOCOL.
@@ -116,5 +122,82 @@ describe("AltGr and dead-key characters are unknown, never guessed", () => {
 
   it("returns unknown for a character no layout produces", () => {
     expect(fingerTag("Ω", "a", "qwerty-us")).toEqual({ hand: "unknown", sameFinger: null });
+  });
+});
+
+describe("physical-code grid fingerForCode (ENG-06 E8, additive — char maps above unchanged)", () => {
+  it("assigns letter-block codes by column, independent of any layout", () => {
+    // Row 0: Q W E R T Y U I O P -> lp lr lm li li ri ri rm rr rp.
+    expect(fingerForCode("KeyQ")).toBe("lp");
+    expect(fingerForCode("KeyT")).toBe("li");
+    expect(fingerForCode("KeyY")).toBe("ri");
+    expect(fingerForCode("KeyP")).toBe("rp");
+    // Row 1 and row 2 anchors, including the Dvorak-`s` key.
+    expect(fingerForCode("KeyA")).toBe("lp");
+    expect(fingerForCode("KeyS")).toBe("lr");
+    expect(fingerForCode("Semicolon")).toBe("rp");
+    expect(fingerForCode("KeyZ")).toBe("lp");
+    expect(fingerForCode("KeyM")).toBe("ri");
+  });
+
+  it("assigns digit-row codes per the levels-04 §2.1 AZERTY number-row table", () => {
+    expect(fingerForCode("Digit1")).toBe("lp");
+    expect(fingerForCode("Digit2")).toBe("lr");
+    expect(fingerForCode("Digit3")).toBe("lm");
+    expect(fingerForCode("Digit4")).toBe("li");
+    expect(fingerForCode("Digit0")).toBe("rp");
+  });
+
+  it("returns null for off-grid codes (Quote, brackets, unknown)", () => {
+    expect(fingerForCode("Quote")).toBeNull();
+    expect(fingerForCode("BracketLeft")).toBeNull();
+    expect(fingerForCode("NoSuchCode")).toBeNull();
+  });
+});
+
+describe("interpretCode positional reads (ENG-PARITY-03, additive)", () => {
+  it("reads the layout-defining swaps positionally", () => {
+    expect(interpretCode("azerty", "KeyA")).toBe("q");
+    expect(interpretCode("azerty", "KeyQ")).toBe("a");
+    expect(interpretCode("qwertz", "KeyZ")).toBe("y");
+    expect(interpretCode("dvorak", "Semicolon")).toBe("s");
+    expect(interpretCode("colemak-dh", "KeyM")).toBe("k");
+  });
+});
+
+describe("verified Shift/AltGr productions (ENG-06 E8, additive)", () => {
+  it("pins the UK swapped pair and sterling from levels-04 §1.1", () => {
+    expect(productionFor("qwerty-uk", "@")).toEqual({ code: "Quote", finger: "rp", via: "shift" });
+    expect(productionFor("qwerty-uk", '"')).toEqual({
+      code: "Digit2",
+      finger: "lr",
+      via: "shift",
+    });
+    expect(productionFor("qwerty-uk", "£")).toEqual({
+      code: "Digit3",
+      finger: "lm",
+      via: "shift",
+    });
+  });
+
+  it("pins AZERTY AltGr+digit productions from levels-04 §2.2", () => {
+    expect(productionFor("azerty", "@")).toEqual({ code: "Digit0", finger: "rp", via: "altgr" });
+    expect(productionFor("azerty", "#")).toEqual({ code: "Digit3", finger: "lm", via: "altgr" });
+  });
+
+  it("pins QWERTZ AltGr productions from levels-04 §3.2", () => {
+    expect(productionFor("qwertz", "@")).toEqual({ code: "KeyQ", finger: "lp", via: "altgr" });
+    expect(productionFor("qwertz", "[")).toEqual({ code: "Digit8", finger: "rm", via: "altgr" });
+    expect(productionFor("qwertz", "}")).toEqual({ code: "Digit0", finger: "rp", via: "altgr" });
+  });
+
+  it("has no entry where the source flags driver variation or is silent", () => {
+    expect(productionFor("azerty", "]")).toBeNull();
+    expect(productionFor("azerty", "€")).toBeNull();
+    expect(productionFor("qwertz", "\\")).toBeNull();
+    expect(productionFor("qwertz", "€")).toBeNull();
+    expect(productionFor("qwerty-uk", "#")).toBeNull();
+    expect(productionFor("qwerty-uk", "€")).toBeNull();
+    expect(productionFor("qwerty-us", "@")).toBeNull();
   });
 });
