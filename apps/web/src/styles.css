@@ -274,12 +274,18 @@ body {
  *
  * A data attribute rather than a class so the choice is one attribute on one
  * element that is already there, and switching style re-styles without
- * re-rendering the caret. The JS writes `height` inline from the measured
- * font-size, so a style change that wants a different height has to override
- * that inline value explicitly — which is why block and underline both declare
- * a `height`. Nothing here changes what the caret POINTS at: `moveCaret` still
- * positions it by the same slot, so the three styles differ in appearance only
- * and a recorded test is comparable across all of them.
+ * re-rendering the caret.
+ *
+ * Each style declares its own `height`, and that is only possible because
+ * NOTHING writes height inline any more. The first attempt measured the font
+ * size in JS and set `style.height` on the caret, which outranks every
+ * stylesheet rule — so block and underline could change width and colour but
+ * never height, and the block caret stayed a full line box tall. Height now
+ * comes from `1.1em` here and from nowhere else.
+ *
+ * Nothing here changes what the caret POINTS at: `moveCaret` still positions it
+ * by the same slot, so the three styles differ in appearance only and a
+ * recorded test is comparable across all of them.
  */
 .passage[data-caret-style="line"] .caret {
   width: 2px;

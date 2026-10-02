@@ -3,6 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      09 §3: "preload typing font". The typing face is the one the reader stares
+      at for the length of a test, so it is the one worth fetching early; the UI
+      face arrives with the stylesheet and is not on the critical path.
+
+      `crossorigin` is not optional. Font fetches are ALWAYS made in anonymous
+      CORS mode, so a preload issued without this attribute has different
+      credentials from the @font-face request that follows it. The browser then
+      treats them as two different resources and downloads the file twice — 21 KB
+      twice, and the preload buys nothing. `e2e/fonts.spec.ts` asserts the face
+      resolved rather than the timing, but the duplicate fetch is exactly why
+      this attribute is here.
+
+      Only the `latin` subset is preloaded. It is the one that covers the
+      English content; preloading latin-ext as well would spend the budget on
+      glyphs this app does not currently render.
+    -->
+    <link
+      rel="preload"
+      href="/fonts/jetbrains-mono-latin-400-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <title>RealType</title>
   </head>
   <body>

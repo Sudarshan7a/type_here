@@ -17,6 +17,84 @@
  * approve; there are three of them, marked [GAP] below.
  */
 
+/* ---- self-hosted faces ---------------------------------------------------- */
+
+/*
+ * 09 §3 closes with: "Self-host (woff2, font-display: swap, subset Latin +
+ * Latin-ext, preload typing font)." Before this block the app declared those
+ * three family names and loaded nothing, so the whole surface rendered in
+ * whatever the machine happened to have — the tokens named a font that was
+ * never there, and every screenshot in docs/visual-evidence/ was a picture of
+ * a fallback.
+ *
+ * THE LICENCE QUESTION, WHICH IS THE CONDITION ON THE WHOLE BLOCK
+ *
+ * SIL Open Font License 1.1 grants the right to bundle, embed and redistribute
+ * a font with software, on one condition: a copy of the licence travels with
+ * it. Both fonts here are OFL 1.1 (verified by reading the upstream OFL.txt,
+ * not from memory — see docs/content-license-register.md, FONT-01/FONT-02), and
+ * NEITHER declares a Reserved Font Name, so the reserved-name restriction that
+ * would forbid shipping a modified cut does not apply. Each OFL.txt is
+ * committed BESIDE its woff2 under public/fonts/, which is what satisfies the
+ * condition.
+ *
+ * WHICH FAMILIES, AND WHY NOT ALL THREE
+ *
+ * 09 §3 names three: Bricolage Grotesque (display), Geist (UI), JetBrains Mono
+ * (typing). Only two are self-hosted here. Bricolage Grotesque is left on the
+ * system stack because the owner approved "the two fonts", and a licence
+ * approval is a boundary rather than a starting point — quietly shipping the
+ * third would widen an approval nobody gave. Its licence permits it too, and it
+ * is 22.4 KB, so it is a one-line decision away; recorded for the owner in
+ * HUMAN-ACTIONS.md. Until then `--font-display` falls back to system-ui, which
+ * is visible on the results KPI.
+ *
+ * SUBSETS, AND ONE PLACE THE PACK COULD NOT BE FOLLOWED
+ *
+ * Latin for both. Latin-ext too for JetBrains Mono (7.3 KB). Geist Sans does
+ * not ship a latin-ext subset at all — the file 404s upstream — so "subset
+ * Latin + Latin-ext" is satisfiable for one family and not the other. Recorded
+ * rather than silently narrowed.
+ *
+ * `font-display: swap` throughout, as the pack requires: the fallback paints
+ * first and the face replaces it. On a typing surface that is the right
+ * trade — a metric-compatible fallback shows readable text immediately, and a
+ * `block` period would show nothing while 21 KB crosses the network.
+ */
+@font-face {
+  font-family: "JetBrains Mono";
+  /* The upstream internal name, verbatim. Do not "tidy" this. */
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/jetbrains-mono-latin-ext-400-normal.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Geist Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/geist-sans-latin-400-normal.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 /* ---- theme: Night Ink (dark), the default -------------------------------- */
 
 :root {
@@ -42,7 +120,11 @@
 
   /* §3 typography. */
   --font-display: "Bricolage Grotesque", system-ui, sans-serif;
-  --font-ui: "Geist", system-ui, sans-serif;
+  /* 09 §3's snippet writes "Geist" and 08 §24 names the role "Geist Sans",
+     which is the upstream family name and the one the @font-face above
+     declares. The prose is followed, so the stack actually matches a loaded
+     face rather than a name that can never resolve. [TRANSCRIPTION] */
+  --font-ui: "Geist Sans", system-ui, sans-serif;
   --font-type: "JetBrains Mono", "Geist Mono", ui-monospace, monospace;
   --t-caption: 12px;
   --t-small: 14px;

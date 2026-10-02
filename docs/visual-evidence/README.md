@@ -23,13 +23,13 @@ screenshot beside the written concept it is meant to satisfy.
 | typing-surface-dark-errors | 09 §1 error states · 13 §1 non-colour cues | Same field with wrong characters typed into it. Each error state carries a distinct NON-COLOUR cue — a 2px underline for wrong, a dotted strikethrough for extra, a dashed underline for missed — so the states are separable in greyscale and in forced-colours mode. Colour is reinforcement, never the signal. |
 | results-dark | 10 §6 results panel · 09 §3 --t-kpi · 08 §9 centred KPIs | The finished panel. Net WPM at --t-kpi in the display font, accuracy beside it, actions below. The live readout is GONE, so nothing on this screen contradicts the headline, and the caret is hidden. |
 | results-light | 09 §1 Daylight roles · 10 §6 results panel | The results panel in the Daylight theme. |
-| typing-surface-narrow-360 | 13 §1 360px breakpoint · 16 §layout | The narrowest breakpoint the design pack names. The field is capped at 68ch and shrinks with the viewport; the page does not scroll horizontally. 900px tall rather than a phone's 780, so the whole page fits the viewport and the capture never has to resize it. |
+| typing-surface-narrow-360 | 13 §1 360px breakpoint · 16 §layout | The narrowest breakpoint the design pack names. The field is capped at 68ch and shrinks with the viewport; the page does not scroll horizontally. 960px tall rather than a phone's 780, so the whole page fits the viewport and the capture never has to resize it. |
 
 ## What each shot measured
 
 A picture cannot be checked against anything. Each shot records the layout read
 back from the DOM immediately before the shutter, so the numbers and the image can
-be compared. "␠" is a space. Every shot must satisfy all three invariants or the
+be compared. "␠" is a space. Every shot must satisfy all four invariants or the
 capture throws and no file is written:
 
 - **no line begins with ␠** — STEER-2 bug (d)
@@ -37,45 +37,74 @@ capture throws and no file is written:
   bug (d) and the mid-word breaks of bug (f) impossible rather than merely rare
 - **the layout is identical immediately after the capture** — so the picture is of
   the layout, not of a reflow the capture caused
+- **JetBrains Mono is a loaded `FontFace`, not just a declared family name** — see
+  the note below; every capture before Session 9 failed this and had to be
+  regenerated
 
-**typing-surface-dark-idle** — 2 lines, 15.69px character advance, 0 line(s) starting with a space, 0 character(s) outside a word box
-
-  1. `Dinner's␠ready␠whenever␠you␠are.␠I␠made␠extra␠rice␠in␠case␠your␠`
-  2. `brother␠stops␠by␠later␠tonight.`
-
-**typing-surface-light-idle** — 2 lines, 15.69px character advance, 0 line(s) starting with a space, 0 character(s) outside a word box
+**typing-surface-dark-idle** — 2 lines, 17.09px character advance, 0 line(s) starting with a space, 0 character(s) outside a word box, font `"JetBrains Mono", "Geist Mono", ui-monospace, monospace` — loaded: `JetBrains Mono`, `Geist Sans`
 
   1. `Dinner's␠ready␠whenever␠you␠are.␠I␠made␠extra␠rice␠in␠case␠your␠`
   2. `brother␠stops␠by␠later␠tonight.`
 
-**typing-surface-dark-mid-test** — 2 lines, 15.69px character advance, 0 line(s) starting with a space, 0 character(s) outside a word box
+**typing-surface-light-idle** — 2 lines, 17.09px character advance, 0 line(s) starting with a space, 0 character(s) outside a word box, font `"JetBrains Mono", "Geist Mono", ui-monospace, monospace` — loaded: `JetBrains Mono`, `Geist Sans`
 
   1. `Dinner's␠ready␠whenever␠you␠are.␠I␠made␠extra␠rice␠in␠case␠your␠`
   2. `brother␠stops␠by␠later␠tonight.`
 
-**typing-surface-dark-errors** — 2 lines, 15.69px character advance, 0 line(s) starting with a space, 0 character(s) outside a word box
+**typing-surface-dark-mid-test** — 2 lines, 17.09px character advance, 0 line(s) starting with a space, 0 character(s) outside a word box, font `"JetBrains Mono", "Geist Mono", ui-monospace, monospace` — loaded: `JetBrains Mono`, `Geist Sans`
 
   1. `Dinner's␠ready␠whenever␠you␠are.␠I␠made␠extra␠rice␠in␠case␠your␠`
   2. `brother␠stops␠by␠later␠tonight.`
 
-**results-dark** — 2 lines, 15.69px character advance, 0 line(s) starting with a space, 0 character(s) outside a word box
+**typing-surface-dark-errors** — 2 lines, 17.09px character advance, 0 line(s) starting with a space, 0 character(s) outside a word box, font `"JetBrains Mono", "Geist Mono", ui-monospace, monospace` — loaded: `JetBrains Mono`, `Geist Sans`
 
   1. `Dinner's␠ready␠whenever␠you␠are.␠I␠made␠extra␠rice␠in␠case␠your␠`
   2. `brother␠stops␠by␠later␠tonight.`
 
-**results-light** — 2 lines, 15.69px character advance, 0 line(s) starting with a space, 0 character(s) outside a word box
+**results-dark** — 2 lines, 17.09px character advance, 0 line(s) starting with a space, 0 character(s) outside a word box, font `"JetBrains Mono", "Geist Mono", ui-monospace, monospace` — loaded: `JetBrains Mono`, `Geist Sans`
 
   1. `Dinner's␠ready␠whenever␠you␠are.␠I␠made␠extra␠rice␠in␠case␠your␠`
   2. `brother␠stops␠by␠later␠tonight.`
 
-**typing-surface-narrow-360** — 6 lines, 15.69px character advance, 0 line(s) starting with a space, 0 character(s) outside a word box
+**results-light** — 2 lines, 17.09px character advance, 0 line(s) starting with a space, 0 character(s) outside a word box, font `"JetBrains Mono", "Geist Mono", ui-monospace, monospace` — loaded: `JetBrains Mono`, `Geist Sans`
+
+  1. `Dinner's␠ready␠whenever␠you␠are.␠I␠made␠extra␠rice␠in␠case␠your␠`
+  2. `brother␠stops␠by␠later␠tonight.`
+
+**typing-surface-narrow-360** — 7 lines, 17.09px character advance, 0 line(s) starting with a space, 0 character(s) outside a word box, font `"JetBrains Mono", "Geist Mono", ui-monospace, monospace` — loaded: `JetBrains Mono`, `Geist Sans`
 
   1. `Dinner's␠ready␠`
-  2. `whenever␠you␠are.␠`
-  3. `I␠made␠extra␠rice␠`
-  4. `in␠case␠your␠`
-  5. `brother␠stops␠by␠`
-  6. `later␠tonight.`
+  2. `whenever␠you␠`
+  3. `are.␠I␠made␠`
+  4. `extra␠rice␠in␠`
+  5. `case␠your␠`
+  6. `brother␠stops␠by␠`
+  7. `later␠tonight.`
+
+## How the fonts are proven to have loaded
+
+STEER-6 asks this file to record the computed font family so the evidence proves the
+fonts loaded. Recording the *computed family* does not do that, and the difference is
+worth being explicit about, because the wrong version is easy to write and looks
+correct:
+
+`getComputedStyle(el).fontFamily` returns the declared **stack**, verbatim, whether
+or not the webfont arrived. It said `"JetBrains Mono", "Geist Mono", ui-monospace,`
+in every capture this directory held before Session 9, while the pixels were
+Consolas — the browser had quietly fallen back, and the string the file recorded was
+indistinguishable from the string it would have recorded on success.
+
+So each shot records the `FontFace` objects instead. A face is present in
+`document.fonts` only because an `@font-face` rule declared it, and its `status` is
+the browser's own report on whether the bytes arrived. `loadedFamilies` above is the
+set of faces with `status === "loaded"`, and the capture **throws** if JetBrains Mono
+is not in it — no file is written and the shot is not filed. A picture of a fallback
+face is not weak evidence, it is evidence of the opposite claim.
+
+The captures also force the faces to settle (`document.fonts.load()`) before the
+shutter rather than hoping the network beat the screenshot. Otherwise the first shot
+of a run shows a fallback and the rest do not, which is evidence that varies with
+warm-up state.
 
 ## How these were captured, and what went wrong first
 
@@ -102,6 +131,15 @@ follows it, so there is no break opportunity in front of a space at all.
 - No hover, focus, pressed or error-banner states beyond those listed.
 - No theme switcher UI — the theme is set by `data-theme` or the OS preference, and the
   switcher itself is Phase 3.
-- The display, UI and mono faces are the stacks named in 09 §3. They are not
-  self-hosted yet, so these renders use whatever the machine has; see HUMAN-ACTIONS.md
-  for the font decision.
+- **The display face is still not self-hosted.** JetBrains Mono (typing) and Geist Sans
+  (UI) ship as woff2 under `apps/web/public/fonts/` with their OFL licences committed
+  beside them; the `loadedFamilies` line above is the proof they resolved. Bricolage
+  Grotesque — 09 §3's `--font-display`, used on the app title and the results KPI — is
+  **not** shipped, so those two elements render in the system fallback in every capture
+  here. Its licence would permit shipping it and it is 22,364 B; the owner approved
+  "the two fonts", so the third was left for them to decide. Recorded as FONT-03 in
+  `docs/content-license-register.md` §3a and in HUMAN-ACTIONS.md.
+- Only weight 400 ships for each face, so the results KPI's `font-weight: 600` is
+  browser-synthesised rather than drawn from a shipped cut.
+- Latin subsets only for the UI face; Geist Sans publishes no Latin-ext subset upstream
+  (09 §3 asks for Latin + Latin-ext, which JetBrains Mono does provide).
