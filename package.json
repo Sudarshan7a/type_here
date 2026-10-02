@@ -7,7 +7,8 @@
     "pnpm": ">=11"
   },
   "scripts": {
-    "dev": "pnpm --filter @realtype/web --filter @realtype/api --parallel dev",
+    "dev": "node scripts/dev-stack.mjs",
+    "check:devstack": "node scripts/check-dev-stack.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
