@@ -48,6 +48,7 @@ import { spawn, execFile } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -239,22 +240,84 @@ function portFor(service) {
   return Number(raw ?? service.defaultPort);
 }
 
-/** Kill a process tree. `taskkill /T` is the only reliable way on Windows;
- * `tsx watch` is a grandchild, and killing just the parent leaves it holding
- * port 3000 — which is exactly defect F2. */
-function killTree(pid) {
-  if (!pid) return Promise.resolve();
+/**
+ * Snapshot every descendant of `rootPid`, deepest last.
+ *
+ * `ps -eo pid=,ppid=` is the whole process table in one call. Reading it costs
+ * one fork; guessing at process groups costs a leaked server holding a port.
+ */
+async function descendantPids(rootPid) {
+  const { stdout } = await promisify(execFile)("ps", ["-eo", "pid=,ppid="]);
+  const childrenOf = new Map();
+  for (const line of stdout.split("\n")) {
+    const [pid, ppid] = line.trim().split(/\s+/).map(Number);
+    if (!Number.isInteger(pid) || !Number.isInteger(ppid)) continue;
+    if (!childrenOf.has(ppid)) childrenOf.set(ppid, []);
+    childrenOf.get(ppid).push(pid);
+  }
+  const out = [];
+  const seen = new Set([rootPid]);
+  const stack = [rootPid];
+  while (stack.length > 0) {
+    const pid = stack.pop();
+    for (const kid of childrenOf.get(pid) ?? []) {
+      if (seen.has(kid)) continue; // guards a cyclic table, which ps cannot have
+      seen.add(kid);
+      out.push(kid);
+      stack.push(kid);
+    }
+  }
+  return out;
+}
+
+/**
+ * Kill a whole process tree, and mean "tree" by parentage rather than by
+ * process group.
+ *
+ * The group kill (`process.kill(-pid)`) was wrong here, and wrong in a way that
+ * only shows up off Windows. This launcher spawns each service with
+ * `detached: true`, which on POSIX gives every service its OWN process group.
+ * A group kill of the launcher's group therefore never reaches vite or
+ * `tsx watch` — they survive, holding ports 3000 and 5173, and the dev stack
+ * reports success with a dead API behind it. That is defect F3's twin.
+ *
+ * Windows never showed it because `taskkill /T` walks the parent/child
+ * relationship, which is what we actually meant. So this walks that
+ * relationship on POSIX too, via `ps`.
+ *
+ * Order matters. The root is killed FIRST so `tsx watch` cannot restart the
+ * server we are about to kill; the descendants are then killed deepest-first,
+ * so a parent is never reparented onto init while a child of its is still
+ * running. The snapshot is taken BEFORE any kill, because afterwards the table
+ * has already changed.
+ *
+ * @param {number|undefined} pid
+ * @returns {Promise<void>}
+ */
+export async function killTree(pid) {
+  if (!pid) return;
   if (IS_WINDOWS) {
-    return new Promise((resolve) => {
+    await new Promise((resolve) => {
       execFile("taskkill", ["/pid", String(pid), "/T", "/F"], () => resolve());
     });
+    return;
   }
+  let descendants = [];
   try {
-    process.kill(-pid, "SIGKILL");
+    descendants = await descendantPids(pid);
   } catch {
-    /* already gone */
+    // No `ps` (or it failed): fall back to the group kill, which is still
+    // better than signalling the root alone.
   }
-  return Promise.resolve();
+  const signal = (target) => {
+    try {
+      process.kill(target, "SIGKILL");
+    } catch {
+      /* already gone, or not ours to kill */
+    }
+  };
+  signal(pid);
+  for (let i = descendants.length - 1; i >= 0; i -= 1) signal(descendants[i]);
 }
 
 /**

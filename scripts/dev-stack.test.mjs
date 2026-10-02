@@ -4,7 +4,7 @@ import { createServer } from "node:net";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { checkDevStack, readWorkspacePackages } from "./dev-stack.mjs";
+import { checkDevStack, readWorkspacePackages, killTree } from "./dev-stack.mjs";
 import { portIsFree } from "../apps/api/scripts/preflight-port.mjs";
 
 /**
@@ -342,4 +342,86 @@ describe("a --filter the launcher cannot run must be rejected", () => {
   it("accepts the real repository's own declared stack", () => {
     assert.deepEqual(checkDevStack({ workspacePackages: readWorkspacePackages(ROOT) }), []);
   });
+});
+
+/**
+ * `killTree` must mean "tree" by PARENTAGE, not by process group.
+ *
+ * This is the Linux-only defect that a Windows-only test suite cannot see. The
+ * launcher spawns each service `detached: true`, which on POSIX gives every
+ * service its own process group, so the old `process.kill(-pid)` group kill
+ * never reached vite or `tsx watch`: they survived, held ports 3000 and 5173,
+ * and the dev stack reported success with a dead API behind it. The gate caught
+ * it in CI and passed 4/4 on Windows, because `taskkill /T` walks parentage.
+ *
+ * So this test reproduces the shape directly: a parent that spawns a
+ * DETACHED grandchild which holds a real port. If `killTree` kills by group,
+ * the grandchild survives and this fails; if it walks parentage, the port frees.
+ *
+ * It is POSIX-only by construction — on Windows the taskkill path is taken and
+ * there is no group semantics to get wrong. CI is Linux, which is exactly where
+ * this needed covering.
+ */
+describe("killTree reaches a detached grandchild", () => {
+  const isWindows = process.platform === "win32";
+  it(
+    "frees a port held by a grandchild in its own process group",
+    {
+      skip: isWindows ? "POSIX process-group semantics; Windows uses taskkill /T" : false,
+    },
+    async () => {
+      const { spawn } = await import("node:child_process");
+      const { setTimeout: delay } = await import("node:timers/promises");
+
+      // A port nothing else in this suite is using.
+      const PORT = 39217;
+      // The grandchild: detached into its OWN process group, and holds the port.
+      // This mirrors `spawn(..., { detached: true })` in the launcher exactly.
+      const script = `
+      const net = require("node:net");
+      net.createServer().listen(${PORT}, "127.0.0.1", () => {
+        console.log("holding");
+        setTimeout(() => process.exit(0), 60000);
+      });
+    `;
+      // The parent: spawns the grandchild detached, then idles. Mirrors `pnpm dev`
+      // spawning a service, which is how the group split arose.
+      const parentScript = `
+      const { spawn } = require("node:child_process");
+      spawn(process.execPath, ["-e", ${JSON.stringify(script)}], { detached: true, stdio: "ignore" });
+      setTimeout(() => process.exit(0), 60000);
+    `;
+
+      const parent = spawn(process.execPath, ["-e", parentScript], { stdio: "ignore" });
+
+      try {
+        // Wait for the grandchild to actually bind, so a pass cannot come from
+        // the port having been free all along.
+        let bound = false;
+        for (let i = 0; i < 40 && !bound; i += 1) {
+          await delay(100);
+          bound = !(await portIsFree(PORT));
+        }
+        assert.ok(
+          bound,
+          `the grandchild must hold port ${PORT} before the kill, or this proves nothing`,
+        );
+
+        await killTree(parent.pid);
+
+        // The whole point: the PORT frees, not merely the parent.
+        let freed = false;
+        for (let i = 0; i < 40 && !freed; i += 1) {
+          await delay(100);
+          freed = await portIsFree(PORT);
+        }
+        assert.ok(
+          freed,
+          `killTree must reach a grandchild in its own process group; port ${PORT} was still held`,
+        );
+      } finally {
+        await killTree(parent.pid).catch(() => {});
+      }
+    },
+  );
 });

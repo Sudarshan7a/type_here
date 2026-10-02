@@ -44,7 +44,7 @@
  * Every server this script opens is closed in a `finally`, on every path,
  * including the failing ones.
  */
-import { spawn, execFile } from "node:child_process";
+import { spawn } from "node:child_process";
 import { createServer } from "node:net";
 import http from "node:http";
 import { setTimeout as delay } from "node:timers/promises";
@@ -56,6 +56,10 @@ import { setTimeout, clearTimeout } from "node:timers";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+// The launcher's own tree-kill, so the gate tests the shipped implementation
+// rather than a copy of it. dev-stack.mjs only runs main() when invoked
+// directly, so importing it here starts nothing.
+import { killTree as realKillTree } from "./dev-stack.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const LAUNCHER = join(ROOT, "scripts", "dev-stack.mjs");
@@ -174,28 +178,24 @@ function release(servers) {
 }
 
 /**
- * Kill a whole process tree. pnpm spawns the package scripts, so killing only
- * the direct child leaves the tsx watch grandchild holding its port (F2).
- * Reports whether taskkill actually reported success, because the caller needs
- * to know when the graceful path failed.
+ * Kill a whole process tree.
+ *
+ * This is the LAUNCHER'S OWN `killTree`, imported rather than reimplemented.
+ * A gate that carries its own copy of the thing it is testing is a gate that
+ * can report the launcher is fine while testing a different implementation —
+ * and this one already did: the checker's copy used a POSIX process-group kill
+ * that missed the launcher's detached grandchildren, so the gate leaked the same
+ * servers the launcher was supposed to be judged on. One implementation, so
+ * there is nothing left to drift.
  */
-function killTree(child) {
-  if (!child.pid) return Promise.resolve(false);
-  if (IS_WINDOWS) {
-    return new Promise((resolve) => {
-      execFile("taskkill", ["/pid", String(child.pid), "/T", "/F"], (err) => resolve(!err));
-    });
-  }
+async function killTree(child) {
+  if (!child.pid) return false;
   try {
-    process.kill(-child.pid, "SIGKILL");
+    await realKillTree(child.pid);
+    return true;
   } catch {
-    try {
-      child.kill("SIGKILL");
-    } catch {
-      /* already gone */
-    }
+    return false;
   }
-  return Promise.resolve(true);
 }
 
 /**
