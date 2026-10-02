@@ -2,7 +2,7 @@
 
 ## Current Position
 Phase: Phase 1 (M1 engine) — Session 8 complete, and the first session with a **designed** typing surface. Driven by owner steering (`docs/handoff/STEER-4.md`, which made the STEER-2 design pass this session's first and only priority).
-Last completed task: the STEER-2 design pass on the typing and results screens, and the five defects it names plus a sixth the evidence turned up (PR from `task/s8-a-typing-redesign`).
+Last completed task: the STEER-2 design pass on the typing and results screens, and the five defects it names plus a sixth the evidence turned up. **PR #8, merged to `main` as `2755b44`** after CI green (`quality` passed on both runs).
 Next task, in the owner's stated order:
 1. **Measure input-to-paint in the real surface** (ENG-02 / NFR-01). The surface exists and was rebuilt this session, so the 16 ms p95 budget is measurable against the real thing rather than a spike page. The lab proxy to beat is 15.2 ms, only 5% under budget.
 2. **Review and merge the S8-B dev-stack work** (F3 / F2 / F1-F9). F3 is still the real one: `pnpm dev` reports success with a dead API when port 3000 is busy, and that is the exact command the owner is asked to run.

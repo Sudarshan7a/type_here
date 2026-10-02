@@ -1,7 +1,7 @@
 # HALT-H3-3 — Session 8
 
 **Type:** H3 (scheduled stop; the slice STEER-4 ordered is complete). **Not** H1 and **not** H2.
-**Date:** 2026-10-02 · Session 8 · commits `728dcf1` (tests, red by design) and `68d8fcf` (implementation) on `task/s8-a-typing-redesign`
+**Date:** 2026-10-02 · Session 8 · commits `728dcf1` (tests, red by design), `68d8fcf` (implementation), `e03b2e7` (docs) on `task/s8-a-typing-redesign`, merged to `main` as PR #8 (`2755b44`) after CI green
 **Driver:** STEER-4, which made the STEER-2 typing-slice design pass this session's first and only priority, and capped the session at one non-ledger task.
 
 ## Ledger counts (Section 18.10)
