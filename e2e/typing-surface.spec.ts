@@ -258,25 +258,67 @@ test("AC6: no popups or modals on the typing surface, and reduced motion is resp
   await page.getByTestId("surface").click();
   await typeText(page, "Dinner's ready when", 6);
 
-  // CUS-01: nothing that interrupts typing may appear. Assert on the DOM, not
-  // on a screenshot: dialog, alert, toast, popover and the <dialog> element.
+  // CUS-01: nothing that interrupts typing may appear.
+  //
+  // POSITIVE FORM. The previous version of this assertion queried nine
+  // hardcoded selectors — `dialog`, `[role=dialog]`, `[role=alert]`,
+  // `[role=alertdialog]`, `[popover]`, `.modal`, `.popup`, `.toast`, `.tooltip`.
+  // Owner-proxy review 1 (REVIEW-1.md, H1) added
+  //
+  //     <div className="promo-banner" aria-modal="true">Congrats! Sign up…</div>
+  //
+  // to the surface and **this test passed**. A blocklist is a list of the names
+  // someone thought of; the next name is not on it, and AGENTS.md rule 1 does
+  // not care what the thing is called.
+  //
+  // So the question is no longer "is one of these nine names present?" It is:
+  // does ANY visible element carry overlay semantics, or paint itself over the
+  // page independently of the document flow? Both halves are named positively,
+  // so an overlay has to be allowed rather than merely unlisted to get past it.
+  //
+  // Computed styles matter here and a name list cannot see them: an overlay
+  // with no dialog semantics at all, pinned with `position: fixed`, is still an
+  // overlay. That is why this is a live DOM read and not a markup scan.
   const interrupts = await page.evaluate(() => {
-    const selectors = [
-      "dialog",
-      "[role=dialog]",
-      "[role=alert]",
-      "[role=alertdialog]",
-      "[popover]",
-      ".modal",
-      ".popup",
-      ".toast",
-      ".tooltip",
-    ];
-    return selectors.flatMap((selector) =>
-      [...document.querySelectorAll(selector)].map(() => selector),
-    );
+    const caret = document.querySelector('[data-testid="caret"]');
+    const found = [];
+    for (const el of document.body.querySelectorAll("*")) {
+      const style = getComputedStyle(el);
+      if (style.display === "none" || style.visibility === "hidden") continue;
+      if (Number.parseFloat(style.opacity) === 0) continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) continue;
+
+      const role = el.getAttribute("role");
+      const reasons = [];
+      if (el.tagName === "DIALOG") reasons.push("<dialog>");
+      if (role === "dialog" || role === "alertdialog") reasons.push(`role=${role}`);
+      if (el.hasAttribute("aria-modal")) reasons.push("aria-modal");
+      if (el.hasAttribute("popover")) reasons.push("popover");
+      // An element that takes itself out of the flow and paints over the
+      // viewport is interrupting whether or not it says so. The caret is the
+      // one legitimate fixed element on this surface, and it is exempt by
+      // identity rather than by selector, so renaming it cannot dodge this.
+      if (style.position === "fixed" && el !== caret) reasons.push("position: fixed");
+      if (style.position === "sticky" && el !== caret) reasons.push("position: sticky");
+
+      if (reasons.length > 0) {
+        found.push({
+          reasons,
+          tag: el.tagName.toLowerCase(),
+          className: typeof el.className === "string" ? el.className.slice(0, 60) : "",
+          text: (el.textContent ?? "").trim().slice(0, 60),
+        });
+      }
+    }
+    return found;
   });
-  expect(interrupts, "no popup, modal or toast may appear while typing").toEqual([]);
+  expect(
+    interrupts,
+    "no popup, modal or overlay may appear while typing (AGENTS.md rule 1). " +
+      "An overlay has to be excluded deliberately to get past this, not merely " +
+      "be named something this list has never heard of.",
+  ).toEqual([]);
 
   // Reduced motion. BOTH directions are asserted, and the first one is the
   // important one: a page with no stylesheet at all reports a transition duration
