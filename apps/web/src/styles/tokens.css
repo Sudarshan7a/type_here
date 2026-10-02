@@ -1,0 +1,187 @@
+/**
+ * Design tokens — the single source of truth for the app's appearance.
+ *
+ * Transcribed from the owner's design pack, which is the source of truth:
+ *   docs/design/09-design-system-tokens.md  (roles, type scale, spacing, radius,
+ *                                             motion, containers, z-index)
+ *   docs/design/08-design-language.md       (shape rationale, keycap motif)
+ *   docs/design/11-animation-and-motion-spec.md (caret and field animations)
+ *
+ * 09 opens with "Agents must not hard-code colours/sizes outside this file" and
+ * §10 asks for a rule that enforces it. That rule is `tests/design-tokens.test.ts`,
+ * which scans every other stylesheet in the app and fails on a literal colour.
+ * Do not add one here without a line in 09 to justify it.
+ *
+ * NOTHING in this file is invented. Where the pack left a gap, the gap is named
+ * in a comment and the choice is logged in HUMAN-ACTIONS.md for the owner to
+ * approve; there are three of them, marked [GAP] below.
+ */
+
+/* ---- theme: Night Ink (dark), the default -------------------------------- */
+
+:root {
+  color-scheme: dark;
+
+  /* §1 colour roles. Contrast ratios in the pack: text 16.5:1, text-muted
+     7.8:1, text-pending 5.6:1, flow 10.5:1, pace 11.7:1, slip 6.9:1. */
+  --bg: #0d1120;
+  --surface-1: #131a2e;
+  --surface-2: #1a2340;
+  --line: #2a3558;
+  --line-strong: #4a5a8c;
+  --text: #eaf0ff;
+  --text-muted: #9aa6cc;
+  --text-pending: #7f8cb3;
+  --flow: #4fd6c8;
+  --pace: #ffc24d;
+  --slip: #ff6b8e;
+  --level: #a29dff;
+  --on-flow: #06201d;
+  --slip-bg: rgba(255, 107, 142, 0.14);
+  --focus-ring: #ffc24d;
+
+  /* §3 typography. */
+  --font-display: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-ui: "Geist", system-ui, sans-serif;
+  --font-type: "JetBrains Mono", "Geist Mono", ui-monospace, monospace;
+  --t-caption: 12px;
+  --t-small: 14px;
+  --t-body: 16px;
+  --t-lead: 19px;
+  --t-h3: clamp(20px, 1.6vw, 24px);
+  --t-h2: clamp(26px, 2.6vw, 36px);
+  --t-kpi: clamp(72px, 10vw, 160px);
+  --t-type: 28px;
+  --lh-caption: 1.4;
+  --lh-small: 1.5;
+  --lh-body: 1.6;
+  --lh-lead: 1.5;
+  --lh-h3: 1.25;
+  --lh-h2: 1.15;
+  --lh-kpi: 0.95;
+  --lh-type: 1.65;
+  /* §3: display −0.02em, UI 0, mono +0.01em. */
+  --track-display: -0.02em;
+  --track-mono: 0.01em;
+
+  /* §4 spacing, 4px base. */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+  --s-20: 80px;
+
+  /* §4 containers and control heights. */
+  --w-type: 68ch;
+  --w-page: 1200px;
+  --w-prose: 68ch;
+  --h-control-sm: 32px;
+  --h-control-md: 40px;
+  --h-control-lg: 48px;
+
+  /* §5 radius. 08 §5: a radii hierarchy, not one radius everywhere. */
+  --r-key: 8px;
+  --r-input: 10px;
+  --r-card: 16px;
+  --r-sheet: 24px;
+  --r-pill: 999px;
+  --r-vkey: 6px;
+
+  /* §5 elevation — floating layers only. Panels use tone + hairline (08 §5). */
+  --elev-menu: 0 8px 24px rgba(3, 6, 18, 0.45), 0 0 0 1px var(--line);
+  --elev-dialog: 0 24px 64px rgba(3, 6, 18, 0.6), 0 0 0 1px var(--line);
+  /* 08 §5 keycap bevel, dark half. Toggled on :active. */
+  --bevel-rest: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 0 rgba(0, 0, 0, 0.35);
+  --bevel-press: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  /* §7 motion. */
+  --dur-instant: 0ms;
+  --dur-fast: 90ms;
+  --dur-base: 160ms;
+  --dur-slow: 280ms;
+  --dur-slower: 480ms;
+  --dur-hero: 900ms;
+  /*
+   * [GAP] 11 §3 gives the caret move as 80ms and the idle blink as 1.06s, but
+   * 09 §7's duration scale has no step for either, and 11 §14 asks for "each
+   * animation has a named token duration/easing (no magic numbers)". The named
+   * tokens below are the smallest way to satisfy both. Logged for the owner.
+   */
+  --dur-caret: 80ms;
+  --dur-blink: 1.06s;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring-ui: cubic-bezier(0.3, 1.4, 0.4, 1);
+  --ease-caret: cubic-bezier(0.4, 0, 0.6, 1);
+
+  /* §6 z-index scale. */
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-dropdown: 20;
+  --z-overlay: 30;
+  --z-dialog: 40;
+  --z-toast: 60;
+  --z-tooltip: 70;
+}
+
+/* ---- theme: Daylight (light) --------------------------------------------- */
+
+:root[data-theme="daylight"] {
+  color-scheme: light;
+
+  --bg: #f2f5fc;
+  --surface-1: #ffffff;
+  --surface-2: #e8ecf8;
+  --line: #cbd3ea;
+  --line-strong: #8b98bf;
+  --text: #12182b;
+  --text-muted: #4f5a80;
+  --text-pending: #5a658c;
+  --flow: #097068;
+  --pace: #8f5e00;
+  --slip: #cc2149;
+  --level: #4b45d6;
+  --on-flow: #ffffff;
+  --slip-bg: rgba(204, 33, 73, 0.1);
+  --focus-ring: #8f5e00;
+
+  /* 09 §5 gives the light keycap bevel only as "tuned for light"; the dark
+     value is a white top highlight on black, which disappears on a light
+     surface. The mirror is the smallest consistent choice. [GAP] */
+  --bevel-rest: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 0 rgba(18, 24, 43, 0.16);
+  --bevel-press: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  --elev-menu: 0 8px 24px rgba(20, 30, 70, 0.14), 0 0 0 1px var(--line);
+}
+
+/*
+ * A visitor whose OS asks for light and who has not chosen a theme in-app gets
+ * Daylight. The theme switcher (Phase 3) sets `data-theme` on <html> before
+ * first paint; until then this is what respects the OS preference.
+ */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    color-scheme: light;
+
+    --bg: #f2f5fc;
+    --surface-1: #ffffff;
+    --surface-2: #e8ecf8;
+    --line: #cbd3ea;
+    --line-strong: #8b98bf;
+    --text: #12182b;
+    --text-muted: #4f5a80;
+    --text-pending: #5a658c;
+    --flow: #097068;
+    --pace: #8f5e00;
+    --slip: #cc2149;
+    --level: #4b45d6;
+    --on-flow: #ffffff;
+    --slip-bg: rgba(204, 33, 73, 0.1);
+    --focus-ring: #8f5e00;
+  }
+}
