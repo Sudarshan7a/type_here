@@ -47,8 +47,8 @@ describe("TypingSurface markup", () => {
     // run of them and this pattern cannot run past the end of one.
     const WORD_BOX = /<span class="word">((?:<span class="ch[^"]*"[^>]*>[^<]*<\/span>)+)<\/span>/g;
 
-    const boxes = [...html.matchAll(WORD_BOX)].map(([, body]) =>
-      [...body.matchAll(/>([^<]*)<\/span>/g)].map(([, text]) => text).join(""),
+    const boxes = [...html.matchAll(WORD_BOX)].map(([, body = ""]) =>
+      [...body.matchAll(/>([^<]*)<\/span>/g)].map(([, text = ""]) => text).join(""),
     );
     expect(boxes.length, "the passage must render as more than one word box").toBeGreaterThan(1);
 
@@ -62,13 +62,13 @@ describe("TypingSurface markup", () => {
         text,
         `word box ${i} must be non-space characters followed by at most one trailing ` +
           `space, never an interior one: ${JSON.stringify(text)}`,
-      ).toMatch(/^\S*(?: )?$/);
+      ).toMatch(/^\S*(?:\u00A0)?$/);
       expect(
         isLast ? text : text.slice(0, -1),
         `word box ${i} ${isLast ? "must not" : "must only"} end with a space`,
       ).not.toMatch(/\s$/);
       if (!isLast) {
-        expect(text, `word box ${i} must own the space that follows it`).toMatch(/ $/);
+        expect(text, `word box ${i} must own the space that follows it`).toMatch(/\u00A0$/);
       }
     }
 
@@ -77,13 +77,11 @@ describe("TypingSurface markup", () => {
     const rendered = boxes.join("");
     // The apostrophe in the passage is an HTML entity in the rendered markup,
     // and the space is U+00A0 rather than U+0020 by design — see groupIntoWords.
-    expect(
-      rendered.replace(/&#x27;/g, "'").replace(/ /g, " "),
-    ).toBe(passage.text);
+    expect(rendered.replace(/&#x27;/g, "'").replace(/\u00A0/g, " ")).toBe(passage.text);
 
     // And nothing was left out of the boxes: no character span sits beside one.
     const inBoxes = [...html.matchAll(WORD_BOX)].reduce(
-      (n, [, body]) => n + (body.match(/data-char-state/g) ?? []).length,
+      (n, [, body = ""]) => n + (body.match(/data-char-state/g) ?? []).length,
       0,
     );
     expect(inBoxes, "every character span must live inside a word box").toBe(

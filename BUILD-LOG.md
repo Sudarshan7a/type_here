@@ -1,18 +1,87 @@
 # BUILD LOG
 
 ## Current Position
-Phase: Phase 1 (M1 engine) — Session 7 complete, and the first session with a **working typing surface**. Driven by owner steering (`docs/handoff/STEER-3.md`).
-Last completed task: the STEER-2 thin vertical slice of the real typing surface (PR #5), then the three `[Policy]` ledger rows enforced by a gate (PR #6). Both merged `--merge` after CI green.
+Phase: Phase 1 (M1 engine) — Session 8 complete, and the first session with a **designed** typing surface. Driven by owner steering (`docs/handoff/STEER-4.md`, which made the STEER-2 design pass this session's first and only priority).
+Last completed task: the STEER-2 design pass on the typing and results screens, and the five defects it names plus a sixth the evidence turned up (PR from `task/s8-a-typing-redesign`).
 Next task, in the owner's stated order:
-1. **`ENG-FIXTURE-D03` and `ENG-FIXTURE-D04`** — the two remaining Chapter 4 edge fixtures. Unblocked since PR #2 and still the cheapest executable work. Per the arithmetic protocol the expected numbers must be recomputed independently from the master-spec §6.1 formulas by a script that imports nothing from `packages/engine`, before the fixture is written.
-2. **F3 / F2 / F1-F9 dev-script defects** (STEER-1: "before starting Phase 4"). F3 is the real one: `pnpm dev` reports success with a dead API when port 3000 is busy. Now more important than when first recorded, because the surface the owner is invited to try runs behind that same command.
-3. **Measure input-to-paint in the new surface** (ENG-02 / NFR-01). The surface exists, so the 16 ms p95 budget is finally measurable against the real thing rather than a spike page. The lab proxy to beat is 15.2 ms.
-Not started: E3 Caps Lock, E5 dead keys, E6 graphemes, E7 server backstop, E8 dual-key, A03 long test; the weakness model; the content pipeline; the settings/mode-bar surface.
-Open defects carried: F1–F4/F9 from the Session 5 attack pass (see HUMAN-ACTIONS.md); `input-adapter.ts` marker timestamps are absolute `performance.now()` while key events are origin-relative, and no test asserts any marker `t` (against ENG-01).
-Ledger: MVP 6/97 DONE-VERIFIED | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 0/20 | LAUNCH-GATED 0 | BLOCKED-EXTERNAL 0 | REJECTED 1 | overall 6/216 (23 IN PROGRESS, 186 NOT STARTED)
-Baseline: **336 unit tests, 0 failures** (engine 115, telemetry 101, schemas 69, web 36, recorder 11, api 4) + 36 script tests (`check-ledger` 16, `check-policies` 20) + 10 Playwright tests; bundle 73.5 KB of 200 KB; engine coverage 95.63/92.77/91.78/96.80; web 85.36/85.71/80/84.61.
-Sessions since last human contact: 0 — the owner filed STEER-3 at the start of this session.
+1. **Measure input-to-paint in the real surface** (ENG-02 / NFR-01). The surface exists and was rebuilt this session, so the 16 ms p95 budget is measurable against the real thing rather than a spike page. The lab proxy to beat is 15.2 ms, only 5% under budget.
+2. **Review and merge the S8-B dev-stack work** (F3 / F2 / F1-F9). F3 is still the real one: `pnpm dev` reports success with a dead API when port 3000 is busy, and that is the exact command the owner is asked to run.
+3. **`ENG-FIXTURE-D03` and `ENG-FIXTURE-D04`** — still unblocked since PR #2. Per the arithmetic protocol the expected numbers must be recomputed independently from the master-spec §6.1 formulas by a script importing nothing from `packages/engine`, before the fixture is written.
+Not started: E3 Caps Lock, E5 dead keys, E6 graphemes, E7 server backstop, E8 dual-key, A03 long test; the weakness model; the content pipeline; the settings/mode-bar surface; the theme switcher, dyslexia-friendly face, selectable caret style and focus mode (CUS-02).
+Open defects carried: F1–F4/F9 from the Session 5 attack pass (see HUMAN-ACTIONS.md).
+**Closed this session:** the `input-adapter.ts` marker-timestamp units error carried since Session 7 (`performance.now()` is absolute since `timeOrigin`; the capture's event timestamps are relative to the first accepted keystroke). This was the dominant cause of bug (c) — the live readout was dividing every figure by the page's lifetime since load.
+Ledger: MVP 6/97 DONE-VERIFIED | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 0/20 | LAUNCH-GATED 0 | BLOCKED-EXTERNAL 0 | REJECTED 1 | overall 6/216 (24 IN PROGRESS, 185 NOT STARTED)
+Baseline: **356 unit tests, 0 failures** (engine 127, telemetry 101, schemas 69, web 44, recorder 11, api 4) + 36 script tests (`check-ledger` 16, `check-policies` 20) + 19 Playwright tests across four browser projects; bundle 75.3 KB of 200 KB; engine coverage 95.52/93.04/91.56/96.77; web 81.39/75/72.72/80.48.
+Sessions since last human contact: 0 — the owner filed STEER-4 at the start of this session.
 Last updated: 2026-10-02
+
+## Session 8 — the design pass (STEER-2), and a defect found by disbelieving a screenshot
+
+The typing and results screens were redesigned against `docs/design/`, every
+token moved into one file, and the five defects STEER-2 names were fixed. Full
+account in `docs/sessions/SESSION-8-REPORT.md`.
+
+**Two of the five had causes nobody had guessed.**
+
+The caret sat one character right and a full line below the text. Character
+offsets were measured from the passage's **border** box while the caret, at
+`left: 0; top: 0`, is laid out in its **padding** box — so the 12px horizontal
+padding was counted twice (exactly one mono advance) and the 16px vertical
+padding dropped it a line.
+
+The live readout said 14.3 WPM / 98.9% where the headline said 58.0 WPM / 100.0%.
+Four causes, only the first suspected: `summarise` never subtracted paused time;
+`computeLiveSummary` had no pause awareness; **`finish()` froze the readout up to
+250 ms stale**; and the live bar labelled `keystrokeAccuracy` as "Accuracy" while
+the headline showed `finalAccuracy` — two different measures, now named
+differently in the string table. The dominant cause was a units error and it was
+already on this page as a known open defect: an absolute `performance.now()`
+compared against origin-relative event timestamps, so every live figure was
+divided by the page's lifetime since load. It read **299.7 WPM**.
+
+**The sixth defect was found by not believing a screenshot.** The 360px capture
+showed line 3 as "I made extra" and line 4 as "rice in case your"; the DOM at the
+same width said the space was at the end of line 3 and nothing was collapsed.
+Both were right — the passage fits 18 characters in a 326px box for 324px, so 2px
+of slack decided which side of the break the space rendered on.
+
+Chasing that produced two results worth more than the fix:
+
+- A **one-pixel width sweep, 300px to 460px**, found the defect live at every
+  width from **367px to 442px** — not at the single breakpoint the screenshot
+  suggested. A measurement-based fix and a single-width test would both have
+  shipped it.
+- The fix became **structural**. A word box now owns the space that follows it, so
+  there is no break opportunity in front of a space at all. The fixed-point search,
+  its 1.5px tolerance, its five-pass cap and its `data-line-leading` attribute are
+  deleted. Because the invariant is structural rather than measured, it is now
+  asserted without a browser: `apps/web/tests/typing-surface.test.tsx` checks that
+  every character lives inside a word box and every space is the last character of
+  one. The same structural change fixed **BUG-f**, the mid-word breaks at 360px
+  ("wh / enever"), which had the same root cause.
+
+**Three tests were caught being vacuous** — passing on the build they were written
+to guard. BUG-c passed with the clock bug restored because Playwright types fast
+enough that page lifetime ≈ typing time; BUG-f's geometric version measured a gap
+that does not exist (a mid-word break is still a *line* break, so the lines are
+flush); BUG-d reported a false positive on a line that legitimately began with a
+collapsed space. All three are recorded next to their assertions. Every new
+assertion was proven bidirectional — fails on the deliberately-broken build,
+passes on the fixed one.
+
+**The evidence is now self-checking.** `docs/visual-evidence/` holds seven
+**LAB PROXY** shots, each paired with the design-pack section it implements. The
+first capture pass used Playwright's `fullPage: true`, which **Chromium satisfies
+by resizing the viewport** — the same 360px page measured six wrapped lines before
+the shutter and seven after it, with a different character advance, and nothing in
+the image said so. The script now never passes `fullPage`, sizes every viewport so
+the content fits, records the measured layout beside each image, and **throws**
+rather than writing a shot whose layout moved across the capture.
+
+**Ledger:** `CUS-02` NOT STARTED → IN PROGRESS. MVP stays **6/97** DONE-VERIFIED,
+deliberately: `ENG-02`/`NFR-01` (input-to-paint, still unmeasured), `ENG-03`
+(D03/D04 fixtures) and `A11Y-01` (full WCAG sweep, 200% zoom, screen-reader pass)
+each have named work still open.
 
 ## Session 7 — the typing surface (STEER-2), and three real defects it found
 

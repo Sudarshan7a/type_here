@@ -4,6 +4,103 @@ Ordered by what blocks soonest. The agent keeps this current; check items off
 as you do them and note the date. Format: [ ] title | why it matters | time
 estimate | what it blocks | how you will know it is done.
 
+## Typing surface redesigned, ready for owner review (Session 8)
+
+**Typing surface redesigned, ready for owner review.** Run this from the
+repository root:
+
+```
+pnpm install
+pnpm --dir apps/web dev
+```
+
+Then open http://localhost:5173 and type the passage on the page. There is no
+Start button: click the text and start typing. **Tab** restarts, **Escape**
+leaves the surface.
+
+Session 7 asked you to look for defects; Session 8 redesigned both screens
+against your design pack in `docs/design/` and fixed the five defects you named.
+What you are looking at now is a different screen from the one you reported on,
+so please treat your previous notes as addressed and look again rather than
+assuming only the bugs moved.
+
+**Seven screenshots are in `docs/visual-evidence/`**, each paired with the
+section of the design pack it implements. Those are the fastest way to review
+the direction, and they are marked **LAB PROXY** — headless Chromium with
+synthetic keystrokes. They show the layout and the tokens resolving. They are not
+evidence about a physical keyboard, and "looks like the concept" is not
+verification of the design direction. That call is yours.
+
+What changed since Session 7:
+
+- **The caret sits on the character.** It was one character right and a full line
+  low. It now sits exactly on the character you are about to type, on the first
+  line, on a wrapped line, after Backspace, after resizing, and at the very end.
+- **The live figures and the final headline now agree.** They read 14.3 WPM and
+  58.0 WPM in the same screenshot you sent. The dominant cause was a units error:
+  the readout was dividing every figure by the time since the page loaded. The
+  live bar also said "Accuracy" for a per-keystroke measure while the headline
+  showed a different one; it now says "Keystroke accuracy".
+- **The "click here to start typing" prompt no longer covers the text.** It sits
+  below the field. Your design pack (10 §3) asks for a blurred scrim over the
+  text — **this is one of three conflicts where I kept the spec requirement and
+  changed the visual instead. It is yours to overturn**; see the list below.
+- **A wrapped line can no longer begin with a space, and can no longer break a
+  word in half.** At 360px the text used to render as "wh / enever". Both are now
+  impossible by construction rather than by correction.
+- **The caret disappears when the test ends.**
+- **Everything is themed.** Light and dark both ship, driven by one token file.
+
+What still needs you:
+
+- [ ] **Try it and report anything that feels wrong** | The surface was rebuilt this session, so your notes from Session 7 are about a different screen | 10 min | Design direction, and confidence in M1 before Phase 2 | A note in BUILD-LOG. **"Looks fine" is not evidence** — the latency budget is 5% under target, so "felt fine" and "slightly laggy" may both be inside the noise. Anything you notice at all is the useful signal.
+- [ ] **Try it on more than one keyboard layout** | Six layout maps were derived from physical key positions, but no human has typed on them with a debugger open | ~15 min per layout | Phase 3 layout support, Phase 6 token attribution | One word typed per layout, noting anything that produced the wrong character or finger |
+- [ ] **Rule on the three design conflicts** (below) | I changed the visual to keep a spec requirement in each case. That is a judgement call and it is yours | 15 min | The visual direction of both screens | A yes or a correction, in BUILD-LOG |
+
+### The three conflicts — spec requirement kept, visual adapted
+
+I did not silently pick one side. Each of these is a place where a concept in
+`docs/design/` and a hard requirement in the spec or the project's own rules
+disagreed. **I kept the requirement** in all three, because the requirements are
+not stylistic preferences, and adapted the visual. Each is reversible if you
+disagree.
+
+1. **The start prompt.** 10 §3 wants a blurred overlay covering the passage. Your
+   bug report was that the prompt covers the text. Keeping the requirement would
+   mean keeping the defect, so the prompt moved **below** the field. *If you want
+   the scrim, it can be built — but not over text the user has to read.*
+2. **The hero KPI at 360px.** 09 §3 gives the result figure a floor of 72px. At
+   360px the results panel is about 296px wide, and "56.0 WPM" at 72px does not
+   fit — the number breaks across two lines mid-figure. Below the pack's own
+   480px breakpoint the KPI steps down to the `--t-h2` scale. **The pack sizes
+   the KPI for a desktop hero and says nothing about a phone.** I chose not to
+   let a number wrap.
+3. **Character states need a second signal.** 09 §1 specifies a 2px underline for
+   a wrong character and a dotted strikethrough for an extra one, but the project
+   forbids signalling state by colour alone (WCAG 2.2 AA). I implemented both:
+   every state carries a distinct non-colour cue *and* the pack's colour. In
+   forced-colours mode only the cues survive, which is the point.
+
+### Three `[GAP]`s in the design pack — tokens I had to decide
+
+`docs/design/` is the source of truth and I did not invent a style, but three
+things it does not pin down had to be decided to build anything. Each is a
+one-line CSS variable and all three are in `apps/web/src/styles/tokens.css`.
+
+- [ ] **`[GAP]` Error and speed tones.** The pack names `--slip` for a wrong
+  character but no background wash, no missed-character tone, and no distinct
+  speed tone. I used one desaturated red family at three opacities, and the speed
+  tone is unused until a speed readout exists. Approve, or give me the values.
+- [ ] **`[GAP]` Caret style.** The pack says 2px, `--pace` colour, blink while
+  idle. It does not say what a user may change. CUS-02 wants a selectable caret
+  style; I have not built the picker, and the caret is currently not configurable.
+- [ ] **`[GAP]` Self-hosted fonts.** The pack names Bricolage Grotesque (display),
+  a UI face, and JetBrains Mono, at ≤120KB each. They are **not installed** — the
+  screenshots use whatever your machine has, so the type in them is not the type
+  the pack specifies. Self-hosting is a real decision (licence, subsetting,
+  payload) and the bundle is at 75KB of a 200KB budget, so there is room. Your
+  call whether to self-host or to adopt system stacks permanently.
+
 ## Typing surface ready to try (Session 7, PR #5)
 
 **The typing surface is ready to try.** Run this from the repository root:
