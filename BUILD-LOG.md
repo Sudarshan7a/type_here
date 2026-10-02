@@ -1,7 +1,13 @@
 # BUILD LOG
 
 ## Current Position
-Phase: Phase 1 (M1 engine) — Session 8 complete, and the first session with a **designed** typing surface. Driven by owner steering (`docs/handoff/STEER-4.md`, which made the STEER-2 design pass this session's first and only priority).
+Phase: Phase 1 (M1 engine) — Session 9 work landed: S8-B dev-stack merged, STEER-6 caret shipped, fonts self-hosted.
+Last completed task: finished and merged the pending `task/s9-a-dev-stack` work — self-hosted JetBrains Mono + Geist Sans woff2 with OFL.txt, typing-font preload, caret-height-from-stylesheet fix (STEER-6 follow-up, CUS-02), 4th capture invariant (loaded FontFace) with regenerated visual evidence, `e2e/fonts.spec.ts` 6/6 (mutant-proven: MUTANT-prefetch kills the preload test, reverted green). **PR #12, merged to `main` as `7149c8d`** after CI green on both runs. Full verify local: lint, typecheck, 361 unit tests, build, format, bundle 140.7KB/200KB, licenses, ledger, policies — all green; e2e fonts 6/6 + caret/surface/design 21/21.
+Ledger: MVP 4/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 1/20 | overall 5/216 DONE-VERIFIED (25 IN PROGRESS, 185 NOT STARTED, 1 REJECTED). No status moved this slice; CUS-02 stays IN PROGRESS.
+Next task, in the loop order (LOOP-TO-DONE-PROMPT.md WAVE 0):
+1. **WAVE 0.1 — ENG-02/NFR-01:** measure input-to-paint in the REAL surface (300+ keystrokes, p95 ≤16ms harness in CI). Lab proxy to beat: 15.2 ms.
+2. **WAVE 0.2 — ENG-03:** ENG-FIXTURE-D03 (no-backspace) + D04 (word-locked) with hand-computed expectations.
+Previous position (Session 8):
 Last completed task: the STEER-2 design pass on the typing and results screens, and the five defects it names plus a sixth the evidence turned up. **PR #8, merged to `main` as `2755b44`** after CI green (`quality` passed on both runs).
 Next task, in the owner's stated order:
 1. **Measure input-to-paint in the real surface** (ENG-02 / NFR-01). The surface exists and was rebuilt this session, so the 16 ms p95 budget is measurable against the real thing rather than a spike page. The lab proxy to beat is 15.2 ms, only 5% under budget.
