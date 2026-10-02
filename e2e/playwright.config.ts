@@ -19,6 +19,11 @@ export default defineConfig({
   testDir: ".",
   timeout: 30_000,
   retries: process.env.CI ? 1 : 0,
+  // Serial workers: ENG-02/NFR-01's input-to-paint gate (latency-surface.spec.ts)
+  // asserts zero long tasks, which needs a quiet machine — six browsers sharing
+  // one box produced 1–2 long tasks per latency run and failed the gate on
+  // ambient load, not on the surface. Suite speed is the price of a stable gate.
+  workers: 1,
   use: {
     baseURL: "http://localhost:5173",
   },
