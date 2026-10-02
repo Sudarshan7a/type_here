@@ -479,6 +479,17 @@ export function TypingSurface({
     event.preventDefault();
   }, []);
 
+  const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    // ENG-07, same threat as paste: dropped text must never enter the attempt.
+    // preventDefault on dragover as well, or some browsers will not fire drop
+    // on a non-editable target at all — and an unfired drop is not a blocked one.
+    event.preventDefault();
+  }, []);
+
+  const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  }, []);
+
   const handleVisibility = useCallback(() => {
     // A hidden tab is treated exactly like a blur (chapter 4 E4).
     if (document.visibilityState === "hidden") handleBlur();
@@ -501,6 +512,10 @@ export function TypingSurface({
         data-testid="surface"
         id="surface"
         data-phase={phase}
+        // ENG-07: the sink is a plain div, never an input/textarea/editable —
+        // autofill and spellcheck machinery have no hook. spellCheck is set
+        // explicitly so the intent survives any future sink change.
+        spellCheck={false}
         // The declared layout this run is attributed to (LOC-01). A readout
         // hook for the layout-selector acceptance test, not a visual.
         data-layout={layout}
@@ -519,6 +534,8 @@ export function TypingSurface({
         onFocus={handleFocus}
         onBlur={handleBlur}
         onPaste={handlePaste}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
       >
         {tokens.map((token) => (
           // The word, and the space after it, are ONE atomic box. See
