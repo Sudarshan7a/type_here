@@ -1,7 +1,14 @@
 # BUILD LOG
 
 ## Current Position
-Phase: Phase 1 (M1 engine) — Session 9 work landed: S8-B dev-stack merged, STEER-6 caret shipped, fonts self-hosted.
+Phase: Phase 1 (M1 engine) — loop WAVE 0 running. WAVE 0.1 + 0.2 landed via two parallel workers.
+Last completed task: **WAVE 0.1 (ENG-02/NFR-01, PR #15):** input-to-paint measured on the REAL surface — `e2e/latency-surface.spec.ts`, n=320, p50 ~6ms, p95 14.1–14.9ms local, green on CI hardware, 0 long tasks; mutant-proven (25ms spin → p95 26.2 FAIL, reverted PASS); suite pinned to 1 worker. **WAVE 0.2 (ENG-03, PR #14):** D03 + D04 golden fixtures with hand-computed expectations, engine 137/137, mutant-proven, `src/` untouched. Integrator re-ran both key claims locally (D03 pin mutant killed with right message; latency spec reproduced p95 14.9). Both PRs merged after CI green.
+Ledger: MVP 4/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 1/20 | overall 5/216 DONE-VERIFIED (25 IN PROGRESS, 185 NOT STARTED, 1 REJECTED). No status moved — ENG-02/NFR-01/ENG-03 stay IN PROGRESS (notes updated).
+Next task, in the loop order (LOOP-TO-DONE-PROMPT.md WAVE 0):
+1. **WAVE 0.3** — ENG-06/LOC-01 (caps-lock, dead-keys, rollover attribution, graphemes/emoji) + LOC-01 maps into app.
+2. **WAVE 0.4** — ENG-07 server plausibility backstop (INT-02 floors).
+3. Follow-ups owed: parity fixture lists for d03/d04; no-network-during-a-test assertion (ENG-02); Firefox/WebKit + REAL-DEVICE latency confirmation (NFR-01). Process: parallel workers must use separate worktrees (shared-directory branch collision this round, caught before push).
+Previous position (Session 9 closeout):
 Last completed task: finished and merged the pending `task/s9-a-dev-stack` work — self-hosted JetBrains Mono + Geist Sans woff2 with OFL.txt, typing-font preload, caret-height-from-stylesheet fix (STEER-6 follow-up, CUS-02), 4th capture invariant (loaded FontFace) with regenerated visual evidence, `e2e/fonts.spec.ts` 6/6 (mutant-proven: MUTANT-prefetch kills the preload test, reverted green). **PR #12, merged to `main` as `7149c8d`** after CI green on both runs. Full verify local: lint, typecheck, 361 unit tests, build, format, bundle 140.7KB/200KB, licenses, ledger, policies — all green; e2e fonts 6/6 + caret/surface/design 21/21.
 Ledger: MVP 4/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 1/20 | overall 5/216 DONE-VERIFIED (25 IN PROGRESS, 185 NOT STARTED, 1 REJECTED). No status moved this slice; CUS-02 stays IN PROGRESS.
 Next task, in the loop order (LOOP-TO-DONE-PROMPT.md WAVE 0):
