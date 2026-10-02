@@ -9,13 +9,13 @@
  *  - no React state is touched per keystroke; the surface updates the DOM
  *    directly and only the finished result crosses into React.
  */
-import type { InputLog, KeyEvent, LogMarker, TypingText } from "@realtype/schemas";
+import type { InputLog, KeyEvent, Layout, LogMarker, TypingText } from "@realtype/schemas";
 
 export interface CaptureOptions {
   mode: InputLog["meta"]["mode"];
   textId: string;
   textHash: string;
-  layout: InputLog["meta"]["layout"];
+  layout: Layout;
   errorMode: InputLog["meta"]["settings"]["errorMode"];
 }
 
@@ -24,6 +24,13 @@ export class InputCapture {
   private readonly focusMarkers: LogMarker[] = [];
   /** Clock origin: the first accepted keydown. Until then, time is not spent. */
   private origin: number | null = null;
+  /**
+   * True between compositionstart and compositionend (M1-04 §6, ENG-06). While
+   * open, every keydown is a partial reading of uncommitted text, so it carries
+   * the composition flag the engine drops; only the confirmed string handed to
+   * handleCompositionEnd scores, exactly once per grapheme.
+   */
+  private composing = false;
 
   private relative(at: number): number {
     if (this.origin === null) {
@@ -51,6 +58,57 @@ export class InputCapture {
 
   handleVisibilityChange(state: DocumentVisibilityState): void {
     this.mark(this.now(), "visibility", state);
+  }
+
+  /**
+   * An IME composition opened: everything typed from here on is a partial
+   * reading of uncommitted text, never a keystroke (M1-04 §6, ENG-06).
+   */
+  handleCompositionStart(): void {
+    this.composing = true;
+  }
+
+  /**
+   * The composition is still open (compositionupdate). Idempotent by design: an
+   * update without a start still means "uncommitted text is on screen".
+   */
+  handleCompositionUpdate(): void {
+    this.composing = true;
+  }
+
+  /**
+   * The composition closed. `commitText` is the confirmed string
+   * (CompositionEvent.data): one scoring press per grapheme, so the confirmed
+   * text counts exactly once and the partials before it never counted at all.
+   * An empty or omitted commit pushes nothing — cancelling a composition is
+   * not typing.
+   *
+   * The commit carries code "IME" because confirmed text has no physical key:
+   * it is produced text, not a press, and finger attribution must read it as
+   * unattributable rather than guessing a finger for it.
+   */
+  handleCompositionEnd(commitText?: string): void {
+    this.composing = false;
+    if (commitText === undefined || commitText === "") return;
+    for (const grapheme of splitGraphemes(commitText)) {
+      for (const type of ["down", "up"] as const) {
+        this.captured.push({
+          code: "IME",
+          key: grapheme,
+          type,
+          t: this.relative(this.now()),
+          mods: { shift: false, ctrl: false, alt: false, meta: false },
+          repeat: false,
+          isTrusted: true,
+          auto: false,
+        });
+      }
+    }
+  }
+
+  /** Whether a composition is currently open (for the sink and for tests). */
+  get isComposing(): boolean {
+    return this.composing;
   }
 
   /**
@@ -118,6 +176,7 @@ export class InputCapture {
     this.captured.length = 0;
     this.focusMarkers.length = 0;
     this.origin = null;
+    this.composing = false;
   }
 
   toLog(options: CaptureOptions): InputLog {
@@ -128,15 +187,16 @@ export class InputCapture {
         mode: options.mode,
         textId: options.textId,
         textHash: options.textHash,
+        // LOC-01: the declared layout is attributed as-is in BOTH places. An
+        // earlier revision coerced every non-qwerty layout back to qwerty-us in
+        // settings while keeping meta honest, so the two disagreed about the
+        // same run. The selector owns the value now; the adapter only carries it.
         layout: options.layout,
         settings: {
           errorMode: options.errorMode,
           autoIndent: false,
           autoPair: false,
-          layout:
-            options.layout === "qwerty-us" || options.layout === "qwerty-uk"
-              ? options.layout
-              : "qwerty-us",
+          layout: options.layout,
         },
         engineVersion: ENGINE_VERSION_STAMP,
       },
@@ -169,12 +229,39 @@ export class InputCapture {
       repeat: event.repeat,
       isTrusted: event.isTrusted,
       auto: false,
+      // A partial typed while a composition is open is a reading, not a
+      // keystroke: the engine drops flagged events before anything else
+      // (input-filter, text-model IME guard). Absent when closed, so logs
+      // without IME input keep exactly the shape they always had.
+      ...(this.composing ? { composition: true as const } : {}),
     });
   }
 }
 
 /** Kept in sync with the engine's own stamp at wiring time (M1-01). */
 const ENGINE_VERSION_STAMP = "1.0.0";
+
+/**
+ * One committed string, split the way the engine counts it: user-perceived
+ * characters (M1-04, chapter 4 E5/E6). Intl.Segmenter where available, code
+ * points otherwise — a decomposed character may split on a very old engine,
+ * but it never merges two characters into one scored press.
+ */
+function splitGraphemes(text: string): string[] {
+  const maybeSegmenter = (
+    Intl as unknown as {
+      Segmenter?: new (
+        locales?: string | string[],
+        options?: { granularity?: string },
+      ) => { segment(input: string): Iterable<{ segment: string }> };
+    }
+  ).Segmenter;
+  if (typeof maybeSegmenter === "function") {
+    const segmenter = new maybeSegmenter(undefined, { granularity: "grapheme" });
+    return [...segmenter.segment(text)].map((part) => part.segment);
+  }
+  return [...text];
+}
 
 export function textToTypingText(id: string, text: string): TypingText {
   return { id, text };

@@ -125,3 +125,36 @@ pnpm --dir packages/engine exec vitest run tests/eng-layout-maps.test.ts
 
 The tests pin every value in the table above, so a later "simplification" of
 the maps cannot silently reintroduce an unverified mapping.
+
+## App wiring (Wave 0.3 Slice 3, LOC-01): detection, override, hardware sheet
+
+**What the app does.** First run shows a labelled guess beside an
+always-visible layout selector; choosing persists a `realtype.layout`
+override (guest-first `localStorage`, auth later). The declared layout flows
+into the log's `meta.layout` AND `settings.layout` unchanged — the old
+adapter coerced non-qwerty layouts back to qwerty-us in settings, which is
+removed. Passages stay English for the MVP: the selector drives attribution,
+not passage language.
+
+**Cautious detection (M2-06 §3).** The guess reads `navigator.language`
+only: `de-*` → qwertz, `fr-*` → azerty (except `fr-CH` → qwertz,
+`fr-CA` → qwerty-us), everything else → qwerty-us. Browser language is weak
+evidence for hardware — a US laptop can run a French locale and vice versa —
+so the guess is labelled as a guess and the override is always visible.
+No `Keyboard.getLayoutMap()` probing, no OS sniffing.
+
+**ANSI/ISO quirks (known limits).** The finger maps are column-derived from
+physical positions, so they are agnostic to ANSI (wide left Shift, horizontal
+Enter) vs ISO (extra key left of Z, vertical Enter) — but the EXTRA ISO key
+has no stable `code` across drivers, so characters produced only from it
+(e.g. QWERTZ `|` via the key left of Y/Z, QWERTZ `\` via the ß key) stay
+`unknown` rather than guessed. AltGr/dead-key gaps are listed per layout
+above and unchanged by this slice.
+
+**Hardware sheet (standing HUMAN action — not claimed).** Live-driver
+confirmation of all six maps is still open: type one word per layout with a
+debugger open and compare with the expected characters, on at least two OSes
+(M2-06 check). Playwright composition tests in
+`e2e/layout-composition.spec.ts` dispatch synthetic CompositionEvents and
+prove the adapter/sink contract only; they exercise no OS driver, IME, dead
+key, or physical position. Nothing in this slice marks that action done.

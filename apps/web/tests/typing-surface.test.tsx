@@ -20,7 +20,9 @@ import { PASSAGES } from "../src/passages";
 const passage = PASSAGES[0]!;
 
 describe("TypingSurface markup", () => {
-  const html = renderToStaticMarkup(<TypingSurface passage={passage} errorMode="free" />);
+  const html = renderToStaticMarkup(
+    <TypingSurface passage={passage} errorMode="free" layout="qwerty-us" />,
+  );
 
   it("gives the key sink the accessible name from the string table", () => {
     expect(html).toContain(`aria-label="${COPY.typingSurfaceInstructions}"`);
@@ -129,7 +131,9 @@ describe("TypingSurface markup", () => {
 });
 
 describe("TypingSurface ships no interrupting chrome (CUS-01)", () => {
-  const html = renderToStaticMarkup(<TypingSurface passage={passage} errorMode="free" />);
+  const html = renderToStaticMarkup(
+    <TypingSurface passage={passage} errorMode="free" layout="qwerty-us" />,
+  );
 
   /**
    * POSITIVE FORM — and the layer this one is actually responsible for.
