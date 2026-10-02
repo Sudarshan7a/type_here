@@ -59,8 +59,8 @@ jobs:
         env:
           MUTATE_GROUP_KILL: "1"
         run: |
-          pnpm check:devstack
           node --test scripts/dev-stack.test.mjs
+          pnpm check:devstack
 
       - name: E2E smoke (Chromium)
         run: |
