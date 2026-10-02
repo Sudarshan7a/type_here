@@ -5,7 +5,14 @@ Phase: Phase 1 (M1 engine) — Session 8 complete, and the first session with a 
 Last completed task: the STEER-2 design pass on the typing and results screens, and the five defects it names plus a sixth the evidence turned up. **PR #8, merged to `main` as `2755b44`** after CI green (`quality` passed on both runs).
 Next task, in the owner's stated order:
 1. **Measure input-to-paint in the real surface** (ENG-02 / NFR-01). The surface exists and was rebuilt this session, so the 16 ms p95 budget is measurable against the real thing rather than a spike page. The lab proxy to beat is 15.2 ms, only 5% under budget.
-2. **Review and merge the S8-B dev-stack work** (F3 / F2 / F1-F9). F3 is still the real one: `pnpm dev` reports success with a dead API when port 3000 is busy, and that is the exact command the owner is asked to run.
+2. **Finish and merge the S8-B dev-stack work** (F3 / F2 / F1-F9). Independently
+   reviewed this session: verdict **accept with changes**. All 22 unit tests were
+   proven non-vacuous by 11 mutations and nothing was weakened or skipped, but
+   **neither test artifact runs in CI or under `pnpm test`** (26 tests that never
+   execute will rot), a subset-mode path **starts nothing and exits 0**, and the run
+   evidence is not logged. Full detail in `docs/halt/HALT-H3-3.md`. F3 remains the
+   one that matters: `pnpm dev` reporting success with a dead API is the exact
+   command the owner is asked to run.
 3. **`ENG-FIXTURE-D03` and `ENG-FIXTURE-D04`** — still unblocked since PR #2. Per the arithmetic protocol the expected numbers must be recomputed independently from the master-spec §6.1 formulas by a script importing nothing from `packages/engine`, before the fixture is written.
 Not started: E3 Caps Lock, E5 dead keys, E6 graphemes, E7 server backstop, E8 dual-key, A03 long test; the weakness model; the content pipeline; the settings/mode-bar surface; the theme switcher, dyslexia-friendly face, selectable caret style and focus mode (CUS-02).
 Open defects carried: F1–F4/F9 from the Session 5 attack pass (see HUMAN-ACTIONS.md).
