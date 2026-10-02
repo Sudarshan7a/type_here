@@ -304,7 +304,6 @@ export async function killTree(pid) {
   }
   let descendants = [];
   try {
-    if (process.env.MUTATE_GROUP_KILL === "1") throw new Error("mutant: group kill only");
     descendants = await descendantPids(pid);
   } catch {
     // No `ps` (or it failed): fall back to the group kill, which is still
