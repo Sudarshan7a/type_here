@@ -18,6 +18,7 @@ playwright-report/
 .env
 .env.*
 !.env.example
+claude-openrouter.ps1
 
 # logs
 *.log
