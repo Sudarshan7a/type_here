@@ -173,6 +173,10 @@
 | `settings.section.layout` | Layout & Keyboard | |
 | `settings.section.accessibility` | Accessibility | |
 | `settings.section.privacy` | Data & Privacy | |
+| `settings.caretStyle.label` | Caret | STEER-6. The caret is a display preference; it changes no metric and no `modelVersion`, so a recorded test stays comparable across the three. |
+| `settings.caretStyle.line` | Line | The design-pack default: a thin bar sized to the letter. |
+| `settings.caretStyle.block` | Block | A tinted block over the character, with a solid edge marking the insertion point. |
+| `settings.caretStyle.underline` | Underline | A short rule under the character, clearing the descenders. |
 | `settings.errorMode.free.label` | Free (default) | |
 | `settings.errorMode.free.description` | Type naturally; mistakes are marked but don't block you. | |
 | `settings.errorMode.mustCorrect.label` | Must-correct | |

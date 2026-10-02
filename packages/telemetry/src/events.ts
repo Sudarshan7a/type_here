@@ -43,7 +43,14 @@ export const LAYOUTS = [
 export const PAUSE_TRIGGERS = ["user", "blur", "visibility"] as const;
 
 /** Changeable settings exposed in the UI. */
-export const SETTING_NAMES = ["error_mode", "auto_indent", "auto_pair", "theme", "sound"] as const;
+export const SETTING_NAMES = [
+  "error_mode",
+  "auto_indent",
+  "auto_pair",
+  "theme",
+  "sound",
+  "caret_style",
+] as const;
 
 /** Closed union of every value any SETTING_NAMES item may take. */
 export const SETTING_VALUES = [
@@ -59,6 +66,9 @@ export const SETTING_VALUES = [
   "dark",
   "light",
   "system",
+  "line",
+  "block",
+  "underline",
 ] as const;
 
 /** Server-side result rejection reasons (INT-* work, coarse). */

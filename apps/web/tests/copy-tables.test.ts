@@ -46,6 +46,12 @@ const SURFACE_COPY: ReadonlyArray<{ key: string; expected: string }> = [
     key: "a11y.instructions.typingSurface",
     expected: "Type the text shown. Press Tab to restart. Press Escape to leave this area.",
   },
+  // STEER-6: the caret style setting. Listed here for the same reason as the
+  // rest — a label that drifts from the table is a label nobody reviews.
+  { key: "settings.caretStyle.label", expected: "Caret" },
+  { key: "settings.caretStyle.line", expected: "Line" },
+  { key: "settings.caretStyle.block", expected: "Block" },
+  { key: "settings.caretStyle.underline", expected: "Underline" },
   // The one and only automatic announcement.
   {
     key: "a11y.announce.testFinished",

@@ -254,10 +254,55 @@ body {
   top: 0;
   left: 0;
   width: 2px;
-  height: 1em;
+  /*
+   * The pre-layout default, and the value the caret settles on. 1.1em is the
+   * glyph (STEER-6); it was 1em-sized against a JS-written line box, which at
+   * `--lh-type: 1.65` made the caret 46.2px tall over a 20px letter. The caret
+   * is a child of the passage, so `em` here is the type size and the number
+   * needs no measurement to stay correct when the tokens change.
+   */
+  height: 1.1em;
   background: var(--pace);
   pointer-events: none;
   will-change: transform;
+}
+
+/*
+ * Caret STYLE (STEER-6). The owner asked for line / block / underline as a
+ * setting, defaulting to line, so all three are here — selected from the
+ * surface's `data-caret-style` rather than from a class on the caret itself.
+ *
+ * A data attribute rather than a class so the choice is one attribute on one
+ * element that is already there, and switching style re-styles without
+ * re-rendering the caret. The JS writes `height` inline from the measured
+ * font-size, so a style change that wants a different height has to override
+ * that inline value explicitly — which is why block and underline both declare
+ * a `height`. Nothing here changes what the caret POINTS at: `moveCaret` still
+ * positions it by the same slot, so the three styles differ in appearance only
+ * and a recorded test is comparable across all of them.
+ */
+.passage[data-caret-style="line"] .caret {
+  width: 2px;
+  height: 1.1em;
+}
+
+/* A block sits over the character it marks, so it is as wide as that character
+   and reaches slightly below the baseline to cover a descender. */
+.passage[data-caret-style="block"] .caret {
+  width: 1ch;
+  height: 1.1em;
+  background: color-mix(in srgb, var(--pace) 28%, transparent);
+  /* The solid bar under the block is what keeps the insertion point visible,
+     since the block itself is a tint rather than the full --pace colour. */
+  border-right: 2px solid var(--pace);
+}
+
+/* An underline sits under the letter, so it is short and thin and does not
+   obscure the glyph. Its height is the line's leading, which is what puts it
+   in the gap below the descenders rather than across them. */
+.passage[data-caret-style="underline"] .caret {
+  width: 1ch;
+  height: 0.16em;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -513,11 +558,27 @@ select {
 
 .controls {
   display: flex;
+  /*
+   * Wraps. Two label/select pairs on one line do not fit the 360px breakpoint
+   * the design pack names, and `flex-wrap` is what keeps that true now that the
+   * caret-style control joined the passage picker. Without it the row overflows
+   * horizontally — which `e2e/typing-surface-design.spec.ts` caught, and which
+   * is a WCAG 2.2 AA failure (1.4.10 Reflow) rather than a cosmetic one.
+   */
+  flex-wrap: wrap;
   gap: var(--s-3);
   align-items: center;
   margin-bottom: var(--s-4);
   font-size: var(--t-small);
   color: var(--text-muted);
+}
+
+/* The controls may wrap onto their own line, so they must not be the widest
+   thing on it. `min-width: 0` lets a select shrink inside the flex line rather
+   than forcing the row wider than the viewport. */
+.controls select {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .banner {

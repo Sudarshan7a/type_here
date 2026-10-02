@@ -23,6 +23,7 @@ import {
   type EngineResult,
   type ErrorMode,
 } from "@realtype/engine";
+import type { CaretStyle } from "@realtype/schemas";
 
 import { COPY } from "./copy";
 import { InputCapture } from "./input-adapter";
@@ -34,6 +35,14 @@ export type SurfacePhase = "idle" | "running" | "paused" | "finished";
 export interface TypingSurfaceProps {
   passage: Passage;
   errorMode: ErrorMode;
+  /**
+   * How the caret is drawn (STEER-6). A display preference only — it reaches no
+   * metric and does not change `modelVersion`, so a recorded test stays
+   * comparable between someone using a line caret and someone using a block.
+   *
+   * Defaults to "line", which is what the design pack specifies.
+   */
+  caretStyle?: CaretStyle;
   /** Notified once per finished test, for the parent's history or telemetry. */
   onFinish?: (result: EngineResult) => void;
   /** Offered on the finished panel. Omitted when the host has nowhere to go. */
@@ -73,7 +82,13 @@ function groupIntoWords(chars: readonly string[]): WordToken[] {
   return tokens;
 }
 
-export function TypingSurface({ passage, errorMode, onFinish, onNewPassage }: TypingSurfaceProps) {
+export function TypingSurface({
+  passage,
+  errorMode,
+  caretStyle = "line",
+  onFinish,
+  onNewPassage,
+}: TypingSurfaceProps) {
   const [phase, setPhase] = useState<SurfacePhase>("idle");
   const [focused, setFocused] = useState(false);
   const [result, setResult] = useState<EngineResult | null>(null);
@@ -87,8 +102,6 @@ export function TypingSurface({ passage, errorMode, onFinish, onNewPassage }: Ty
   /** What the user has produced so far, mirrored from the engine for painting. */
   const bufferRef = useRef<string[]>([]);
   const slotsRef = useRef<CharSlot[]>([]);
-  /** The passage's line box height in px, read on layout. Drives the caret. */
-  const lineHeightRef = useRef(0);
   const rafRef = useRef<number | null>(null);
   const pausedAtRef = useRef(0);
 
@@ -163,14 +176,14 @@ export function TypingSurface({ passage, errorMode, onFinish, onNewPassage }: Ty
     // break impossible, so there is nothing left to iterate towards. See the note
     // where `tokens` is built.
     const slots = read();
-    // The caret is as tall as the LINE, not as tall as the character it sits on.
-    // A character is an inline box, so its rect is the font's box — shorter than
-    // the line box the reader perceives. 10 §3 asks for a caret at 100% of the
-    // line height, and this is where that number comes from now that a
-    // character's own box cannot supply it. Read once per layout, never per
-    // keystroke. `normal` would give a useless "normal", so it is not accepted.
-    const lineHeight = parseFloat(getComputedStyle(host).lineHeight);
-    lineHeightRef.current = Number.isFinite(lineHeight) ? lineHeight : 0;
+    // The caret's height is NOT measured here. It is `1.1em` in CSS, and the
+    // caret is a child of the passage, so `em` resolves against the type size
+    // already in force — which means the number stays correct when the type
+    // tokens change, with no JavaScript involved. An earlier version measured
+    // the font-size per layout and wrote `style.height` inline; that inline
+    // value outranks every stylesheet rule, so the block and underline caret
+    // styles could not change their height at all. See the caret style block in
+    // styles.css.
     slotsRef.current = slots;
   }, []);
 
@@ -185,10 +198,22 @@ export function TypingSurface({ passage, errorMode, onFinish, onNewPassage }: Ty
     // a completed test leaves it after the text rather than on top of it.
     const atEnd = index >= slots.length;
     const x = atEnd ? slot.left + slot.width : slot.left;
+    // Only the HEIGHT changed (STEER-6: "alignment is fine, size is not"). The
+    // caret still starts at the character's own top, which is what
+    // e2e/typing-surface-design.spec.ts pins within 1px.
+    //
+    // A first attempt also CENTRED the shorter caret on the character's box,
+    // which is arguably the more correct typographic alignment — and it moved the
+    // caret 1.1px down, breaking that pin for a difference nobody can see. The
+    // owner asked for a size change, so the size changed and the alignment did
+    // not.
     caret.style.transform = `translate3d(${x}px, ${slot.top}px, 0)`;
-    // The line box, so the caret spans the full line the way 10 §3 describes. The
-    // character fallback only applies before the first layout has run.
-    caret.style.height = `${lineHeightRef.current || slot.height}px`;
+    // The index the caret is sitting on, published so the size assertion in
+    // e2e/caret.spec.ts can measure the glyph the caret is actually over rather
+    // than guessing which character that is from geometry. One attribute write
+    // in the batch that already happened — no extra layout, no extra paint, and
+    // no React render (rule 2).
+    caret.dataset.caretIndex = String(index);
   }, []);
 
   /**
@@ -430,6 +455,10 @@ export function TypingSurface({ passage, errorMode, onFinish, onNewPassage }: Ty
         data-testid="surface"
         id="surface"
         data-phase={phase}
+        // Drives the caret's shape from CSS alone. Setting it on the surface
+        // rather than on the caret means changing style costs no React render of
+        // the caret element, and the caret's own DOM stays untouched.
+        data-caret-style={caretStyle}
         // The caret blinks only before the first keystroke (10 §3), and only
         // where motion is welcome at all.
         data-idle={phase === "idle" ? "true" : "false"}
