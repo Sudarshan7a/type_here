@@ -32,16 +32,16 @@ Common rules for all agents:
 - Report discrepancies in project docs instead of deciding them (stop
   conditions, section 4 below).
 
-## 2. Shared data contracts (source of truth: `packages/schemas`, CONTRACT_VERSION 1.2.0)
+## 2. Shared data contracts (source of truth: `packages/schemas`, CONTRACT_VERSION 1.4.0)
 
 All cross-module data flows through these shapes. Zod `.strict()` everywhere;
 unknown fields are rejected. Full definitions: `packages/schemas/src/*.ts`.
 
-- **KeyEvent** `{code, key, type: "down"|"up", t, mods{shift,ctrl,alt,meta}, repeat, isTrusted, auto}` — `t` is ms float, finite, ≥ 0, relative to the first accepted keystroke. All fields required.
+- **KeyEvent** `{code, key, type: "down"|"up", t, mods{shift,ctrl,alt,meta}, repeat, isTrusted, auto, composition?}` — `t` is ms float, finite, ≥ 0, relative to the first accepted keystroke. All fields required except `composition` (optional since 1.4.0: true while an IME composition is still open — never scored; absent means committed text).
 - **InputLog** `{events: KeyEvent[] (≤ 20,000), markers?: LogMarker[], meta: {mode, textId, textHash (64-hex sha-256), layout, settings, engineVersion (semver core), sessionId?, recorder? {userAgent, note?}}}`
 - **LogMarker** `{kind: "focus"|"blur"|"visibility", t, detail?}` — never a keystroke.
 - **TypingText** `{id, text}` — text 1..10,000 chars.
-- **TypingSettings** `{errorMode: "free"|"must-correct"|"stop-on-error", autoIndent, autoPair, layout}` — layout enum: qwerty-us, qwerty-uk, dvorak, colemak-dh, azerty, qwertz.
+- **TypingSettings** `{errorMode: "free"|"must-correct"|"stop-on-error"|"no-backspace"|"word-locked", autoIndent, autoPair, layout}` — layout enum: qwerty-us, qwerty-uk, dvorak, colemak-dh, azerty, qwertz.
 - **ResultSummary** `{rawWpm, grossWpm, netWpm, keystrokeAccuracy, finalAccuracy (percent 0-100), kspc, rolloverRatio (0-1), consistency (nullable), burstWpm, ikiMeanMs (nullable), modelVersion, difficultyBand (nullable), verified, flags[]}` — full precision stored; display rounding is UI-only.
 - **Session** `{id, seed, nonce, textHash, expiresAt (ISO 8601 UTC)}`.
 

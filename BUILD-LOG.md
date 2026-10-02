@@ -1,7 +1,14 @@
 # BUILD LOG
 
 ## Current Position
-Phase: Phase 1 (M1 engine) — loop WAVE 0: first two rows CLOSED. ENG-02 and ENG-03 moved IN PROGRESS → DONE-VERIFIED.
+Phase: Phase 1 (M1 engine) — loop WAVE 0.3 done in three slices. ENG-06 moved IN PROGRESS → DONE-VERIFIED; LOC-01 stays IN PROGRESS (wired, awaiting human confirmation by rule).
+Last completed task: **Slice 1 (PR #21):** E-CAPS/E-DEADKEY/E-EMOJI fixtures + IME guard, CONTRACT 1.3.0→1.4.0 (additive optional flag, precedent-following), engine 151/sch 75, mutant-proven. **Slice 2 (PR #22):** E-DUALKEY code-aware attribution + 42-cell PARITY-03 + 12 verified AltGr productions, engine 175/175, mutant-proven. **Slice 3 (PR #23):** LOC-01 app wiring — layout selector + persistence + composition lifecycle + static IME notice (AC6-safe by construction), web 70/70, full e2e 36/36 reproduced by integrator, bundle 165.5KB. All three ran in separate worktrees under `type_here-wt/` (no collisions), all merged after CI green. Spec-checkers: ENG-06 → DONE-VERIFIED (LAB PROXY) with recorded dispositions; LOC-01 → IN PROGRESS (hardware sheet + live-driver + real-IME are human actions; loop §6 requires REAL-DEVICE to close LOC-01 wiring).
+Ledger: MVP 7/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 1/20 | overall 8/216 DONE-VERIFIED (22 IN PROGRESS, 185 NOT STARTED, 1 REJECTED).
+Owned follow-ups (not dropped): W1 grapheme-denominator metrics slice (modelVersion bump + `/how-we-calculate` — needs STEER-level approval as it changes user-visible numbers); `input-adapter.ts` engineVersion stamp "1.0.0" vs actual 1.1.0 (fix alongside W1); plain-Colemak scope confirmation (human item filed); `alignment.ts` code-unit indexing.
+Next task, in the loop order (LOOP-TO-DONE-PROMPT.md WAVE 0):
+1. **WAVE 0.4** — ENG-07 server plausibility backstop (INT-02 floors: key-rate, min IKI, impossible rollover).
+2. **WAVE 0.5** — ENG-08 replay VIEWER in app.
+Previous position (WAVE 0.1 + 0.2 closeout):
 Last completed task: **ENG-02 closeout:** no-network assertion `e2e/no-network.spec.ts` (PR #17, mutant-proven) + latency attribution fix measuring the typing window not boot (PR #18, mutant-proven; fixed a real CI flake where boot work on a loaded runner failed the zero-long-task gate) + spec-checker review (no missing/divergent AC; LAB PROXY Chromium-only accepted for ENG-02, follow-ups on NFR-01). **ENG-03 closeout:** parity lists now cover d02/d03/d04 (PR #19, mutant-proven) + spec-checker review (all five modes + char states DONE, §6 numbers independently recomputed). PRs #17/#18/#19 all merged after CI green.
 Ledger: MVP 6/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 1/20 | overall 7/216 DONE-VERIFIED (23 IN PROGRESS, 185 NOT STARTED, 1 REJECTED).
 NFR-01 stays IN PROGRESS by rule (REAL-DEVICE CONFIRMED required to close; human action filed in HUMAN-ACTIONS.md).
