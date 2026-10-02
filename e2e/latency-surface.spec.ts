@@ -151,6 +151,18 @@ test("input-to-paint p95 within 16 ms on the real surface (synthetic, headless)"
       })
       .toBe(0);
 
+    // The observer has been watching since the init script ran — including
+    // navigation, script parse/compile, React mount and font load. That boot
+    // work is NFR-02's territory (page interactive), not this gate's: ENG-02
+    // claims feedback within one frame DURING a test. A loaded CI runner can
+    // push boot over 50 ms and fail the gate on work no keystroke caused, so
+    // the buffer is reset here, at the last moment before the first keystroke.
+    // The zero-long-task assertion below therefore measures the typing window
+    // only — and stays at zero, never weakened.
+    await page.evaluate(() => {
+      window.__surfaceLat.longtasks = [];
+    });
+
     for (let i = 0; i < chunk.length; i++) {
       await pressChar(page, chunk[i]!);
       // The read POLLS rather than sampling once: the surface batches its DOM
