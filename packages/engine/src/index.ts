@@ -89,6 +89,20 @@ export {
   type Sample,
 } from "./aggregation.js";
 
+export {
+  PASTE_BURST_CODE,
+  SINGLE_OUTLIER_CODE,
+  SUSTAINED_FLOOR_CODE,
+  flagPasteBurst,
+  flagSustainedFloor,
+  singleOutliers,
+  windowMeans,
+  type PasteBurstResult,
+  type SingleOutlier,
+  type SingleOutlierResult,
+  type SustainedFloorResult,
+} from "./plausibility.js";
+
 import type { InputLog, TypingText } from "@realtype/schemas";
 
 import { computeFromEvents, type EngineResult } from "./metrics.js";
