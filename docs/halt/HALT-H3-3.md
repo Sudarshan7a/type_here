@@ -76,7 +76,39 @@ Input-to-paint p95 in this surface is **still unmeasured** (ENG-02, NFR-01). The
 - **Owner review of the design direction**, with seven screenshots to review against `docs/design/`.
 - **Three design-vs-spec conflicts**, each resolved by keeping the spec requirement and adapting the visual, each logged and reversible: the start prompt below the field rather than a scrim over it; the hero KPI stepping down below the pack's own 480px breakpoint because the pack's 72px floor does not fit a 360px panel; and every character state carrying a non-colour cue in addition to the pack's colour.
 - **Three `[GAP]` token decisions** the pack does not pin down: error/speed tones, caret style, and whether to self-host the three typefaces.
-- **S8-B (F1–F9 dev-stack defects) is unmerged** and under independent review; `check:devstack` was reported as not yet wired into CI.
+- **S8-B (F1–F9 dev-stack defects) is unmerged and reviewed. Verdict: accept with changes.**
+  An independent reviewer ran 11 mutations against the source, one per guard, and
+  **every one of the 22 unit tests failed when its guard was removed** — so none of
+  them is vacuous. No existing test was weakened, skipped or deleted
+  (`git diff --name-status` against the base is empty for every test path), and
+  `lint`, `format:check`, `typecheck` and `pnpm test` all pass with the change in
+  place. The reviewer tried hard to break it and could not.
+
+  Three things must be fixed before it merges:
+
+  1. **Neither artifact is wired into CI, and `pnpm test` does not pick them up
+     either** (`scripts/` is not a workspace package, so `pnpm -r test` skips it).
+     All 26 tests are manually-invoked only: they will never run on a branch push,
+     never run on a merge, and will rot silently. This is worse than the original
+     agent reported, which mentioned only the integration gate.
+  2. **An unguarded hole in the fix itself.** `dev-stack.mjs` resolves
+     `services = DEV_STACK.filter(...)`, so `--filter` on a package that exists and
+     has a `dev` script but is not in `DEV_STACK` passes validation, starts nothing
+     and **exits 0**. That is the same "the tool said it was fine" shape F1 exists
+     to kill. No test covers it.
+  3. **Run evidence is not logged.** No `docs/pr-log/` entry, `BUILD-LOG.md`
+     untouched, and F3 is still `- [ ]` open in `HUMAN-ACTIONS.md`.
+
+  One caveat on the original RED claim, recorded so it is not over-read: the
+  reviewer's pre-fix run had to use `--api-port/--web-port` overrides because 5173
+  was already occupied by a vite dev server, and the old launcher did not honour
+  those overrides. On default ports the old stack would likely have passed the
+  GOOD case (3/4, not 4/4). The claim is honest but "4/4 FAIL" is partly an artifact
+  of the port situation.
+
+  A fourth item: the base commit is now behind `main` (`3778f44`, PRs #8–#10
+  merged during the review). None of those touch `package.json`,
+  `apps/api/package.json` or `scripts/`, so the merge is clean, but rebase first.
 
 ## External dependencies
 
@@ -91,5 +123,12 @@ Branch protection is OFF **by owner decision** and is not to be raised again.
 ## What I got wrong this session
 
 Logged in full in `docs/sessions/SESSION-8-REPORT.md`. In short: I shipped a screenshot that contradicted the DOM because Playwright's `fullPage` re-lays the page out and I did not know that; I measured a stale build for part of one investigation because `child.kill()` on Windows kills the shell and not the `pnpm` grandchild, so orphaned preview servers held the port; I treated a measurement-based fix as finished when its test went green, when it was in fact failing at a dozen consecutive widths; and two of my three tests were vacuous after I had already declared them proven. Every one was found by a test, a gate, or by refusing to accept a number and a picture that disagreed — not by reading the code, which is the only reason they are found at all.
+
+I delegated the S8-B review without requiring CI wiring in the acceptance
+criteria, and the reviewer found that neither of the new test artifacts runs
+in CI **or** under `pnpm test`. 26 tests that never execute are 26 tests that
+rot, and a gate nobody runs cannot be said to be trusted — the same reasoning
+that keeps `ENG-02` and `A11Y-01` at IN PROGRESS. The review was worth doing; I
+asked the wrong question of it.
 
 One more, and it is a process slip rather than a technical one: PR #9 (two documentation lines recording the merge) was merged while its CI was still `pending`, because the merge command was issued in the same shell invocation as the wait and did not check what it printed. The post-merge run on `main` is **green** (`quality`, success), so nothing landed broken — but the rule is to merge after CI green, not after CI has been launched. It should have been a separate command with the exit status read.
