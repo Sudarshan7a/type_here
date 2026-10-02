@@ -10,7 +10,20 @@
       // ENG-PARITY-01/02: run the engine's own compiled output over every
       // chapter-4 fixture inside the browser, and hand the numbers to the
       // Playwright spec for comparison against the same run under Node.
-      const FIXTURES = ["a01", "b01", "c01", "d01", "e01", "e02", "e03", "f01", "g01"];
+      const FIXTURES = [
+        "a01",
+        "b01",
+        "c01",
+        "d01",
+        "d02",
+        "d03",
+        "d04",
+        "e01",
+        "e02",
+        "e03",
+        "f01",
+        "g01",
+      ];
 
       try {
         const engine = await import("/packages/engine/dist/src/index.js");
