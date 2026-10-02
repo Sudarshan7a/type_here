@@ -8,6 +8,9 @@
  */
 import { useCallback, useState } from "react";
 import type { ErrorMode } from "@realtype/engine";
+import type { CaretStyle } from "@realtype/schemas";
+
+import { COPY } from "./copy";
 
 import { TypingSurface } from "./TypingSurface";
 import { PASSAGES, type Passage } from "./passages";
@@ -18,6 +21,12 @@ export function App() {
   // (CONTRACT_VERSION 1.3.0) and the settings UI is a later slice. A hard-coded
   // constant is honest about that; a mode bar with one working option is not.
   const errorMode: ErrorMode = "free";
+  // STEER-6: the caret style is a display preference, and "line" is the
+  // design-pack default. It deliberately does NOT live in the engine or touch
+  // `modelVersion` — a recorded test stays comparable whichever way the caret
+  // is drawn, which is why this is a plain prop and not a setting the metrics
+  // package has to agree with.
+  const [caretStyle, setCaretStyle] = useState<CaretStyle>("line");
 
   const newPassage = useCallback(() => {
     setPassage((current) => {
@@ -60,6 +69,20 @@ export function App() {
               </option>
             ))}
           </select>
+
+          <label htmlFor="caret-style">{COPY.caretStyleLabel}</label>
+          <select
+            id="caret-style"
+            value={caretStyle}
+            data-testid="caret-style-select"
+            onChange={(event) => setCaretStyle(event.target.value as CaretStyle)}
+          >
+            {(Object.keys(COPY.caretStyleOptions) as CaretStyle[]).map((style) => (
+              <option key={style} value={style}>
+                {COPY.caretStyleOptions[style]}
+              </option>
+            ))}
+          </select>
         </div>
 
         <TypingSurface
@@ -69,6 +92,7 @@ export function App() {
           key={passage.id}
           passage={passage}
           errorMode={errorMode}
+          caretStyle={caretStyle}
           onNewPassage={newPassage}
         />
       </main>

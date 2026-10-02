@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { checkPolicies } from "./check-policies.mjs";
+import { checkPolicies, readRepo } from "./check-policies.mjs";
 
 // The three `[Policy]` rows in the ledger are not features; they are rules about
 // what may never ship. `INT-10`, `BIZ-06` and `RET-21` carry the tag `UNTAGGED`
@@ -229,11 +229,126 @@ describe("the policy gate itself", () => {
       sourceFiles: { "apps/web/src/copy.ts": 'export const x = "We miss you!";\n' },
     };
     for (const problem of checkPolicies(broken)) {
-      assert.match(problem, /^(INT-10|BIZ-06|RET-21)\b/);
+      assert.match(problem, /^(INT-10|BIZ-06|RET-21|CUS-01)\b/);
     }
   });
 
   it("tolerates a missing repository shape rather than throwing", () => {
     assert.doesNotThrow(() => checkPolicies({}));
+  });
+});
+
+/**
+ * CUS-01 — AGENTS.md rule 1. Nothing may interrupt the typing surface.
+ *
+ * This rule exists because the previous enforcement was a blocklist of nine
+ * selector names in AC6 and the SSR test, and owner-proxy review 1 (REVIEW-1.md,
+ * H1) defeated both by rendering a `promo-banner` div carrying `aria-modal="true"`.
+ * The string `aria-modal` was not on the list, so the test passed on an overlay.
+ *
+ * A blocklist is not a rule. It is a list of the names someone already thought
+ * of. So this gate matches the CONSTRUCT — dialog, showModal, popover,
+ * aria-modal, a dialog role, or an overlay component name — which does not
+ * depend on what anybody decided to call the thing.
+ *
+ * Most tests below assert the FAILING direction. A gate that has only ever
+ * passed is indistinguishable from no gate at all.
+ */
+describe("CUS-01 — nothing may interrupt the typing surface", () => {
+  const surface = (body) => ({
+    ...REPO,
+    sourceFiles: { "apps/web/src/TypingSurface.tsx": body },
+  });
+  const cus01 = (repo) => problemsFor(repo, "CUS-01");
+
+  it("passes on surface source with no overlay construct", () => {
+    assert.deepEqual(cus01(surface("export const x = 1;\n")), []);
+  });
+
+  it("catches the exact overlay that defeated the old blocklist", () => {
+    // Verbatim the mutation from REVIEW-1.md H1. If this passes, the gate is
+    // repeating the mistake it was written to fix.
+    const found = cus01(
+      surface(
+        'export const Banner = () => <div className="promo-banner" aria-modal="true">Sign up</div>;\n',
+      ),
+    );
+    assert.equal(found.length, 1);
+    assert.match(found[0], /aria-modal/);
+    assert.match(found[0], /apps\/web\/src\/TypingSurface\.tsx:\d+/);
+  });
+
+  it("catches a <dialog> element whatever it is called", () => {
+    assert.equal(
+      cus01(surface('const D = () => <dialog className="anything">x</dialog>;\n')).length,
+      1,
+    );
+  });
+
+  it("catches showModal(), which is how a dialog is opened at runtime", () => {
+    assert.equal(cus01(surface("const open = (d) => d.showModal();\n")).length, 1);
+  });
+
+  it("catches the popover attribute and role=dialog without a class at all", () => {
+    assert.equal(cus01(surface("const X = () => <div popover>x</div>;\n")).length, 1);
+    assert.equal(cus01(surface('const X = () => <section role="dialog">x</section>;\n')).length, 1);
+    assert.equal(cus01(surface('const X = () => <div role="alertdialog">x</div>;\n')).length, 1);
+  });
+
+  it("catches an overlay component by name, so the shape is discouraged too", () => {
+    assert.equal(cus01(surface('import { SignupModal } from "./SignupModal";\n')).length, 1);
+  });
+
+  it("ignores a line comment explaining the rule — a comment is not a violation", () => {
+    // Otherwise the only way to document the rule on the surface is to not
+    // document it, which is the wrong incentive to build a gate into.
+    assert.deepEqual(
+      cus01(surface("// never render a dialog or aria-modal here: AGENTS.md rule 1\n")),
+      [],
+    );
+  });
+
+  it("covers the whole web src tree, because today all of it is the typing surface", () => {
+    // The scope is `apps/web/src/`, deliberately coarse. Today that is exactly
+    // right: the MVP web app IS the typing surface, so every module in src/ is
+    // reachable from the field. This test pins that fact so the day a settings
+    // screen appears and this becomes too broad, the change is deliberate rather
+    // than a surprise failure nobody can explain.
+    const repo = {
+      ...REPO,
+      sourceFiles: {
+        "apps/web/src/TypingSurface.tsx": "export const x = 1;\n",
+        "apps/web/src/SettingsDialog.tsx": 'const D = () => <dialog role="dialog">x</dialog>;\n',
+      },
+    };
+    assert.equal(cus01(repo).length, 1);
+  });
+
+  it("does not reach outside apps/web/src at all", () => {
+    // The api, the engine and the recorder are not on the typing field. An
+    // overlay in an api route is a different product's decision.
+    const repo = {
+      ...REPO,
+      sourceFiles: {
+        "apps/web/src/TypingSurface.tsx": "export const x = 1;\n",
+        "apps/api/src/routes/admin-dialog.ts": "const D = () => <dialog>x</dialog>;\n",
+      },
+    };
+    assert.deepEqual(cus01(repo), []);
+  });
+
+  it("does not inspect test files", () => {
+    const repo = {
+      ...REPO,
+      sourceFiles: {
+        "apps/web/src/TypingSurface.tsx": "export const x = 1;\n",
+        "apps/web/tests/overlay-fixture.tsx": "const D = () => <dialog>x</dialog>;\n",
+      },
+    };
+    assert.deepEqual(cus01(repo), []);
+  });
+
+  it("holds on the real repository, which has an overlay-free surface", () => {
+    assert.deepEqual(cus01(readRepo()), []);
   });
 });

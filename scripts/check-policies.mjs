@@ -91,6 +91,56 @@ const BANNED_PHRASES = [
  */
 const RET_EXEMPT = new Set(["RET-21"]);
 
+/**
+ * CUS-01 — AGENTS.md rule 1, the project's first non-negotiable: nothing may
+ * interrupt the typing surface. No popups, no modals, no ads.
+ *
+ * Why this is a gate and not a test. `e2e/typing-surface.spec.ts` AC6 asserted
+ * the rule for two sessions by querying nine hardcoded selectors — `dialog`,
+ * `[role=dialog]`, `[role=alert]`, `[role=alertdialog]`, `[popover]`, `.modal`,
+ * `.popup`, `.toast`, `.tooltip`. Owner-proxy review 1 (REVIEW-1.md, H1) added
+ *
+ *     <div className="promo-banner" aria-modal="true">Congrats! Sign up…</div>
+ *
+ * to the typing surface and **AC6 passed**. An upsell banner marked aria-modal
+ * is precisely what rule 1 forbids. A blocklist of names is not a rule; it is a
+ * list of the names someone happened to think of, and the next name is not on
+ * it.
+ *
+ * So the rule is enforced where it can be enforced structurally: a source file
+ * reachable from the typing surface may not CONTAIN an overlay construct. That
+ * is positive-form — it names what is forbidden rather than what is allowed, so
+ * it does not fall off when someone invents a new class name.
+ *
+ * The component-name pattern deliberately has no leading word boundary of its
+ * own: `\bModal\b` does not match `SignupModal`, because there is no boundary
+ * between "p" and "M" in camelCase. The `[A-Za-z]*` prefix is what makes the
+ * pattern see a compound name. It stays case-sensitive so it does not fire on
+ * ordinary prose or on a lowercase token like `dialogue`.
+ *
+ * The live behavioural check stays in AC6 too, rewritten positive-form with
+ * computed styles. Three layers, each catching what the others cannot:
+ * this gate stops the construct being written; AC6 stops it appearing at
+ * runtime; the SSR test stops it arriving from a portal.
+ */
+const TYPING_SURFACE_CONSTRUCT = [
+  { re: /<dialog\b/i, what: "a <dialog> element" },
+  { re: /showModal\s*\(/, what: "a showModal() call" },
+  { re: /\bpopover\b/i, what: "the popover attribute or API" },
+  { re: /aria-modal/i, what: "aria-modal" },
+  { re: /role\s*=\s*["'{]?\s*(dialog|alertdialog)\b/i, what: "role=dialog/alertdialog" },
+  { re: /\b[A-Za-z]*(Modal|Overlay|Dialog|Popup|Toast|Scrim)\b/, what: "an overlay component" },
+];
+
+/**
+ * The source tree the typing surface is built from.
+ *
+ * `TypingSurface.tsx` is the entry point. This is its whole DIRECTORY rather
+ * than a transitive walk of its import graph — see the CUS-01 section below for
+ * why, and for the day that has to change.
+ */
+const TYPING_SURFACE_DIR = "apps/web/src/";
+
 /** Ledger statuses that mean a row has actually been worked on. */
 const STARTED_STATUSES = new Set([
   "IN PROGRESS",
@@ -254,6 +304,45 @@ export function checkPolicies(repo) {
     );
   }
 
+  // --- CUS-01 -------------------------------------------------------------
+  // No overlay construct anywhere in the typing surface's own source tree.
+  //
+  // SCOPE, stated honestly: this is the whole of `apps/web/src/`, not a
+  // transitive walk of the surface's import graph. Today those are the same
+  // thing — the MVP web app is the typing surface, and every module in `src/`
+  // is reachable from it — so the coarse scope is the correct constraint now.
+  //
+  // It stops being correct the moment a screen appears that the typing field
+  // does NOT reach: a settings dialog or a "New passage" confirmation is
+  // legitimate UI, and this gate would forbid it. When that happens the scope
+  // has to become a real graph walk from TYPING_SURFACE_ENTRY, and until it
+  // does, a failure here naming a file outside the surface's reach is the gate
+  // being too broad — not the code being wrong. That trade is deliberate and
+  // one-directional: a false positive costs a reviewed exception, a false
+  // negative puts an upsell dialog on the typing field.
+  for (const [path, text] of Object.entries(files)) {
+    if (!path.startsWith(TYPING_SURFACE_DIR)) continue;
+    if (path.includes("/tests/")) continue;
+    for (const [index, line] of text.split("\n").entries()) {
+      // A comment explaining the rule is not a violation of it. Strip `//` and
+      // the rest of a line before matching, but not block comments, so a
+      // commented-out overlay still shows up rather than hiding behind the rule
+      // it would break.
+      const code = line.replace(/\/\/.*$/, "");
+      // First match on a line wins, and the line stops there. One `<dialog
+      // role="dialog">` element trips three constructs at once, and reporting
+      // the same line three times reads as three defects — which trains people
+      // to skim the output, which is how a real one gets missed.
+      const rule = TYPING_SURFACE_CONSTRUCT.find((r) => r.re.test(code));
+      if (rule === undefined) continue;
+      problems.push(
+        `CUS-01: ${path}:${index + 1} contains ${rule.what}. Nothing may interrupt the typing ` +
+          `surface — no popups, modals or ads (AGENTS.md rule 1). If this is a comment, delete it; ` +
+          `if it is real, it does not belong on the typing field.`,
+      );
+    }
+  }
+
   return problems;
 }
 
@@ -264,11 +353,11 @@ async function main() {
     console.error("Product-policy check FAILED:\n");
     for (const p of problems) console.error(`  - ${p}`);
     console.error(
-      `\nINT-10 / BIZ-06 / RET-21 are [Policy] rows in docs/FEATURE-LEDGER.md. They are not features and cannot be waived by a status change.`,
+      `\nINT-10 / BIZ-06 / RET-21 are [Policy] rows in docs/FEATURE-LEDGER.md. They are not features and cannot be waived by a status change.\nCUS-01 is AGENTS.md rule 1 — nothing may interrupt the typing surface. It gates source, so it cannot be waived at all.`,
     );
     process.exit(1);
   }
-  console.log("Product-policy check passed: INT-10, BIZ-06 and RET-21 all hold.");
+  console.log("Product-policy check passed: INT-10, BIZ-06, RET-21 and CUS-01 all hold.");
   console.log(
     `  ${Object.keys(repo.sourceFiles).length} source files scanned · ${repo.ledgerRows.length} ledger rows · ${repo.ethicsRecords.length} ethics records`,
   );

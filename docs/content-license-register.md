@@ -39,6 +39,24 @@
 
 **Critical flag on Section 3:** the three `-P0x` rows are explicitly marked **DO NOT SHIP** in their status field. This is intentional and important: a register that only tracked "confirmed license" without also tracking "confirmed exact content" would create a false sense of completeness. The gating rule from the content pipeline (Implementation Guide §6.4, gate: "an item cannot go live without a license entry, a review decision, and a difficulty tag") is interpreted here strictly — a license entry that itself says "not yet verified" does not satisfy that gate.
 
+## Section 3a: Font files (self-hosted, shipped in the app binary)
+
+Added in Session 9 for STEER-6. These are the only rows in this register that are **not content the user reads** — they are binary assets the app serves — but they ship under the same rule, so they get the same row.
+
+Both fonts are **SIL Open Font License 1.1**. The permission the owner conditioned self-hosting on is granted by the OFL's own terms: *"the fonts, including any derivative works, can be bundled, embedded, redistributed and/or sold with any software provided that a copy of the Font Software accompanies such Font Software"*. In both cases the accompanying copy is the `OFL.txt` committed beside the `.woff2` files in `apps/web/public/fonts/`.
+
+**Neither font declares a Reserved Font Name.** That matters: OFL 1.1's reserved-name clause is what would forbid distributing a *modified* font under its original name, and since neither project declares one, the subsetting already performed by the upstream `@fontsource` packages introduces no restriction. This was read from each project's actual `OFL.txt` in this session, not from memory — a licence conclusion recorded from recall is not evidence of a licence.
+
+| item_id | type | content_type_tag | source | license | license_text_saved | attribution_required | date_checked | reviewer | status | notes |
+|---|---|---|---|---|---|---|---|---|---|---|
+| FONT-01 | font-file | typing / monospace | JetBrains Mono, `@fontsource/jetbrains-mono@5`, Latin + Latin-ext subsets, weight 400 | SIL OFL 1.1 (JetBrains Mono Project Authors, 2020) | **yes** — `apps/web/public/fonts/jetbrains-mono-OFL.txt`, committed beside both woff2 | no (OFL requires the licence, not attribution) | 2026-10-02 | (assign) | reviewed — ships | The typing surface font. 21,168 B (latin) + 7,336 B (latin-ext). Preloaded; see `apps/web/index.html` |
+| FONT-02 | font-file | UI / body | Geist Sans, `@fontsource/geist-sans@5`, Latin subset, weight 400 | SIL OFL 1.1 (Geist Project Authors / Vercel, 2024) | **yes** — `apps/web/public/fonts/geist-sans-OFL.txt`, committed beside the woff2 | no | 2026-10-02 | (assign) | reviewed — ships | 33,400 B. **No Latin-ext subset exists upstream** (404), so 09 §3's "Latin + Latin-ext" is satisfiable for FONT-01 only |
+
+**Two things a reader of this register should not have to infer:**
+
+1. **The design pack names three families; two ship.** 09 §3 names Bricolage Grotesque (display), Geist (UI) and JetBrains Mono (typing). The owner approved "the two fonts", and a licence approval is a boundary — shipping the third because its licence also permits it would widen an approval nobody gave. Bricolage Grotesque is **also** SIL OFL 1.1 and also declares no Reserved Font Name, so it is permitted and available; it is 22,364 B for the Latin subset at weight 400. It is currently **not shipped**, so `--font-display` falls back to `system-ui`, which is visible on the results KPI. This is a one-line owner decision, not a blocker.
+2. **Only weight 400 ships.** The pack's stacks imply one face per role, and the results KPI asks for weight 600 (`--font-display` at `font-weight: 600`). Bricolage is not shipped, so that weight is currently synthesised by the browser from the system fallback. If the owner wants the pack's display treatment exact rather than approximate, FONT-03 (Bricolage) plus a 600 weight is the change — recorded, not assumed.
+
 ## Section 4: Running totals and completeness tracking
 
 | Metric | Count so far | Target (from master plan) | % of target |
@@ -49,6 +67,7 @@
 | **Total quotes (original + public domain)** | **130** | **~300** | **43%** |
 | Code snippets, fully verified and ready to ship | 1 (and it's original, not external) | ~100 per language | ~1% |
 | Code snippets, license-confirmed but content-pending | 3 | (subset of the 100/language target) | — |
+| Self-hosted font files shipped (Section 3a) | 3 files / 2 families | 3 families named in 09 §3 | 67% |
 
 **Honest reading of this table:** prose and quotes are progressing well via a demonstrated, repeatable process. Code snippets are the genuine bottleneck, **not because the process is unclear (Tier 3 above fully specifies it), but because completing it requires a capability (direct repository cloning and diffing) that this research-and-writing context doesn't have.** This is the single most important actionable finding in this register: **when you or an AI agent resumes this work inside an actual development environment with real repo access, the code-snippet pipeline in Tier 3 can be run immediately and should be prioritized early**, since it's now a mechanical execution task, not an open research question.
 
@@ -61,3 +80,4 @@
 5. [ ] For code snippets: get real repository access, run the Tier 3 pipeline, and re-verify Tier 2 rows before shipping any of them.
 6. [ ] Run every prose passage and quote through the actual typability-scoring pipeline once built (Implementation Guide §6.5) and replace the manual difficulty-tag pre-estimates with computed scores.
 7. [ ] Attach `content_type_tag` values to a formal, finalized taxonomy once the content-selector system (§6.6) is built, since the tags used here were chosen for readability in this document and may need to align with whatever enum the actual database schema settles on.
+8. [ ] Decide **FONT-03 (Bricolage Grotesque, display role)**. 09 §3 names it, its licence permits self-hosting, and it costs 22,364 B against a budget that has room. Until it is decided the results KPI renders in the system fallback rather than the pack's display face. This is the owner's call because it changes what users see, not because it is technically blocked.

@@ -55,6 +55,11 @@ jobs:
           pnpm check:policies
           node --test scripts/check-policies.test.mjs
 
+      - name: Dev-stack start-up gate (F1, F2, F3, F9)
+        run: |
+          pnpm check:devstack
+          node --test scripts/dev-stack.test.mjs
+
       - name: E2E smoke (Chromium)
         run: |
           pnpm --dir e2e exec playwright install --with-deps chromium
@@ -67,7 +72,3 @@ jobs:
         run: |
           pnpm check:licenses
           node --test scripts/check-licenses.test.mjs
-
-      # TODO (M0-10): bundle-size check against the ~200 KB gzip budget for the
-      # test page, and Playwright e2e smoke on Chromium. Both stages activate
-      # when the web shell is scaffolded and produces a real build artifact.

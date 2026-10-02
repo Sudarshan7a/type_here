@@ -131,23 +131,81 @@ describe("TypingSurface markup", () => {
 describe("TypingSurface ships no interrupting chrome (CUS-01)", () => {
   const html = renderToStaticMarkup(<TypingSurface passage={passage} errorMode="free" />);
 
-  it("contains no dialog, alert, toast, popover or modal element", () => {
-    // Checked on the rendered markup rather than trusted from the stylesheet:
-    // a popup can appear from markup, from a portal or from a script, and only
-    // the markup proves what the server actually sent.
-    for (const forbidden of [
-      "<dialog",
-      'role="dialog"',
-      'role="alert"',
-      'role="alertdialog"',
-      "popover",
-      'class="modal"',
-      'class="toast"',
-      'class="popup"',
-      'class="tooltip"',
-    ]) {
-      expect(html, `${forbidden} must not appear on the typing surface`).not.toContain(forbidden);
+  /**
+   * POSITIVE FORM — and the layer this one is actually responsible for.
+   *
+   * The previous version asserted the ABSENCE of nine literal strings
+   * (`<dialog`, `role="dialog"`, `class="toast"`, …). Owner-proxy review 1
+   * (REVIEW-1.md, H1) rendered a `promo-banner` div carrying `aria-modal="true"`
+   * onto the surface and the assertion passed: the string `aria-modal` was not
+   * in the list.
+   *
+   * So the list is inverted. Rather than naming the attributes that must not
+   * appear, this parses every tag in the markup and reports any element that
+   * carries overlay SEMANTICS — an overlay role, aria-modal, the popover
+   * attribute, or a `<dialog>` element. An overlay now has to be positively
+   * described as something other than an overlay to get through.
+   *
+   * This layer exists because the server-rendered markup is the only place a
+   * portal or a late script cannot escape: if it is not in the markup, it is
+   * not in the initial document. The live computed-style check lives in
+   * `e2e/typing-surface.spec.ts` AC6, which can see a runtime overlay that
+   * never existed in this string, and `scripts/check-policies.mjs` stops the
+   * construct being written in the first place. Three layers, three different
+   * failure modes.
+   */
+  function overlaySemantics(markup: string): string[] {
+    const problems: string[] = [];
+    // Every opening tag, whatever it is called.
+    for (const match of markup.matchAll(
+      /<([a-zA-Z][a-zA-Z0-9-]*)((?:"[^"]*"|'[^']*'|[^>"'])*)>/g,
+    )) {
+      const [, tag, attributes] = match;
+      if (tag === undefined || attributes === undefined) continue;
+      const lower = attributes.toLowerCase();
+      const has = (attr: string) => new RegExp(`\\b${attr}\\s*=`).test(lower);
+
+      if (tag === "dialog") problems.push("<dialog>");
+      if (has("popover")) problems.push(`<${tag} popover>`);
+      if (has("aria-modal")) problems.push(`<${tag} aria-modal>`);
+      const role = /\brole\s*=\s*["']([^"']*)["']/.exec(lower)?.[1] ?? "";
+      if (role === "dialog" || role === "alertdialog") {
+        problems.push(`<${tag} role=${role}>`);
+      }
     }
+    return problems;
+  }
+
+  it("renders no element carrying overlay semantics", () => {
+    // Deliberately NOT `expect(html).not.toContain("aria-modal")`. Asserting
+    // one forbidden string is asserting that nobody has thought of the next
+    // one. This walks every tag the surface actually emits.
+    expect(overlaySemantics(html), "the typing surface must render no overlay element").toEqual([]);
+  });
+
+  it("would catch an overlay named something the old list never mentioned", () => {
+    // The regression this whole change exists for, as a test rather than a
+    // claim. If someone replaces the parser with a blocklist again, this fails.
+    const sneaky = '<div class="promo-banner" aria-modal="true">Sign up</div>';
+    expect(
+      overlaySemantics(sneaky),
+      "an aria-modal overlay must be caught whatever it is called",
+    ).toContain("<div aria-modal>");
+  });
+
+  it("would catch a dialog element with a role and no class at all", () => {
+    expect(overlaySemantics('<section role="dialog">Blocked</section>')).toEqual([
+      "<section role=dialog>",
+    ]);
+  });
+
+  it("does not fire on ordinary surface markup", () => {
+    // The guard must not simply reject everything, or it is useless.
+    expect(
+      overlaySemantics(
+        '<span class="ch" data-char-state="pending">a</span><div class="word">b</div>',
+      ),
+    ).toEqual([]);
   });
 });
 

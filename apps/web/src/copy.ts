@@ -11,6 +11,16 @@ export const COPY = {
   /** home.hint.firstVisit — the unfocused prompt (STEER-2 criterion 4). */
   focusPrompt: "Click here to start typing.",
 
+  /** settings.caretStyle.label — STEER-6. */
+  caretStyleLabel: "Caret",
+
+  /** settings.caretStyle.{line,block,underline} — STEER-6, default line. */
+  caretStyleOptions: {
+    line: "Line",
+    block: "Block",
+    underline: "Underline",
+  },
+
   /** home.hint.restart */
   hintRestart: "Press Tab to restart",
 

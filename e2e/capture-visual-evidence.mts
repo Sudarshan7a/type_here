@@ -98,6 +98,31 @@ async function measuredLayout(page: import("@playwright/test").Page) {
         lines[lines.length - 1] += box.char.trim() === "" ? "␠" : box.char;
       }
     }
+
+    /*
+     * DID THE FONT ACTUALLY LOAD, or did we capture a picture of a fallback?
+     *
+     * STEER-6 asks the evidence to record the computed font family so it proves
+     * the fonts loaded. The computed `fontFamily` alone does NOT prove that: it
+     * reports the declared stack verbatim, and it reports exactly the same
+     * string when the .woff2 404s and the browser silently substitutes whatever
+     * the machine has. A screenshot that recorded only the family string would
+     * have been captioned "JetBrains Mono" while showing Consolas — which is
+     * what every capture in this directory actually did until the faces were
+     * self-hosted in Session 9.
+     *
+     * So the evidence records the `FontFace` objects themselves. A face appears
+     * in `document.fonts` only because an @font-face rule declared it, and its
+     * `status` is the browser's own answer to whether the bytes arrived. That
+     * is the difference between "the page asked for this font" and "this font
+     * is on screen", and only the second is worth putting in a README.
+     */
+    const faces = [...document.fonts].map((f) => ({
+      family: f.family.replaceAll('"', ""),
+      weight: f.weight,
+      status: f.status,
+    }));
+
     return {
       lines,
       leadingSpaces: lines.filter((l) => l.startsWith("␠")).length,
@@ -106,10 +131,36 @@ async function measuredLayout(page: import("@playwright/test").Page) {
         Number.parseFloat(style.fontSize) > 0
           ? Number((boxes[1]!.left - boxes[0]!.left).toFixed(2))
           : 0,
+      /** The stack the stylesheet asked for — what the tokens resolved to. */
+      declaredFontFamily: style.fontFamily,
+      /** What the browser actually has, from the FontFace objects. */
+      faces,
+      loadedFamilies: [...new Set(faces.filter((f) => f.status === "loaded").map((f) => f.family))],
       scrollHeight: document.documentElement.scrollHeight,
       viewportHeight: window.innerHeight,
       clipped: document.documentElement.scrollHeight > window.innerHeight,
     };
+  });
+}
+
+/**
+ * Wait for the faces the shot will be taken with.
+ *
+ * `document.fonts.ready` alone is not enough: it resolves once the fonts that
+ * are ALREADY in flight settle, and a face that has only just been discovered
+ * by a stylesheet may not have started. An explicit `load()` for the two faces
+ * this app declares is what forces the fetch. Without this, the first shot of a
+ * run is a picture of the fallback and the rest are not — evidence that varies
+ * by warm-up state, which is the kind of evidence that cannot be trusted.
+ */
+async function fontsSettled(page: import("@playwright/test").Page) {
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await Promise.all([
+      document.fonts.load('400 28px "JetBrains Mono"'),
+      document.fonts.load('400 16px "Geist Sans"'),
+    ]);
+    await document.fonts.ready;
   });
 }
 
@@ -198,11 +249,19 @@ const SHOTS: Shot[] = [
     typed: PASSAGE.slice(0, 18),
     delay: 200,
     width: 360,
-    height: 900,
+    // 960, not 900. This was raised in Session 9 and the reason is the fonts,
+    // not a layout regression. JetBrains Mono has an advance width of exactly
+    // 0.6em; the system fallback this shot used to render in had a different
+    // one, so the passage re-wrapped and the page grew from under 900px to
+    // 903px. The clip guard caught it and refused to write the file, which is
+    // the guard working. A real phone at 360×780 scrolls vertically, and that
+    // is not a defect — the guard exists so the PNG is not cropped, not to
+    // insist the page fits.
+    height: 960,
     concept: "13 §1 360px breakpoint · 16 §layout",
     what:
       "The narrowest breakpoint the design pack names. The field is capped at 68ch and shrinks " +
-      "with the viewport; the page does not scroll horizontally. 900px tall rather than a " +
+      "with the viewport; the page does not scroll horizontally. 960px tall rather than a " +
       "phone's 780, so the whole page fits the viewport and the capture never has to resize it.",
   },
 ];
@@ -218,6 +277,8 @@ async function main() {
     leadingSpaces: number;
     charsOutsideAWordBox: number;
     advancePx: number;
+    declaredFontFamily: string;
+    loadedFamilies: string[];
   }> = [];
 
   for (const shot of SHOTS) {
@@ -227,6 +288,10 @@ async function main() {
       deviceScaleFactor: 2,
     });
     await page.goto(BASE);
+    // Before the first keystroke and before the shutter: a shot of a fallback
+    // face is not evidence of the type, it is evidence of the absence of the
+    // network.
+    await fontsSettled(page);
     await page.getByTestId("surface").click();
     if (shot.typed !== "") {
       if (shot.typed === "all") {
@@ -244,6 +309,18 @@ async function main() {
     // Read the layout BEFORE the shutter, so the numbers in the README describe
     // the picture that follows rather than a later reflow.
     const layout = await measuredLayout(page);
+    if (!layout.loadedFamilies.includes("JetBrains Mono")) {
+      throw new Error(
+        `${shot.name}: the typing face did not load, so this capture shows a ` +
+          `fallback and must not be filed.\n` +
+          `  declared stack: ${layout.declaredFontFamily}\n` +
+          `  faces seen:     ${
+            layout.faces.length === 0
+              ? "(none — no @font-face rule resolved at all)"
+              : layout.faces.map((f) => `${f.family} ${f.weight}: ${f.status}`).join(", ")
+          }`,
+      );
+    }
     if (layout.clipped) {
       throw new Error(
         `${shot.name}: the content is ${layout.scrollHeight}px tall in a ` +
@@ -279,9 +356,12 @@ async function main() {
       leadingSpaces: layout.leadingSpaces,
       charsOutsideAWordBox: layout.charsOutsideAWordBox,
       advancePx: layout.advancePx,
+      declaredFontFamily: layout.declaredFontFamily,
+      loadedFamilies: layout.loadedFamilies,
     });
     console.log(
-      `captured ${shot.name} — ${layout.lines.length} lines, ${layout.advancePx}px advance`,
+      `captured ${shot.name} — ${layout.lines.length} lines, ${layout.advancePx}px advance, ` +
+        `fonts [${layout.loadedFamilies.join(", ")}]`,
     );
     await page.close();
   }
@@ -316,7 +396,7 @@ ${written.map((w) => w.row).join("\n")}
 
 A picture cannot be checked against anything. Each shot records the layout read
 back from the DOM immediately before the shutter, so the numbers and the image can
-be compared. "␠" is a space. Every shot must satisfy all three invariants or the
+be compared. "␠" is a space. Every shot must satisfy all four invariants or the
 capture throws and no file is written:
 
 - **no line begins with ␠** — STEER-2 bug (d)
@@ -324,16 +404,45 @@ capture throws and no file is written:
   bug (d) and the mid-word breaks of bug (f) impossible rather than merely rare
 - **the layout is identical immediately after the capture** — so the picture is of
   the layout, not of a reflow the capture caused
+- **JetBrains Mono is a loaded \`FontFace\`, not just a declared family name** — see
+  the note below; every capture before Session 9 failed this and had to be
+  regenerated
 
 ${written
   .map(
     (w) =>
       `**${w.name}** — ${w.lines.length} lines, ${w.advancePx}px character advance, ` +
       `${w.leadingSpaces} line(s) starting with a space, ` +
-      `${w.charsOutsideAWordBox} character(s) outside a word box\n\n` +
+      `${w.charsOutsideAWordBox} character(s) outside a word box, ` +
+      `font \`${w.declaredFontFamily}\` — loaded: ${w.loadedFamilies.length === 0 ? "**none**" : w.loadedFamilies.map((f) => `\`${f}\``).join(", ")}\n\n` +
       w.lines.map((l, i) => `  ${i + 1}. \`${l}\``).join("\n"),
   )
   .join("\n\n")}
+
+## How the fonts are proven to have loaded
+
+STEER-6 asks this file to record the computed font family so the evidence proves the
+fonts loaded. Recording the *computed family* does not do that, and the difference is
+worth being explicit about, because the wrong version is easy to write and looks
+correct:
+
+\`getComputedStyle(el).fontFamily\` returns the declared **stack**, verbatim, whether
+or not the webfont arrived. It said \`"JetBrains Mono", "Geist Mono", ui-monospace,\`
+in every capture this directory held before Session 9, while the pixels were
+Consolas — the browser had quietly fallen back, and the string the file recorded was
+indistinguishable from the string it would have recorded on success.
+
+So each shot records the \`FontFace\` objects instead. A face is present in
+\`document.fonts\` only because an \`@font-face\` rule declared it, and its \`status\` is
+the browser's own report on whether the bytes arrived. \`loadedFamilies\` above is the
+set of faces with \`status === "loaded"\`, and the capture **throws** if JetBrains Mono
+is not in it — no file is written and the shot is not filed. A picture of a fallback
+face is not weak evidence, it is evidence of the opposite claim.
+
+The captures also force the faces to settle (\`document.fonts.load()\`) before the
+shutter rather than hoping the network beat the screenshot. Otherwise the first shot
+of a run shows a fallback and the rest do not, which is evidence that varies with
+warm-up state.
 
 ## How these were captured, and what went wrong first
 
@@ -360,9 +469,18 @@ follows it, so there is no break opportunity in front of a space at all.
 - No hover, focus, pressed or error-banner states beyond those listed.
 - No theme switcher UI — the theme is set by \`data-theme\` or the OS preference, and the
   switcher itself is Phase 3.
-- The display, UI and mono faces are the stacks named in 09 §3. They are not
-  self-hosted yet, so these renders use whatever the machine has; see HUMAN-ACTIONS.md
-  for the font decision.
+- **The display face is still not self-hosted.** JetBrains Mono (typing) and Geist Sans
+  (UI) ship as woff2 under \`apps/web/public/fonts/\` with their OFL licences committed
+  beside them; the \`loadedFamilies\` line above is the proof they resolved. Bricolage
+  Grotesque — 09 §3's \`--font-display\`, used on the app title and the results KPI — is
+  **not** shipped, so those two elements render in the system fallback in every capture
+  here. Its licence would permit shipping it and it is 22,364 B; the owner approved
+  "the two fonts", so the third was left for them to decide. Recorded as FONT-03 in
+  \`docs/content-license-register.md\` §3a and in HUMAN-ACTIONS.md.
+- Only weight 400 ships for each face, so the results KPI's \`font-weight: 600\` is
+  browser-synthesised rather than drawn from a shipped cut.
+- Latin subsets only for the UI face; Geist Sans publishes no Latin-ext subset upstream
+  (09 §3 asks for Latin + Latin-ext, which JetBrains Mono does provide).
 `,
     "utf8",
   );

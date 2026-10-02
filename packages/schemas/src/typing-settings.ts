@@ -29,6 +29,22 @@ export const ErrorModeSchema = z.enum([
 export type ErrorMode = z.infer<typeof ErrorModeSchema>;
 
 /**
+ * How the caret is drawn. STEER-6.
+ *
+ * A display preference, not a scoring one: it changes nothing about the engine,
+ * the metrics or the model version, so it belongs in the settings contract
+ * without touching `CONTRACT_VERSION` the way `no-backspace` and `word-locked`
+ * did. A recorded test is still comparable across users typing with different
+ * carets, exactly as it is across different font sizes.
+ *
+ * `line` is the default and the one the design pack specifies: a 2px bar sized
+ * to the glyph. `block` and `underline` exist because the owner asked for the
+ * choice, not because the pack requires them.
+ */
+export const CaretStyleSchema = z.enum(["line", "block", "underline"]);
+export type CaretStyle = z.infer<typeof CaretStyleSchema>;
+
+/**
  * Typing settings (M1-01).
  */
 export const TypingSettingsSchema = z.strictObject({

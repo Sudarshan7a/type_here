@@ -133,14 +133,16 @@ test("BUG-a: the caret box sits exactly on the target character, in every situat
       Math.abs(caret.y - target.top),
       `${label}: caret must share the character's top`,
     ).toBeLessThanOrEqual(1);
-    // 10 §3: the caret is 100% of the LINE height, not of the glyph it sits on.
-    // A character is an inline box, so its own rect is the font box and is
-    // shorter — comparing the caret to the character would assert the wrong
-    // thing now that the word, not the character, is the atomic box.
+    // STEER-6 supersedes 10 §3 here. The caret used to be the full LINE height,
+    // which at `--lh-type: 1.65` stood 46.2px over a 20px letter; the owner
+    // reported it as "too big for the letter" and it is now 1.1x font-size
+    // (~30.8px). `e2e/caret.spec.ts` owns that rule and its reasoning; this
+    // assertion only checks the caret no longer spans the whole line box, so
+    // that a regression to the old height cannot sneak past this file's silence.
     expect(
       Math.abs(caret.height - lineHeight),
-      `${label}: caret must be the full line height (${lineHeight}px)`,
-    ).toBeLessThanOrEqual(2);
+      `${label}: caret must no longer be the full line height (${lineHeight}px)`,
+    ).toBeGreaterThan(2);
   };
 
   /**

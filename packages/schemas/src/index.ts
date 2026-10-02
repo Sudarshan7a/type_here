@@ -19,9 +19,11 @@ export {
   LayoutSchema,
   TypingSettingsSchema,
   ErrorModeSchema,
+  CaretStyleSchema,
   type Layout,
   type TypingSettings,
   type ErrorMode,
+  type CaretStyle,
 } from "./typing-settings.js";
 export {
   InputLogSchema,

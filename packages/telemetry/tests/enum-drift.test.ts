@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { ErrorModeSchema, LayoutSchema, ModeSchema } from "@realtype/schemas";
+import { CaretStyleSchema, ErrorModeSchema, LayoutSchema, ModeSchema } from "@realtype/schemas";
 
-import { ERROR_MODES, LAYOUTS, MODES, SETTING_VALUES } from "../src/events";
+import { ERROR_MODES, LAYOUTS, MODES, SETTING_NAMES, SETTING_VALUES } from "../src/events";
 
 // The telemetry allowlists restate values that already have a single source of
 // truth in @realtype/schemas. Restating is necessary — telemetry must never log
@@ -39,5 +39,20 @@ describe("MODES", () => {
 describe("LAYOUTS", () => {
   it("is exactly the schemas LayoutSchema enum, in the same order", () => {
     expect(LAYOUTS).toEqual([...LayoutSchema.options]);
+  });
+});
+
+describe("caret style", () => {
+  it("is a superset of the schemas caretStyle enum", () => {
+    // Same discipline as ERROR_MODES: the telemetry allowlist is a hand-copied
+    // superset, and a value that never reaches it makes a legitimate
+    // `setting_changed` event fail at runtime rather than at build time.
+    for (const style of CaretStyleSchema.options) {
+      expect(SETTING_VALUES).toContain(style);
+    }
+  });
+
+  it("is nameable as a setting, so the event can carry it", () => {
+    expect(SETTING_NAMES).toContain("caret_style");
   });
 });
