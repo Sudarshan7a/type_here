@@ -595,3 +595,51 @@ for (let i = 1; i < f01Presses.length; i++) sum += f01Presses[i].t - f01Presses[
 console.log(
   `F01 naive IKI mean (bug case, nothing excluded): ${(sum / (f01Presses.length - 1)).toFixed(4)} ms (chapter says "roughly 372 ms")`,
 );
+
+// --- INT plausibility backstop (ENG-07, INT-02) ----------------------------
+//
+// Standalone arithmetic for the INT fixtures under the same
+// no-engine-imports protocol: per-window mean IKIs and burst spans from
+// literal timestamp constructions mirroring int-fixture-001.ts,
+// int-fixture-002.ts, and e-paste.ts. Verdict floors live ONLY in the tests
+// (injected `[proposal]` values), never here and never in the fixtures.
+
+function intWindowMeans(times, windowSize) {
+  const means = [];
+  for (let s = 0; s + windowSize <= times.length - 1; s++) {
+    let total = 0;
+    for (let k = s; k < s + windowSize; k++) total += times[k + 1] - times[k];
+    means.push(total / windowSize);
+  }
+  return means;
+}
+
+// INT-FIXTURE-001: eleven presses each (ten gaps per log, one window).
+const INT_BOT_T = Array.from({ length: 11 }, (_, i) => i * 20);
+const INT_ELITE_GAPS = [52, 48, 61, 55, 47, 58, 50, 53, 49, 56];
+const INT_ELITE_T = [0];
+for (const g of INT_ELITE_GAPS) INT_ELITE_T.push(INT_ELITE_T[INT_ELITE_T.length - 1] + g);
+
+// INT-FIXTURE-002: 200 presses at 150 ms, press 101 pulled back to +4 ms.
+const INT002_T = Array.from({ length: 200 }, (_, k) => (k === 101 ? 100 * 150 + 4 : k * 150));
+
+// ENG-FIXTURE-E-PASTE: presses at eighth-millisecond steps (bit-exact).
+const PASTE_T = Array.from({ length: 40 }, (_, k) => k / 8);
+
+console.log("");
+console.log("=== INT-FIXTURE-001-physical-floor-worked ===");
+for (const m of intWindowMeans(INT_BOT_T, 10)) console.log(`  bot window mean: ${m.toFixed(10)}`);
+for (const m of intWindowMeans(INT_ELITE_T, 10))
+  console.log(`  elite window mean: ${m.toFixed(10)}`);
+
+console.log("=== INT-FIXTURE-002-single-outlier-detection ===");
+const w002 = intWindowMeans(INT002_T, 10);
+console.log(`  windows: ${w002.length}, min window mean: ${Math.min(...w002).toFixed(10)}`);
+console.log(
+  `  outlier gap t(101)-t(100): ${(INT002_T[101] - INT002_T[100]).toFixed(10)}, recovery gap t(102)-t(101): ${(INT002_T[102] - INT002_T[101]).toFixed(10)}`,
+);
+
+console.log("=== ENG-FIXTURE-E-PASTE ===");
+console.log(
+  `  presses: ${PASTE_T.length}, span t(39)-t(0): ${(PASTE_T[39] - PASTE_T[0]).toFixed(10)} ms`,
+);

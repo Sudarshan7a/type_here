@@ -358,3 +358,35 @@ documented decision).
 presses ("not available", never 0 WPM). A nullable-WPM ResultSummary would be
 the cleaner contract expression — flagged as an integration need for the
 main agent (schema change is outside this package).
+
+## INT plausibility backstop (ENG-07, INT-02)
+
+Fixtures `int-fixture-001.ts`, `int-fixture-002.ts`, `e-paste.ts` pin the
+chapter-10 (§10.2–§10.3) and chapter-4 (E7) worked timing shapes as DATA for
+the pure helpers in `src/plausibility.ts`. The helpers take every limit as
+an injected parameter and store none; the injected `[proposal]` values live
+only in `tests/int-plausibility.test.ts`, so the verdict floors never reach
+any shipped bundle. What this file records is the hand arithmetic both sides
+share (independently recomputed by the extended `recompute.mjs`, which
+imports nothing from `packages/engine`):
+
+- **INT-FIXTURE-001** — bot: ten gaps of 20 ms → window mean 20.0. Elite:
+  worked gaps sum to 529 ms over ten gaps → window mean 52.9. Eleven presses
+  per log hold exactly ten gaps, hence one window each.
+- **INT-FIXTURE-002** — 200 presses at a 150 ms base pace with press 101 at
+  15004 ms (4 ms after press 100). Gap inventory: 197 × 150 ms, one 4 ms gap
+  (pair 101, KeyF → KeyR, both left index = same finger), one 296 ms
+  recovery gap; span cross-check 197 × 150 + 4 + 296 = 29850 = t(199) − t(0).
+  Worst ten-gap window (at press 91): (9 × 150 + 4)/10 = 135.4 — the
+  sustained check passes while the single-pair scan flags pair 101, proving
+  the two checks complementary.
+- **ENG-FIXTURE-E-PASTE** — presses at t = k/8 ms for k = 0 … 39
+  (eighth-steps are bit-exact): span t(39) − t(0) = 39/8 = 4.875 ms, mean gap
+  0.125 ms. The press count mirrors the chapter's worked example as event
+  data, not policy — the policy numbers are test-injected.
+
+No `modelVersion` bump: these helpers are not metrics (no WPM/accuracy/KSPC
+formula changed, `metrics.ts` untouched), so `/how-we-calculate` is
+unaffected. Flags are opaque codes (`sustained-floor`, `single-outlier`,
+`paste-burst`) carrying counts/durations/finger tags only — never key content
+(keystroke-privacy skill).
