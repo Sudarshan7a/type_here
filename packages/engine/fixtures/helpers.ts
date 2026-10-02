@@ -1,4 +1,11 @@
-import type { ErrorMode, InputLog, KeyEvent, LogMarker, TypingText } from "@realtype/schemas";
+import type {
+  ErrorMode,
+  InputLog,
+  KeyEvent,
+  Layout,
+  LogMarker,
+  TypingText,
+} from "@realtype/schemas";
 
 /**
  * Shared builders for the synthetic ENG-* fixture logs (chapter-4 deep-dive
@@ -49,6 +56,15 @@ export interface KeyEventOptions {
   /** Shift held for this press (Shift-produced capitals, ENG-06 E3). */
   shift?: boolean;
   /**
+   * Alt held for this press (AltGr-layer productions, ENG-06 E-DUALKEY: on
+   * Windows AltGr reports as Ctrl+Alt; the engine ignores mods for scoring
+   * — E3 pins that only the produced `key` matters — so this is context,
+   * never a scoring input).
+   */
+  alt?: boolean;
+  /** Ctrl held for this press (same scoring-irrelevant context as Alt). */
+  ctrl?: boolean;
+  /**
    * IME composition state (CONTRACT 1.4.0). `true` = open-composition partial
    * (never scored); `false` = committed text (scores normally). Omitted =
    * field absent, i.e. every pre-1.4.0 fixture log shape, unchanged.
@@ -62,7 +78,12 @@ export function keyDown(key: string, t: number, opts: KeyEventOptions = {}): Key
     key,
     type: "down",
     t,
-    mods: { ...NO_MODS, shift: opts.shift ?? false },
+    mods: {
+      ...NO_MODS,
+      shift: opts.shift ?? false,
+      alt: opts.alt ?? false,
+      ctrl: opts.ctrl ?? false,
+    },
     repeat: opts.repeat ?? false,
     isTrusted: opts.isTrusted ?? true,
     auto: opts.auto ?? false,
@@ -97,9 +118,16 @@ export interface BuildLogOptions {
   textId: string;
   textHash: string;
   errorMode: FixtureErrorMode;
+  /**
+   * Active layout for the log. Defaults to "qwerty-us", so every pre-existing
+   * caller builds a byte-identical log to before (extend-only addition for
+   * ENG-06 E-DUALKEY, whose logs are typed on dvorak/azerty).
+   */
+  layout?: Layout;
 }
 
 export function buildLog(opts: BuildLogOptions): InputLog {
+  const layout = opts.layout ?? "qwerty-us";
   return {
     events: opts.events,
     ...(opts.markers === undefined ? {} : { markers: opts.markers }),
@@ -107,12 +135,12 @@ export function buildLog(opts: BuildLogOptions): InputLog {
       mode: "classic",
       textId: opts.textId,
       textHash: opts.textHash,
-      layout: "qwerty-us",
+      layout,
       settings: {
         errorMode: opts.errorMode,
         autoIndent: false,
         autoPair: false,
-        layout: "qwerty-us",
+        layout,
       },
       engineVersion: "1.0.0",
     },

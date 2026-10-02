@@ -56,6 +56,66 @@ That is the whole point of the protocol: without it, these would have shipped.
 - **Plain Colemak** (non-DH) is not in the contract's Layout enum and was not
   verified; only `colemak-dh` is in scope per the roadmap's build order.
 
+## Shift/AltGr production tables (Wave 0.3 Slice 2, ENG-06 E8)
+
+**What changed and why.** The char-based maps above are unchanged — a bare
+character with no physical key IS ambiguous (chapter-4 E8), so `fingerTag()`
+still returns `unknown` for every character listed below as unknown, and the
+tests pin that. What was added is a *code-aware* path for logs that carry
+`event.code`: `fingerForCode()` (finger by physical column, layout-free),
+`interpretCode()` (what a code produces under each layout, for PARITY-03),
+and `VERIFIED_PRODUCTIONS` (per-driver Shift/AltGr productions), consumed by
+`fingerTagForEvents()` in `packages/engine/src/aggregation.ts`.
+
+**Evidence rule (no guessing).** A production entry exists ONLY where
+`docs/levels-04-tier-0-per-layout-finger-maps.md` states the base key and
+finger plainly (that file was compiled from multiple cross-agreeing sources
+per layout). Anything it flags as varying by driver, or does not cover, has
+no entry and stays `unknown`. Live-driver confirmation is still required for
+EVERY entry below — the standing human action, unchanged.
+
+**Resolved (verified production entry, finger attributed via code):**
+
+| Layout | Char | Production | Evidence |
+|---|---|---|---|
+| QWERTY-UK | `@` | Shift+Quote (apostrophe key), right pinky | levels-04 §1.1 (`@`/`"` swap) |
+| QWERTY-UK | `"` | Shift+Digit2, left ring | levels-04 §1.1 |
+| QWERTY-UK | `£` | Shift+Digit3, left middle | levels-04 §1.1 |
+| AZERTY | `@` | AltGr+Digit0, right pinky | levels-04 §2.2 + §2.1 digit fingers |
+| AZERTY | `#` | AltGr+Digit3, left middle | levels-04 §2.2 + §2.1 digit fingers |
+| AZERTY | `{` | AltGr+Digit4, left index | levels-04 §2.2 (legacy mapping — 2019 standard varies, live check load-bearing) |
+| AZERTY | `[` | AltGr+Digit5, left index | levels-04 §2.2 (same legacy caveat) |
+| QWERTZ | `@` | AltGr+KeyQ, left pinky | levels-04 §3.2 + cross-checked confirmation |
+| QWERTZ | `[` | AltGr+Digit8, right middle | levels-04 §3.2 |
+| QWERTZ | `]` | AltGr+Digit9, right ring | levels-04 §3.2 |
+| QWERTZ | `{` | AltGr+Digit7, right index | levels-04 §3.2 |
+| QWERTZ | `}` | AltGr+Digit0, right pinky | levels-04 §3.2 |
+
+The digit-row fingers above are doubly confirmed: the column grid and the
+levels-04 §2.1 AZERTY number-row table (1=lp … 0=rp) agree independently.
+
+**Still unknown (no entry — driver variation, dead key, or uncovered):**
+
+| Layout | Chars | Reason |
+|---|---|---|
+| QWERTY-UK | `#`, `\`, `\|` | Position varies by exact keyboard/driver (levels-04 §1.1) |
+| QWERTY-UK | `` ` ``, `~` | Unshifted key driver-dependent; `~` needs the varying `#` key (levels-04 §1.1) |
+| QWERTY-UK | `^`, `€` | Not covered by any in-repo source — never guessed |
+| QWERTY-UK | `[`, `]`, `{`, `}` | US-identical per levels-04 §1, but the US bracket-key fingers are unverified in-repo — resolving them needs the US bracket positions first |
+| AZERTY | `]`, `}`, `\|` | Vary by exact driver (levels-04 §2.2) |
+| AZERTY | `~`, `^` | Dead keys (compositional, not single presses) |
+| AZERTY | `\`, `€` | Not covered by levels-04 §2.2 — never guessed |
+| QWERTZ | `\` | Needs the dedicated ß key (no stable `code` across drivers) |
+| QWERTZ | `\|` | Needs the extra ISO key left of Y/Z (no stable `code`) |
+| QWERTZ | `~` | Dead key (AltGr+Plus, combines with the following letter) |
+| QWERTZ | `€`, `ü`, `ä` | Not covered (ü/ä are off-block dedicated keys with unstated fingers); `ö` at column 9 stays mapped (right pinky) as before |
+
+**PARITY-03 matrix.** `interpretCode()` is a positional read of the same
+rows above, so the same physical sequence reads differently per layout
+(e.g. KeyQ/KeyW/KeyE → `qwe` on QWERTY, `aze` on AZERTY, `',.` on Dvorak,
+`qwf` on Colemak-DH). The full 7-code × 6-layout hand-built table is pinned
+in `packages/engine/tests/eng-fixture-e-dualkey.test.ts`.
+
 ## Re-verification
 
 ```bash

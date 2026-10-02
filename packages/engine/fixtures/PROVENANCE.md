@@ -204,6 +204,31 @@ W1-marked figures divide by 15 UTF-16 units: gross 81.8181818182, net
 27.2727272727, finalAccuracy 33.3333333333, KSPC 7/15 = 0.4666666667,
 finalTextLength 15.
 
+### E-DUALKEY (§4.9 E8 + Group 8 PARITY-03) — `ENG-FIXTURE-E-DUALKEY`, target `sa` (dvorak)
+
+`s` via Semicolon@0, `a` via KeyA@60; keyups at +110 ms, so the one
+transition overlaps exactly (the E01 skeleton — every metric number matches
+E01 by construction; only the codes, and therefore the fingers, differ).
+2 printable presses, duration 60 ms → raw/gross/net 400.0, accuracies 100%,
+KSPC 1.0, burst 2 → 4.8, IKI 60/1 = 60 ms, rollover 1/1 = 1.0 (keyup@110
+past keydown@60, matched by code Semicolon per the metrics.ts precedent).
+Attribution (new code-aware path, hand-checked): Semicolon = column 9 = rp,
+KeyA = column 0 = lp → cross-hand, different fingers. The char-based
+`fingerTag('s','a')` would read the canonical KeyS (lr) — the E8 error this
+fixture exists to prevent.
+
+### E-DUALKEY-ALT (§4.9 E8, AltGr production) — `ENG-FIXTURE-E-DUALKEY-ALT`, target `@a` (azerty)
+
+`@` via AltGr+Digit0@0 (mods alt:true — the Windows AltGr shape; mods never
+affect scoring per the E3 precedent), `a` via KeyQ@400 (AZERTY `a` sits
+where QWERTY puts `q`); keyups at +100 ms, so nothing overlaps. 2 printable
+presses, duration 400 ms → raw/gross/net 60.0, accuracies 100%, KSPC 1.0,
+burst 2 → 4.8, IKI 400/1 = 400 ms, rollover 0/1 = 0. Attribution:
+Digit0 = column 9 = rp, KeyQ = column 0 = lp → cross-hand; char-based
+`fingerTag('@','a','azerty')` stays "unknown" (existing pin, unchanged —
+a bare `@` without its code is genuinely ambiguous). The Digit0 code is a
+verified production (levels-04 §2.2, pinned in VERIFIED_PRODUCTIONS).
+
 ## Wart W1 — final-text denominators count UTF-16 units (flagged, not fixed)
 
 `metrics.ts` (frozen this slice) computes `final.length`, so every

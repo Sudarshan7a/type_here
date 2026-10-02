@@ -16,9 +16,9 @@
  *    another. A layout with no map yet returns "unknown" rather than a guess.
  */
 
-import type { Layout } from "@realtype/schemas";
+import type { KeyEvent, Layout } from "@realtype/schemas";
 
-import { fingerFor } from "./layout-fingers.js";
+import { fingerFor, fingerForCode, productionFor, type Finger } from "./layout-fingers.js";
 
 /** Self-relative outlier threshold: 3x the item's own median interval. */
 export const OUTLIER_MULTIPLE = 3;
@@ -113,4 +113,43 @@ export function fingerTag(from: string, to: string, layout: Layout): FingerTag {
   const sameFinger = a === b;
   const sameHand = a.startsWith("l") === b.startsWith("l");
   return { hand: sameHand ? "same" : "cross", sameFinger };
+}
+
+/**
+ * Resolve one press to a finger via its PHYSICAL key (chapter-4 E8): the
+ * on-grid code first (layout-independent column fact), then the verified
+ * Shift/AltGr production table for that layout, else unknown. The produced
+ * character is only ever a key into the verified table — never a canonical
+ * key lookup — so an `s`-on-Semicolon press cannot inherit the canonical
+ * KeyS finger.
+ */
+function fingerForPress(code: string, key: string, layout: Layout): Finger | null {
+  return fingerForCode(code) ?? productionFor(layout, key)?.finger ?? null;
+}
+
+function tagFingers(a: Finger | null, b: Finger | null): FingerTag {
+  if (a === null || b === null) return { hand: "unknown", sameFinger: null };
+  const sameFinger = a === b;
+  const sameHand = a.startsWith("l") === b.startsWith("l");
+  return { hand: sameHand ? "same" : "cross", sameFinger };
+}
+
+/**
+ * Tag a rollover/dual-key transition via physical `event.code` (ENG-06 E8),
+ * following the metrics.ts code-matching precedent: the same character
+ * typed on two different physical keys (e.g. `s` on KeyS vs on Semicolon)
+ * attributes to the key that was actually pressed, never to a canonical
+ * "the" key for that character. The KeyEvent shape is the merged CONTRACT
+ * 1.4.0 log event (Slice 1); it is consumed as-is, never reshaped.
+ *
+ * Char-based fingerTag() intentionally keeps returning "unknown" for
+ * AltGr/shift-layer characters: a bare character IS ambiguous without its
+ * code, and guessing would corrupt the weakness model. This is the function
+ * that resolves those presses once the code is known.
+ */
+export function fingerTagForEvents(prev: KeyEvent, curr: KeyEvent, layout: Layout): FingerTag {
+  return tagFingers(
+    fingerForPress(prev.code, prev.key, layout),
+    fingerForPress(curr.code, curr.key, layout),
+  );
 }

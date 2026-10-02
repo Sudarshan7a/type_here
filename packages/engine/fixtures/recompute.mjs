@@ -499,6 +499,26 @@ const EEMOJI_DOWNS = [
 ];
 const EEMOJI_EVENTS = explicitEvents(EEMOJI_DOWNS, 80);
 
+// E-DUALKEY (e-dualkey.ts): code-aware attribution; dvorak "sa" (E01 skeleton,
+// `s` on Semicolon) + azerty "@a" (`@` on AltGr+Digit0, `a` on KeyQ).
+const EDUAL_TARGET = "sa";
+const EDUAL_DOWNS = [down("s", 0, { code: "Semicolon" }), down("a", 60, { code: "KeyA" })];
+const EDUAL_EVENTS = [
+  ...EDUAL_DOWNS,
+  up("s", 110, { code: "Semicolon" }),
+  up("a", 170, { code: "KeyA" }),
+].sort((a, b) => a.t - b.t);
+
+const EDUAL_ALT_TARGET = "@a";
+// NOTE: this recompute's down() always stamps NO_MODS; mods never enter the
+// metric formulas (E3 precedent), so the fixture's alt:true shapes nothing here.
+const EDUAL_ALT_DOWNS = [down("@", 0, { code: "Digit0" }), down("a", 400, { code: "KeyQ" })];
+const EDUAL_ALT_EVENTS = [
+  ...EDUAL_ALT_DOWNS,
+  up("@", 100, { code: "Digit0" }),
+  up("a", 500, { code: "KeyQ" }),
+].sort((a, b) => a.t - b.t);
+
 const CASES = [
   ["ENG-FIXTURE-A01", withKeyups(A01_DOWNS), TARGET_CAT, "free"],
   ["ENG-FIXTURE-B01", withKeyups(B01_DOWNS), TARGET_CAT, "free"],
@@ -512,6 +532,8 @@ const CASES = [
   ["ENG-FIXTURE-E3", ECAPS_EVENTS, ECAPS_TARGET, "free"],
   ["ENG-FIXTURE-E5", EDEAD_EVENTS, EDEAD_TARGET, "free"],
   ["ENG-FIXTURE-E6", EEMOJI_EVENTS, EEMOJI_TARGET, "free"],
+  ["ENG-FIXTURE-E-DUALKEY", EDUAL_EVENTS, EDUAL_TARGET, "free"],
+  ["ENG-FIXTURE-E-DUALKEY-ALT", EDUAL_ALT_EVENTS, EDUAL_ALT_TARGET, "free"],
 ];
 
 // --- run --------------------------------------------------------------------
@@ -527,6 +549,8 @@ for (const t of [
   ECAPS_TARGET,
   EDEAD_TARGET,
   EEMOJI_TARGET,
+  EDUAL_TARGET,
+  EDUAL_ALT_TARGET,
 ]) {
   console.log(
     `  ${JSON.stringify(t)} (${[...t].length} chars) -> ${createHash("sha256").update(t, "utf8").digest("hex")}`,
