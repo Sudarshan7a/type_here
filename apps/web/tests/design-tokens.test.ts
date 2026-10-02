@@ -127,7 +127,10 @@ describe("design tokens — tokens.css is the only place a colour is named", () 
     const offenders: string[] = [];
     for (const file of cssFiles()) {
       const relative = file.slice(SRC.length + 1);
-      for (const found of rawColoursIn(readFileSync(file, "utf8"), relative.endsWith("tokens.css"))) {
+      for (const found of rawColoursIn(
+        readFileSync(file, "utf8"),
+        relative.endsWith("tokens.css"),
+      )) {
         offenders.push(`${relative}: ${found}`);
       }
     }

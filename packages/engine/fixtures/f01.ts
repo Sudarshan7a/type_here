@@ -61,7 +61,7 @@ export const expected: FixtureExpectation = {
     consistency: 0,
     burstWpm: 52.8,
     ikiMeanMs: 190.4761904762,
-    modelVersion: "1.0.0",
+    modelVersion: "1.1.0",
     difficultyBand: null,
     verified: false,
     flags: [],

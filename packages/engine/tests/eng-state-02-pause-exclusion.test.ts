@@ -105,19 +105,40 @@ describe("ENG-STATE-02 — pause-resume time exclusion", () => {
     expect(result.details.durationMs).toBe(5000);
   });
 
-  it("tolerates markers that arrive out of order", () => {
-    // A corrupted capture is untrusted input (server recomputation replays
-    // whatever arrived). A negative span must not reduce the scored duration
-    // below the wall-clock truth, or a client could shorten its own score by
-    // shipping junk markers.
+  it("orders markers by timestamp, not by their position in the array", () => {
+    // A log can be written by two code paths and concatenated. The timestamps
+    // carry the truth; the array order is not authoritative.
     const { events } = workedExample();
-    const result = computeFromEvents(TARGET, events, "free", {
+    const shuffled = computeFromEvents(TARGET, events, "free", {
       markers: [
         { kind: "focus", t: 13000 },
         { kind: "blur", t: 3000 },
       ],
     });
-    expect(result.details.durationMs).toBeGreaterThanOrEqual(12000);
+    expect(shuffled.details.durationMs).toBe(5000);
+  });
+
+  it("never produces a negative or longer duration from a hostile marker list", () => {
+    // Markers arrive in a client-supplied log the server will recompute from, so
+    // they are untrusted input. They may only ever REMOVE time: junk that would
+    // otherwise lengthen a test, or produce a negative one, is discarded. (They
+    // can still shorten a test — that is a client shortening its own score, which
+    // belongs to the integrity layer INT-05..08, not to this arithmetic.)
+    const events = typeRange(TARGET, 0, 4000);
+    for (const markers of [
+      [
+        { kind: "blur" as const, t: -5_000 },
+        { kind: "focus" as const, t: 9_000 },
+      ],
+      [{ kind: "blur" as const, t: 3_000 }],
+      [{ kind: "focus" as const, t: 2_000 }],
+      [],
+    ]) {
+      const result = computeFromEvents(TARGET, events, "free", { markers });
+      expect(result.details.durationMs).toBeGreaterThanOrEqual(0);
+      expect(result.details.durationMs).toBeLessThanOrEqual(4000);
+      expect(Number.isFinite(result.summary.netWpm)).toBe(true);
+    }
   });
 });
 
@@ -184,7 +205,9 @@ describe("live and finished figures share one duration rule", () => {
       keyDown("x", 1200),
       keyDown("y", 1400),
     ];
-    const live = computeLiveSummary("the quick brown fox", events, "stop-on-error", { nowMs: 9000 });
+    const live = computeLiveSummary("the quick brown fox", events, "stop-on-error", {
+      nowMs: 9000,
+    });
     expect(live.hasData).toBe(true);
     // The clock froze at the halt, so a much later `nowMs` cannot change it.
     const later = computeLiveSummary("the quick brown fox", events, "stop-on-error", {

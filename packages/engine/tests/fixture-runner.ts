@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { InputLogSchema, type InputLog, type TypingText } from "@realtype/schemas";
 
-import { computeResult } from "../src/index";
+import { computeResult, ENGINE_MODEL_VERSION } from "../src/index";
 import type { FixtureExpectation } from "../fixtures/helpers.js";
 import { expectSummaryMatches } from "./compare.js";
 
@@ -46,8 +46,11 @@ export function runFixture(mod: FixtureModule): void {
         ).toBe(true);
       }
 
-      expect(summary.modelVersion).toBe("1.0.0");
-      expect(mod.expected.summary.modelVersion).toBe("1.0.0");
+      // The stamp is checked against the constant, not a second literal: a
+      // hand-written copy of a version string is a thing that has already drifted
+      // once in this repository (see packages/telemetry enum-drift).
+      expect(summary.modelVersion).toBe(ENGINE_MODEL_VERSION);
+      expect(mod.expected.summary.modelVersion).toBe(ENGINE_MODEL_VERSION);
     });
   });
 }
