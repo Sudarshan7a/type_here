@@ -10,9 +10,19 @@
  */
 import type { KeyEvent, LogMarker } from "@realtype/schemas";
 
-/** Keys that produce a character in the target text. */
+import { graphemeLength } from "./text-model.js";
+
+/** A UI-Events dead key (`key === "Dead"`): the first half of a two-key character. */
+export function isDeadKey(event: KeyEvent): boolean {
+  return event.key === "Dead";
+}
+
+/** Keys that produce a character in the target text: exactly one grapheme. */
 function isPrintableKey(key: string): boolean {
-  return [...key].length === 1;
+  // Grapheme, not code point: a decomposed `é` (e + combining acute) or a ZWJ
+  // emoji in one key value is one produced character (chapter 4 E5/E6), while
+  // `Dead`/modifier names are many graphemes and never printable.
+  return graphemeLength(key) === 1;
 }
 
 export function isBackspace(key: string): boolean {
@@ -24,6 +34,10 @@ export function isScoringPress(event: KeyEvent): boolean {
   if (event.type !== "down") return false;
   // OS key repeat is not a keystroke (chapter 4 §4.8, ENG-FIXTURE-G01).
   if (event.repeat) return false;
+  // IME partials are readings, not keystrokes (M1-04 §6, ENG-06).
+  if (event.composition === true) return false;
+  // A dead key is half a character; the completing press scores (chapter 4 E5).
+  if (isDeadKey(event)) return false;
   return isPrintableKey(event.key) || isBackspace(event.key);
 }
 
@@ -40,6 +54,16 @@ export interface FilteredEvents {
   keyUps: KeyEvent[];
   /** Non-printable, non-Backspace keydowns (Shift, Enter, modifiers). */
   ignored: KeyEvent[];
+  /** IME composition partials (`composition === true`): readings, never scored. */
+  compositionDrops: KeyEvent[];
+  /**
+   * Dead-key keydowns (`key === "Dead"`): the first half of a two-key
+   * character (chapter 4 E5). Never scored on their own — not even for timing:
+   * the completing press's gap to its predecessor already spans the dead-key
+   * interval, which is the combined time cost of the one character. A lone
+   * dead key with no completion is inert here (and in the text model).
+   */
+  deadKeys: KeyEvent[];
   /**
    * Every event that may change the produced text, in capture order: the scoring
    * presses plus the app's auto-inserted characters.
@@ -62,9 +86,17 @@ export function filterEvents(events: readonly KeyEvent[]): FilteredEvents {
     auto: [],
     keyUps: [],
     ignored: [],
+    compositionDrops: [],
+    deadKeys: [],
     textAffecting: [],
   };
   for (const event of events) {
+    // Composition partials are dropped before anything else, keyups included:
+    // a flagged keyup is part of the unread composition, not of the attempt.
+    if (event.composition === true) {
+      out.compositionDrops.push(event);
+      continue;
+    }
     if (event.type === "up") {
       out.keyUps.push(event);
       continue;
@@ -85,6 +117,8 @@ export function filterEvents(events: readonly KeyEvent[]): FilteredEvents {
     if (isScoringPress(event)) {
       out.scoringPresses.push(event);
       out.textAffecting.push(event);
+    } else if (isDeadKey(event)) {
+      out.deadKeys.push(event);
     } else {
       out.ignored.push(event);
     }

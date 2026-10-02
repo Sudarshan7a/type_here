@@ -20,7 +20,7 @@
  * once the attempt is over (`finished`), which is the only moment the omission
  * is a fact.
  */
-import { correctCharsInFinalText, type TextModel } from "./text-model.js";
+import { correctCharsInFinalText, segmentGraphemes, type TextModel } from "./text-model.js";
 
 export const CHAR_STATES = ["untyped", "correct", "incorrect", "extra", "missed"] as const;
 
@@ -43,12 +43,12 @@ export function deriveCharStates(
   buffer: readonly string[],
   options: CharStateOptions,
 ): CharState[] {
-  // Grapheme-ish iteration: spread over code points so a character outside the
-  // Basic Multilingual Plane is one entry, not two broken halves (chapter 4 E6).
-  // The target is a plain string here; `buffer` holds the characters the user
-  // produced, which the text model appended one press at a time.
+  // Grapheme iteration: one entry per user-perceived character, so a ZWJ emoji
+  // or a decomposed accent is one entry, not several broken halves (chapter 4
+  // E6). `buffer` already holds one grapheme per press (the text model enforces
+  // it); the target is segmented here for the same unit.
   const produced = [...buffer];
-  const intended = [...target];
+  const intended = segmentGraphemes(target);
   const total = Math.max(intended.length, produced.length);
   const out: CharState[] = [];
 

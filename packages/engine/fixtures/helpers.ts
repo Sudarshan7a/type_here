@@ -39,23 +39,39 @@ export interface KeyEventOptions {
   isTrusted?: boolean;
   /** Auto-inserted by the app, e.g. auto-pair (E2 filter tests). */
   auto?: boolean;
+  /**
+   * Explicit KeyboardEvent.code, bypassing codeFor. Needed for keys codeFor
+   * cannot spell: dead keys (`Dead`), emoji/IME commits (no physical key),
+   * and shifted symbols (`!` lives on `Digit1`). Existing callers omit it and
+   * get byte-identical events to before.
+   */
+  code?: string;
+  /** Shift held for this press (Shift-produced capitals, ENG-06 E3). */
+  shift?: boolean;
+  /**
+   * IME composition state (CONTRACT 1.4.0). `true` = open-composition partial
+   * (never scored); `false` = committed text (scores normally). Omitted =
+   * field absent, i.e. every pre-1.4.0 fixture log shape, unchanged.
+   */
+  composition?: boolean;
 }
 
 export function keyDown(key: string, t: number, opts: KeyEventOptions = {}): KeyEvent {
   return {
-    code: codeFor(key),
+    code: opts.code ?? codeFor(key),
     key,
     type: "down",
     t,
-    mods: { ...NO_MODS },
+    mods: { ...NO_MODS, shift: opts.shift ?? false },
     repeat: opts.repeat ?? false,
     isTrusted: opts.isTrusted ?? true,
     auto: opts.auto ?? false,
+    ...(opts.composition === undefined ? {} : { composition: opts.composition }),
   };
 }
 
-export function keyUp(key: string, t: number): KeyEvent {
-  return { ...keyDown(key, t), type: "up" };
+export function keyUp(key: string, t: number, opts: { code?: string } = {}): KeyEvent {
+  return { ...keyDown(key, t, opts), type: "up" };
 }
 
 /**
@@ -63,9 +79,12 @@ export function keyUp(key: string, t: number): KeyEvent {
  * chapter tables list keydowns only — keyups are required for rollover
  * detection. holdMs < spacing in every such fixture → rollover 0
  * (construction documented in PROVENANCE.md).
+ *
+ * Keyups inherit each keydown's (possibly overridden) code, so sequences
+ * with explicit codes (dead keys, emoji commits) pair correctly.
  */
 export function withKeyups(downs: KeyEvent[], holdMs = 100): KeyEvent[] {
-  const events = [...downs, ...downs.map((d) => keyUp(d.key, d.t + holdMs))];
+  const events = [...downs, ...downs.map((d) => keyUp(d.key, d.t + holdMs, { code: d.code }))];
   return events.sort((a, b) => a.t - b.t);
 }
 
