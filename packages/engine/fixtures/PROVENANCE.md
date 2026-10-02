@@ -1,5 +1,18 @@
 # PROVENANCE — Worked Examples A–G expected values
 
+> CONTRACT 1.4.0 + ENG-06 ADDENDUM (Wave 0.3 Slice 1): KeyEvent gained the
+> optional `composition` IME-partial flag (CONTRACT_VERSION 1.3.0 → 1.4.0, an
+> additive minor by the 1.0.0 → 1.2.0 precedent for optional `markers` /
+> `meta.recorder` — old logs parse byte-identically, proven by
+> `packages/schemas/tests/composition-contract.test.ts`). Three new fixtures
+> pin ENG-06 input semantics — ENG-FIXTURE-E3 (caps-lock case errors),
+> ENG-FIXTURE-E5 (dead-key sequence + IME guard), ENG-FIXTURE-E6 (emoji
+> grapheme unit) — recomputed independently by the extended `recompute.mjs`
+> (same no-engine-imports protocol). Engine comparison unit is now the
+> grapheme cluster (`Intl.Segmenter`, no new dependency); `metrics.ts` is
+> UNCHANGED, so final-text denominators still count UTF-16 units — the E6
+> wart W1 below, flagged for the metrics slice (modelVersion bump required).
+
 Arithmetic protocol (Session 2, Block E): every expected value below was
 recomputed **independently** from the raw keystroke logs by
 `fixtures/recompute.mjs` (a throwaway script that imports nothing from
@@ -29,6 +42,17 @@ spec's formulas applied with the most defensible reading.
   metrics. **[decision]** Rejected attempts (must-correct) ARE scoring presses
   (they are real physical key presses; the chapter's D01 counts them as
   "attempts").
+- **ENG-06 addendum (CONTRACT 1.4.0):** scoring presses additionally exclude
+  `composition === true` partials (M1-04 §6 — dropped before anything else,
+  into `compositionDrops`; the `applyPress` guard covers direct callers) and
+  `key === "Dead"` presses (chapter 4 E5 — into `deadKeys`; the completing
+  press's gap to its predecessor already spans the dead interval, which is the
+  combined single-character cost). "Printable" and every comparison now mean
+  exactly ONE GRAPHEME (`Intl.Segmenter`): a decomposed `é` or a ZWJ emoji in
+  one key value inserts once; a multi-grapheme single event is ignored (the
+  input adapter must split commits one press per grapheme). A lone `Dead`
+  with no completion is inert and never bounds the duration. ASCII logs are
+  unaffected bit-for-bit (grapheme == code point there).
 - **Raw WPM** = printable scoring presses ÷ 5 ÷ minutes. Printable includes
   wrong characters and must-correct rejected attempts. **[decision]** (chapter
   silent for must-correct; the free-mode parallel — wrong chars count — is
@@ -122,6 +146,76 @@ Full-precision values; fixtures compare with absolute tolerance 1e-6.
 | ikiMeanMs | 545.4 | 487.8333333 | 545.4 | 458.0 | 60 | 150 | 60 | 190.4761905 | 900 |
 | durationMs (details) | 5454 | 5854 | 5454 | 5954 | 60 | 2700 | 300 | 16000 | 900 |
 | rejectedAttempts / totalAttempts | 0/11 | 0/13 | 0/11 | 2/14 (rate 14.2857%) | 0/2 | 0/19 | 0/6 | 0/44 | 0/2 |
+
+## Recomputed expected values for ENG-06 (recompute.mjs output)
+
+| Metric | E3-caps | E5-deadkey | E6-emoji |
+|---|---|---|---|
+| rawWpm | 30.0 | 30.0 | 32.7272727273 |
+| grossWpm | 30.0 | 30.0 | 81.8181818182 (W1) |
+| netWpm | 18.0 | 30.0 | 27.2727272727 (W1) |
+| keystrokeAccuracy | 60.0 | 100 | 83.3333333333 |
+| finalAccuracy | 60.0 | 100 | 33.3333333333 (W1) |
+| kspc | 1.0 | 1.0 | 0.4666666667 (W1) |
+| rolloverRatio | 0 | 0 | 0 |
+| consistency | null | null | null |
+| burstWpm | 12.0 | 24.0 | 14.4 |
+| ikiMeanMs | 500.0 | 444.4444444444 | 366.6666666667 |
+| durationMs (details) | 2000 | 4000 | 2200 |
+| printable / correctPrintable | 5 / 3 | 10 / 10 | 6 / 5 |
+| correctCharsInFinalText | 3 | 10 | 5 (units) |
+| finalTextLength (details) | 5 | 10 | 15 (W1: UTF-16 units) |
+| bufferInserts / backspaces | 5 / 0 | 10 / 0 | 6 / 1 |
+| rejectedAttempts / totalAttempts | 0/5 | 0/10 | 0/7 |
+| filter buckets (info only) | — | composition 5, dead 2, ignored 2 (Escape + empty commit) | — |
+
+### E3 (§4.9 E3) — `ENG-FIXTURE-E3-caps-lock-case-errors`, target `ab 12`
+
+`A` (Shift-held) @0, `B` (Caps-Lock, no mods) @500, ` `@1000, `1`@1500,
+`2`@2000; keyups +100 ms. 5 printable presses, 3 correct-at-press
+(space/digits — caps leaves non-letters alone, the adversarial pin).
+raw = gross = 5/5 ÷ (2000/60000) = 30.0; net = 3/5 ÷ (2000/60000) = 18.0;
+accuracies 3/5 = 60%; KSPC 5/5 = 1.0; burst 5 → 12.0; IKI 2000/4 = 500 ms;
+rollover 0/4. Case-error subtype: positions 0–1 are substitutions with
+`typed.toLowerCase() === intended` and `code === Key<intended>` — codes
+`KeyA`/`KeyB` preserved for layout attribution (E3/E8); Shift vs Caps-Lock
+paths score identically.
+
+### E5 (§4.9 E5 + M1-04 §6) — `ENG-FIXTURE-E5-dead-key-sequence`, target `naïve café`
+
+Abandoned IME (`i`@0, `ï`@150 composition:true, `Escape`@300) proves partials
+never score and never start the E1 clock; `n`@500 … `f`@3900 even 400 ms pace;
+`Dead`@1300 + `ï`@1500 (one char, gap 600 ms carries the 200 ms dead span);
+IME `é` via `e`@4200 + `é`@4350 partials + commit@4500 (one char, gap 600 ms
+carries the 300 ms partial-to-commit span); composition Backspace@4600
+dropped; empty commit `""`@4700 ignored; lone `Dead`@4900 inert and NOT
+extending the duration (ends 4500). 10 printable, all correct → raw/gross/net
+30.0, accuracies 100%, KSPC 1.0, burst 10 → 24.0, IKI 4000/9 = 444.4444444444,
+rollover 0/9. Buckets: scoring 10, compositionDrops 5, deadKeys 2, ignored 2.
+
+### E6 (§4.9 E6) — `ENG-FIXTURE-E6-emoji-grapheme-unit`, target `ok 👨‍👩‍👧‍👦!`
+
+5 graphemes in 15 UTF-16 units. `o`@0, `k`@400, ` `@800, piecemeal `👨`@1200
+(wrong vs the family unit) + Backspace@1400 (pops the whole grapheme), full
+family@1800 (correct), `!`@2200 (Shift+1, code Digit1). Correct-at-press 5/6
+→ 83.3333333333%; units correct 5/5. raw = 6/5 ÷ (2200/60000) =
+32.7272727273; burst 6 → 14.4; IKI 2200/6 = 366.6666666667; rollover 0/6.
+W1-marked figures divide by 15 UTF-16 units: gross 81.8181818182, net
+27.2727272727, finalAccuracy 33.3333333333, KSPC 7/15 = 0.4666666667,
+finalTextLength 15.
+
+## Wart W1 — final-text denominators count UTF-16 units (flagged, not fixed)
+
+`metrics.ts` (frozen this slice) computes `final.length`, so every
+final-text denominator is a UTF-16 count while every comparison in this slice
+is grapheme-correct. For ASCII the two coincide and NO existing fixture
+moves (whole suite green, A–G recompute byte-identical). For E6 the summary
+therefore pins 33.33% final accuracy on a 5/5-unit-correct text, WPMs that
+count 15 "chars", and KSPC 0.47. The fix — grapheme denominators in
+`metrics.ts` + `live-summary.ts` parity + `ENGINE_MODEL_VERSION` bump +
+`/how-we-calculate` update per AGENTS.md rule 3 — belongs to the metrics
+slice (Slices 2/3), which must recompute E6's four W1 figures and the
+`finalTextLength` detail. No UI/marketing copy may cite the W1 figures (rule 9).
 
 F01 consistency buckets (second: chars → WPM): 2:5→60, 3:5→60, 4:1→12,
 5–11:0→0, 12:6→72, 13:5→60, 14:5→60, 15:5→60. Mean 27.43, population sd 30.23,

@@ -28,6 +28,17 @@ export const KeyEventSchema = z.strictObject({
   isTrusted: z.boolean(),
   /** True when the character was auto-inserted by the app (e.g. auto-pair). */
   auto: z.boolean(),
+  /**
+   * True while an IME composition is still open (compositionstart/update):
+   * the keystroke is a partial reading, not committed text, and the engine
+   * must never score it (M1-04 §6, ENG-06). Committed text arrives as an
+   * ordinary keydown with this flag false (or absent).
+   *
+   * Optional since B1-era logs predate it (the same pattern as
+   * InputLog.markers): absent means "not a composition partial", so every log
+   * that was valid at CONTRACT 1.3.0 still parses unchanged.
+   */
+  composition: z.boolean().optional(),
 });
 
 export type KeyEvent = z.infer<typeof KeyEventSchema>;

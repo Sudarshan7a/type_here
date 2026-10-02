@@ -15,8 +15,12 @@
 //   - Word = 5 characters.
 //   - Duration = last scoring press t - first scoring press t (clock starts on
 //     the first accepted keystroke, chapter §4.2 / Edge Case E1).
-//   - Scoring presses = trusted, non-repeat, non-auto keydowns whose key is a
-//     single character (printable) or "Backspace".
+//   - Scoring presses = trusted, non-repeat, non-auto, non-composition keydowns
+//     whose key is a single GRAPHEME (printable) or "Backspace". Dead-key
+//     keydowns (`key === "Dead"`) are dropped like repeats (chapter 4 E5).
+//   - Comparison unit = grapheme cluster via Intl.Segmenter (chapter 4 E6).
+//     Final-text WPM/accuracy/KSPC denominators still count UTF-16 string
+//     length (frozen metrics.ts — the E6 fixture pins the wart exactly).
 //   - Raw WPM = printable presses / 5 / minutes. Printable includes wrong
 //     chars and must-correct rejected attempts (they are physical presses).
 //   - Keystroke accuracy = correct-at-press printable presses / printable.
@@ -39,34 +43,44 @@ const BURST_WINDOW_MS = 5_000;
 
 const NO_MODS = { shift: false, ctrl: false, alt: false, meta: false };
 
+const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
+function units(text) {
+  const out = [];
+  for (const { segment } of segmenter.segment(text)) out.push(segment);
+  return out;
+}
+
 function codeFor(key) {
   if (key === " ") return "Space";
   if (key === "Backspace") return "Backspace";
   if (key === ".") return "Period";
   if (/^[a-z]$/.test(key)) return `Key${key.toUpperCase()}`;
+  if (/^[A-Z]$/.test(key)) return `Key${key}`;
+  if (/^[0-9]$/.test(key)) return `Digit${key}`;
   throw new Error(`no code mapping for key ${JSON.stringify(key)}`);
 }
 
 function down(key, t, opts = {}) {
   return {
-    code: codeFor(key),
+    code: opts.code ?? codeFor(key),
     key,
     type: "down",
     t,
-    mods: { ...NO_MODS },
+    mods: { ...NO_MODS, shift: opts.shift ?? false },
     repeat: opts.repeat ?? false,
     isTrusted: opts.isTrusted ?? true,
     auto: opts.auto ?? false,
+    ...(opts.composition === undefined ? {} : { composition: opts.composition }),
   };
 }
 
-function up(key, t) {
-  return { ...down(key, t), type: "up" };
+function up(key, t, opts = {}) {
+  return { ...down(key, t, opts), type: "up" };
 }
 
 /** Merge keydowns with constructed keyups at +holdMs (non-overlapping). */
 function withKeyups(downs, holdMs = 100) {
-  const events = [...downs, downs.map((d) => up(d.key, d.t + holdMs))].flat();
+  const events = [...downs, ...downs.map((d) => up(d.key, d.t + holdMs, { code: d.code }))].flat();
   return events.sort((a, b) => a.t - b.t);
 }
 
@@ -78,7 +92,14 @@ function classify(events) {
   const keyups = [];
   let repeatCount = 0;
   let untrustedCount = 0;
+  let compositionCount = 0;
+  let deadCount = 0;
+  let ignoredCount = 0;
   for (const e of events) {
+    if (e.composition === true) {
+      compositionCount++;
+      continue;
+    }
     if (e.isTrusted === false) {
       untrustedCount++;
       continue;
@@ -91,13 +112,28 @@ function classify(events) {
       keyups.push(e);
       continue;
     }
-    if (e.key.length === 1) chars.push(e);
+    if (e.key === "Dead") {
+      deadCount++;
+      continue;
+    }
+    if (units(e.key).length === 1) chars.push(e);
     else if (e.key === "Backspace") backspaces.push(e);
+    else ignoredCount++;
   }
-  return { chars, backspaces, keyups, repeatCount, untrustedCount };
+  return {
+    chars,
+    backspaces,
+    keyups,
+    repeatCount,
+    untrustedCount,
+    compositionCount,
+    deadCount,
+    ignoredCount,
+  };
 }
 
 function replay(cls, target, mode) {
+  const targetUnits = units(target);
   const ops = [
     ...cls.chars.map((e) => ({ t: e.t, kind: "char", e })),
     ...cls.backspaces.map((e) => ({ t: e.t, kind: "bs", e })),
@@ -111,8 +147,9 @@ function replay(cls, target, mode) {
   for (const op of ops) {
     if (stoppedAt !== null) break;
     if (op.kind === "char") {
+      if (units(op.e.key).length !== 1) continue; // multi-grapheme commit: adapter must split
       const pos = buf.length;
-      const correct = op.e.key === target.charAt(pos);
+      const correct = op.e.key === targetUnits[pos];
       if (mode === "must-correct" && !correct) {
         rejected.push(op.e);
         pendingError = true;
@@ -138,7 +175,13 @@ function replay(cls, target, mode) {
       pendingError = false;
     }
   }
-  return { finalText: buf.join(""), inserts, acceptedBackspaces, rejected, stoppedAt };
+  return {
+    finalText: buf.slice(0, targetUnits.length).join(""),
+    inserts,
+    acceptedBackspaces,
+    rejected,
+    stoppedAt,
+  };
 }
 
 function rolloverRatio(presses, keyups) {
@@ -219,9 +262,13 @@ function computeMetrics(events, target, mode) {
   const durationMs = presses[presses.length - 1].t - presses[0].t;
   const minutes = durationMs / 60000;
   const finalText = rep.finalText;
+  // Unit-by-unit (chapter 4 E6); the denominators below still count UTF-16
+  // string length (frozen metrics.ts) — the E6 wart, pinned exactly.
+  const finalUnits = units(finalText);
+  const targetUnits = units(target);
   let correctInFinal = 0;
-  for (let i = 0; i < finalText.length; i++) {
-    if (finalText.charAt(i) === target.charAt(i)) correctInFinal++;
+  for (let i = 0; i < finalUnits.length; i++) {
+    if (finalUnits[i] === targetUnits[i]) correctInFinal++;
   }
   const printable = userChars.length;
   const correctPrintable = rep.inserts.filter((i) => i.correct && !i.auto).length;
@@ -277,6 +324,9 @@ function computeMetrics(events, target, mode) {
     consistencyBuckets: cons.buckets,
     repeatCount: cls.repeatCount,
     untrustedCount: cls.untrustedCount,
+    compositionCount: cls.compositionCount,
+    deadCount: cls.deadCount,
+    ignoredCount: cls.ignoredCount,
   };
 }
 
@@ -392,6 +442,63 @@ const E03_EVENTS = [
   up("l", 400),
 ].sort((a, b) => a.t - b.t);
 
+// --- ENG-06 input semantics (chapter 4 E3/E5/E6 + M1-04 §6 IME guard) --------
+
+function explicitEvents(downs, holdMs = 80) {
+  return [...downs, ...downs.map((d) => up(d.key, d.t + holdMs, { code: d.code }))].sort(
+    (a, b) => a.t - b.t,
+  );
+}
+
+// E3 (e-caps.ts): Caps-Lock case errors; digits/space unaffected by caps.
+const ECAPS_TARGET = "ab 12";
+const ECAPS_DOWNS = [
+  down("A", 0, { shift: true }),
+  down("B", 500),
+  down(" ", 1000),
+  down("1", 1500),
+  down("2", 2000),
+];
+const ECAPS_EVENTS = explicitEvents(ECAPS_DOWNS, 100);
+
+// E5 (e-deadkey.ts): dead-key ï + IME-composed é + IME-guard adversarials.
+const EDEAD_TARGET = "naïve café";
+const EDEAD_DOWNS = [
+  down("i", 0, { code: "KeyI", composition: true }),
+  down("ï", 150, { code: "KeyI", composition: true }),
+  down("Escape", 300, { code: "Escape" }),
+  down("n", 500),
+  down("a", 900),
+  down("Dead", 1300, { code: "Quote" }),
+  down("ï", 1500, { code: "KeyI" }),
+  down("v", 1900),
+  down("e", 2300),
+  down(" ", 2700),
+  down("c", 3100),
+  down("a", 3500),
+  down("f", 3900),
+  down("e", 4200, { code: "KeyE", composition: true }),
+  down("é", 4350, { code: "KeyE", composition: true }),
+  down("é", 4500, { code: "KeyE", composition: false }),
+  down("Backspace", 4600, { code: "Backspace", composition: true }),
+  down("", 4700, { code: "Unidentified", composition: false }),
+  down("Dead", 4900, { code: "Quote" }),
+];
+const EDEAD_EVENTS = explicitEvents(EDEAD_DOWNS, 80);
+
+// E6 (e-emoji.ts): ZWJ family as one grapheme; piecemeal part corrected.
+const EEMOJI_TARGET = "ok 👨‍👩‍👧‍👦!";
+const EEMOJI_DOWNS = [
+  down("o", 0),
+  down("k", 400),
+  down(" ", 800),
+  down("👨", 1200, { code: "Unidentified" }),
+  down("Backspace", 1400),
+  down("👨‍👩‍👧‍👦", 1800, { code: "Unidentified" }),
+  down("!", 2200, { code: "Digit1", shift: true }),
+];
+const EEMOJI_EVENTS = explicitEvents(EEMOJI_DOWNS, 80);
+
 const CASES = [
   ["ENG-FIXTURE-A01", withKeyups(A01_DOWNS), TARGET_CAT, "free"],
   ["ENG-FIXTURE-B01", withKeyups(B01_DOWNS), TARGET_CAT, "free"],
@@ -402,12 +509,25 @@ const CASES = [
   ["ENG-FIXTURE-E03", E03_EVENTS, E03_TARGET, "free"],
   ["ENG-FIXTURE-F01", withKeyups(F01_DOWNS), TARGET_FOX, "free"],
   ["ENG-FIXTURE-G01", G01_EVENTS, "aa", "free"],
+  ["ENG-FIXTURE-E3", ECAPS_EVENTS, ECAPS_TARGET, "free"],
+  ["ENG-FIXTURE-E5", EDEAD_EVENTS, EDEAD_TARGET, "free"],
+  ["ENG-FIXTURE-E6", EEMOJI_EVENTS, EEMOJI_TARGET, "free"],
 ];
 
 // --- run --------------------------------------------------------------------
 
 console.log("target-text sha256 hashes:");
-for (const t of [TARGET_CAT, TARGET_FOX, "fj", "aa", E02_TARGET, E03_TARGET]) {
+for (const t of [
+  TARGET_CAT,
+  TARGET_FOX,
+  "fj",
+  "aa",
+  E02_TARGET,
+  E03_TARGET,
+  ECAPS_TARGET,
+  EDEAD_TARGET,
+  EEMOJI_TARGET,
+]) {
   console.log(
     `  ${JSON.stringify(t)} (${[...t].length} chars) -> ${createHash("sha256").update(t, "utf8").digest("hex")}`,
   );
@@ -432,6 +552,9 @@ for (const [id, events, target, mode] of CASES) {
       `  consistency buckets (s, chars, wpm): ${r.consistencyBuckets.map((b) => `${b.second}:${b.chars}/${b.wpm}`).join(" ")}`,
     );
   }
+  console.log(
+    `  buckets: repeat=${r.repeatCount} untrusted=${r.untrustedCount} composition=${r.compositionCount} dead=${r.deadCount} ignored=${r.ignoredCount}`,
+  );
   console.log("");
 }
 

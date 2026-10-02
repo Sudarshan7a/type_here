@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { CONTRACT_VERSION, InputLogSchema, TypingSettingsSchema } from "../src/index";
 
-// CONTRACT_VERSION 1.3.0 — the errorMode enum widened from three values to five
-// (`no-backspace` for D03, `word-locked` for D04).
+// CONTRACT_VERSION 1.4.0 — the errorMode enum widened from three values to five
+// (`no-backspace` for D03, `word-locked` for D04) at 1.3.0, and KeyEvent gained
+// the optional `composition` IME-partial flag at 1.4.0. Both bumps are additive
+// minors: everything valid before must still parse unchanged.
 //
 // This is an additive minor bump: the three original values keep their exact
 // meaning and every log that was valid at 1.2.0 must still be valid. That last
@@ -45,8 +47,8 @@ const logWithErrorMode = (errorMode: string) => ({
 });
 
 describe("CONTRACT_VERSION", () => {
-  it("is 1.3.0 — a minor bump for an additive enum extension", () => {
-    expect(CONTRACT_VERSION).toBe("1.3.0");
+  it("is 1.4.0 — a minor bump for an additive optional field", () => {
+    expect(CONTRACT_VERSION).toBe("1.4.0");
   });
 });
 

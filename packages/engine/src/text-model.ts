@@ -7,6 +7,37 @@
 import type { ErrorMode as SchemaErrorMode, KeyEvent } from "@realtype/schemas";
 
 /**
+ * The comparison unit for the whole engine (M1-03, chapter 4 E6): the
+ * user-perceived character (grapheme cluster), not the code point or the
+ * UTF-16 code unit. A single emoji (one grapheme, many code points) is one
+ * unit, so it can never be scored "half correct, half missing"; a decomposed
+ * `e` + combining acute is likewise one unit. `Intl.Segmenter` is a language
+ * builtin, not a dependency, so the license gate is unaffected.
+ *
+ * ASCII text segments to one unit per character, which is why every
+ * pre-existing fixture behaves byte-identically under this change.
+ */
+const graphemeSegmenter: Intl.Segmenter | null =
+  typeof Intl !== "undefined" && "Segmenter" in Intl
+    ? new Intl.Segmenter(undefined, { granularity: "grapheme" })
+    : null;
+
+/** Split text into grapheme clusters (falls back to code points without ICU). */
+export function segmentGraphemes(text: string): string[] {
+  if (graphemeSegmenter !== null) {
+    const out: string[] = [];
+    for (const { segment } of graphemeSegmenter.segment(text)) out.push(segment);
+    return out;
+  }
+  return [...text];
+}
+
+/** How many user-perceived characters a key value holds (printable ⇔ exactly 1). */
+export function graphemeLength(text: string): number {
+  return segmentGraphemes(text).length;
+}
+
+/**
  * Error modes.
  *
  * Derived from the public `errorMode` enum in `@realtype/schemas` rather than
@@ -62,7 +93,9 @@ export function createTextModel(target: string, mode: ErrorMode): TextModel {
 }
 
 function isCorrectPress(model: TextModel, key: string): boolean {
-  return model.target[model.buffer.length] === key;
+  // Unit-indexed, not string-indexed: for astral-plane targets `target[i]` would
+  // be a lone surrogate half, which can never equal a produced grapheme.
+  return segmentGraphemes(model.target)[model.buffer.length] === key;
 }
 
 /**
@@ -71,8 +104,11 @@ function isCorrectPress(model: TextModel, key: string): boolean {
  * the last word is locked by the same rule as every other one.
  */
 function wordEndFor(target: string, index: number): number {
-  const space = target.indexOf(" ", index);
-  return space === -1 ? target.length : space;
+  // `index` counts produced graphemes, so the search must run over units too:
+  // for astral-plane targets a UTF-16 offset and a unit offset disagree.
+  const units = segmentGraphemes(target);
+  const space = units.indexOf(" ", index);
+  return space === -1 ? units.length : space;
 }
 
 /**
@@ -91,7 +127,11 @@ function wordLockedAtBoundary(model: TextModel): boolean {
   const end = wordEndFor(model.target, model.buffer.length);
   if (model.buffer.length < end) return false; // still inside the word
 
-  return model.buffer.slice(0, end).join("") !== model.target.slice(0, end);
+  // Both sides sliced by units: a UTF-16 slice of the target would cut an
+  // astral-plane character in half and the lock would never agree with itself.
+  const produced = model.buffer.slice(0, end).join("");
+  const intended = segmentGraphemes(model.target).slice(0, end).join("");
+  return produced !== intended;
 }
 
 export type PressOutcome = "inserted" | "corrected" | "rejected" | "cleared" | "ignored";
@@ -104,6 +144,12 @@ export type PressOutcome = "inserted" | "corrected" | "rejected" | "cleared" | "
 export function applyPress(model: TextModel, event: KeyEvent): PressOutcome {
   if (event.type !== "down" || event.repeat) return "ignored";
   if (event.isTrusted === false) return "ignored";
+  // IME guard (ENG-06, M1-04 §6): a composition partial is a reading, not a
+  // keystroke. It is ignored outright — never buffered, never counted — while
+  // the committed text arrives as an ordinary (non-composition) press and
+  // scores exactly once. The filter drops these too; this guard covers direct
+  // applyPress callers (e.g. the live surface replaying `textAffecting`).
+  if (event.composition === true) return "ignored";
 
   // stop-on-error (D02): the run already ended at the first error. Later
   // presses are real physical keystrokes, but they are past the end of the
@@ -114,14 +160,20 @@ export function applyPress(model: TextModel, event: KeyEvent): PressOutcome {
   if (event.auto) {
     // Auto-inserted characters are part of the produced text (auto-pair), but
     // they are never counted as user keystrokes.
-    if ([...event.key].length === 1 && model.rejected === null) {
+    if (graphemeLength(event.key) === 1 && model.rejected === null) {
       model.buffer.push(event.key);
       model.autoInserts += 1;
     }
     return "inserted";
   }
 
-  if ([...event.key].length !== 1 && event.key !== "Backspace") return "ignored";
+  // One press is at most one grapheme: a decomposed `e` + combining acute or a
+  // ZWJ emoji sequence in a single key value is one unit (E5/E6), while a
+  // multi-grapheme commit must be split by the input adapter into one press
+  // per grapheme (M1-04) — scoring it whole would double-count one keystroke.
+  // `Dead` (4 graphemes) and every modifier name fail this gate, which is what
+  // keeps a dead-key press from ever scoring on its own (chapter 4 E5).
+  if (graphemeLength(event.key) !== 1 && event.key !== "Backspace") return "ignored";
 
   // D03 (exam, no-backspace): Backspace is not a correction, it is simply not a
   // key. It is ignored outright — never inserted, never counted as a
@@ -204,15 +256,20 @@ export function bufferText(model: TextModel): string {
  * the final text).
  */
 export function finalText(model: TextModel): string {
-  return model.buffer.slice(0, model.target.length).join("");
+  // Sliced by grapheme count, not UTF-16 length: the buffer holds one entry
+  // per press, so the cap is a unit count. (ASCII: identical.)
+  return model.buffer.slice(0, segmentGraphemes(model.target).length).join("");
 }
 
 /** Positions where the final text matches the target. */
 export function correctCharsInFinalText(model: TextModel): number {
-  const final = finalText(model);
+  // Unit-by-unit: comparing UTF-16 code units would credit a lone surrogate
+  // half (e.g. a piecemeal emoji part against the full grapheme) as "correct".
+  const produced = model.buffer.slice(0, segmentGraphemes(model.target).length);
+  const intended = segmentGraphemes(model.target);
   let correct = 0;
-  for (let i = 0; i < final.length; i++) {
-    if (final[i] === model.target[i]) correct += 1;
+  for (let i = 0; i < produced.length; i++) {
+    if (produced[i] === intended[i]) correct += 1;
   }
   return correct;
 }
