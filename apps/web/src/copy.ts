@@ -18,9 +18,19 @@ export const COPY = {
   typingSurfaceInstructions:
     "Type the text shown. Press Tab to restart. Press Escape to leave this area.",
 
-  /** Live readout labels, read at a glance so they stay short. */
+  /**
+   * Live readout labels, read at a glance so they stay short.
+   *
+   * "Keystroke accuracy" and not "Accuracy": the live figure is keystroke
+   * accuracy (correct keystrokes ÷ printable keystrokes) and the finished
+   * headline is final accuracy (correct characters in the text produced ÷ its
+   * length). One word for two different measures, on one screen, is how the
+   * owner came to see 98.9% beside 100.0% and read it as a contradiction. The
+   * word now names the measure. Logged as a spec amendment in HUMAN-ACTIONS.md:
+   * docs/content-ui-copy-string-tables.md §home.live.accuracy is changed to match.
+   */
   liveNetWpmLabel: "Net WPM",
-  liveAccuracyLabel: "Accuracy",
+  liveAccuracyLabel: "Keystroke accuracy",
 
   /** Shown while the test is paused by focus loss (chapter 4 E4). */
   paused: "Paused — click here to continue when you're ready.",

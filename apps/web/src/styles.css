@@ -1,275 +1,534 @@
 /**
- * RealType styles.
+ * RealType — the typing surface and the finished panel.
  *
- * Two rules from AGENTS.md and the accessibility target shape this file:
+ * Every colour, size, radius, duration and easing comes from `styles/tokens.css`,
+ * which is transcribed from the owner's design pack (docs/design/). 09 §10 asks
+ * for a rule that forbids raw values in components; `tests/design-tokens.test.ts`
+ * is that rule, and it currently fails on any literal colour added here. Use
+ * var(--token).
+ *
+ * Three rules from AGENTS.md and the accessibility target shape this file:
  *
  *  1. No state is signalled by colour alone (WCAG 2.2 AA, and the project's own
  *     non-negotiable). Each character state carries a distinct non-colour cue —
- *     underline style, font weight or strikethrough — so the surface is readable
- *     in greyscale, in forced-colours mode, and to a colour-blind reader. Colour
- *     is added on top of those cues, never instead of them.
+ *     underline style, weight or strikethrough — so the surface is readable in
+ *     greyscale, in forced-colours mode, and to a colour-blind reader. Colour is
+ *     added on top of those cues, never instead of them.
  *
- *  2. Nothing animates during typing except the caret, and the caret's movement
- *     is a `transform` (compositor-only) so it cannot force layout. The
- *     transition is inside `prefers-reduced-motion: no-preference`, so a reader
- *     who asks for reduced motion gets none at all rather than a shorter one.
+ *  2. Nothing animates during typing except the caret, and the caret moves on
+ *     `transform` (compositor-only) so it cannot force layout. The transition is
+ *     inside `prefers-reduced-motion: no-preference`, so a reader who asks for
+ *     reduced motion gets none at all rather than a shorter one (11 §3).
+ *
+ *  3. Surfaces are flat layers with a 1px hairline and a tone shift; shadows are
+ *     for floating layers only (08 §5). Nothing here drops a generic grey
+ *     shadow on every card.
  */
 
-:root {
-  --fg: #16181d;
-  --bg: #ffffff;
-  --surface: #f4f5f7;
-  --border: #16181d;
-  --muted: #5b6270;
-  --correct: #0a7d33;
-  --incorrect: #c0142f;
-  --extra: #8a4b00;
-  --missed: #5b6270;
-  --caret: #16181d;
-  --focus: #0b57d0;
-  color-scheme: light dark;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --fg: #e8eaed;
-    --bg: #14161a;
-    --surface: #1e2126;
-    --border: #e8eaed;
-    --muted: #a6adba;
-    --correct: #5ddb8b;
-    --incorrect: #ff8fa3;
-    --extra: #f0b45e;
-    --missed: #a6adba;
-    --caret: #e8eaed;
-    --focus: #8ab4f8;
-  }
-}
+@import "./styles/tokens.css";
 
 * {
   box-sizing: border-box;
 }
 
+html,
+body {
+  height: 100%;
+}
+
+/* The React root is between <body> and .app. Without this the percentage height
+   on .app has an auto-height parent to resolve against and collapses to nothing. */
+#root {
+  height: 100%;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
-  color: var(--fg);
+  font-family: var(--font-ui);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  color: var(--text);
   background: var(--bg);
+  /* 09 §3: tabular numerals globally on numbers, so a figure that updates
+     live never shifts the layout around it (which would be a CLS source). */
+  font-variant-numeric: tabular-nums;
 }
 
-main {
-  max-width: 60rem;
+.app {
+  max-width: var(--w-page);
   margin: 0 auto;
-  padding: 1.5rem 1rem 4rem;
-}
-
-h1 {
-  font-size: 1.3rem;
-  margin: 0 0 1rem;
-}
-
-.banner {
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.6rem 0.8rem;
-  font-size: 0.9rem;
-  color: var(--muted);
-}
-
-.controls {
+  padding: var(--s-6) var(--s-4) var(--s-16);
+  /* The page is a column that fills the viewport, so the typing stage can take
+     the slack and centre itself in it (08 §9). Percentage heights rather than a
+     `100vh` literal: the design pack has no viewport token, and a `vh` unit on a
+     mobile browser also ignores the collapsing URL bar. */
+  min-height: 100%;
   display: flex;
-  gap: 0.6rem;
-  align-items: center;
-  margin: 1rem 0 0.75rem;
-  flex-wrap: wrap;
+  flex-direction: column;
 }
 
-.note {
-  color: var(--muted);
-  font-size: 0.85rem;
+@media (min-width: 768px) {
+  .app {
+    padding: var(--s-8) var(--s-6) var(--s-20);
+  }
 }
 
-/* ---- typing surface ----------------------------------------------------- */
+/* 13 §1: a skip link, so a keyboard user reaches the typing field in one key. */
+.skip-link {
+  position: absolute;
+  left: var(--s-2);
+  top: var(--s-2);
+  z-index: var(--z-toast);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-key);
+  background: var(--flow);
+  color: var(--on-flow);
+  transform: translateY(-200%);
+}
+
+.skip-link:focus-visible {
+  transform: none;
+}
+
+.app-title {
+  font-family: var(--font-display);
+  font-size: var(--t-h3);
+  line-height: var(--lh-h3);
+  letter-spacing: var(--track-display);
+  font-weight: 600;
+  margin: 0 0 var(--s-6);
+  color: var(--text);
+}
+
+/* ---- the typing stage ----------------------------------------------------- */
 
 /*
- * The prompt overlays the surface instead of sitting in the flow. That is a UX
- * choice and a correctness one: the controls below the surface (Restart, New
- * passage) are reachable by mouse, and inserting or removing a block above them
- * on focus change moves the target inside the mousedown-to-mouseup window, which
- * is precisely when a browser decides whether a click happened.
+ * 08 §9: "centre-aligned only for the typing stage and results KPIs", with
+ * "generous negative space around the typing field". The field itself is
+ * left-aligned for reading; the STAGE around it is centred.
+ *
+ * The shell carries the typing font and size for one specific reason: `ch` is
+ * the advance width of "0" in whatever font the element resolves it in. The
+ * measure is specified in `ch` (09 §4, `--w-type: 68ch`), so it has to be
+ * resolved in the mono stack at `--t-type` or the results panel comes out a
+ * different width from the field it sits under. Everything below resets to the
+ * UI font, which is what those elements should have been in anyway.
  */
-.surface-row {
-  position: relative;
+.surface-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-4);
+  /* Take the page's slack so the field sits in the optical middle rather than
+     pinned under the title, with space above and below (08 §9). */
+  flex: 1;
+  padding: var(--s-6) 0;
+  font-family: var(--font-type);
+  font-size: var(--t-type);
 }
 
 .passage {
   position: relative;
-  font-family: ui-monospace, "Cascadia Mono", SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 1.25rem;
-  line-height: 2;
-  padding: 1rem 0.75rem;
-  background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: 6px;
-  outline-offset: 3px;
-  white-space: pre-wrap;
-  word-break: break-word;
+  width: 100%;
+  max-width: var(--w-type);
+  padding: var(--s-5) var(--s-4);
+  background: var(--surface-1);
+  /* 09 §5: panels are tone + hairline, not a drop shadow. */
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-card);
   cursor: text;
+  color: var(--text);
+  font-family: var(--font-type);
+  font-size: var(--t-type);
+  line-height: var(--lh-type);
+  letter-spacing: var(--track-mono);
+  /* Ligatures off: a typing field that renders `!=` as one glyph trains the
+     wrong thing (08 §4). */
+  font-variant-ligatures: none;
+  /* `break-word` rather than `break-all`: a long token may break, but a normal
+     line still breaks at spaces. */
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
-.passage:focus-visible {
-  outline: 3px solid var(--focus);
-}
-
-/* The live surface keeps focus without a visible ring being acceptable: focus is
-   shown by the prompt disappearing and the caret appearing, but a ring is still
-   the reliable signal, so it is never removed here. */
+.passage:focus-visible,
 .passage:focus {
-  outline: 3px solid var(--focus);
+  /* 09 §9 / 13 §1: the focus ring is the reliable signal that the field is
+     live, so it is never removed — the prompt disappearing is a bonus, not a
+     substitute. */
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-color: var(--focus-ring);
+}
+
+/*
+ * The WORD is the atomic box, not the character — and it carries the space that
+ * follows it.
+ *
+ * CSS Text allows a line break between two adjacent atomic inlines, so a passage
+ * rendered as one `inline-block` per character has a break opportunity between
+ * every pair of letters. On a wide field the browser happened to choose the
+ * spaces anyway and the bug was invisible; at 360px it broke "whenever" into
+ * "wh / enever" on a line that had room for the whole word. Making the word the
+ * atomic box restores the unit the reader actually sees. See groupIntoWords in
+ * TypingSurface.tsx.
+ *
+ * `white-space: pre` is load-bearing. The word's trailing U+00A0 has to keep its
+ * advance width inside this box, and `pre` is what guarantees it — while also
+ * guaranteeing there is no break opportunity anywhere inside the box, which is
+ * what stops a wrapped line from ever opening with that space. The earlier
+ * version left the space at top level and collapsed it by measurement, and it
+ * failed at every width where the wrap sat within a few pixels of fitting.
+ */
+.word {
+  display: inline-block;
+  vertical-align: baseline;
+  white-space: pre;
 }
 
 .ch {
-  /* The character the user has not reached yet. Dimmed, and no decoration — the
-     absence of a cue IS the "nothing typed yet" cue. */
-  color: var(--muted);
-  opacity: 0.65;
+  color: var(--text-pending);
+}
+
+/* A space keeps its own element and its own state — it is still a character the
+   user produces — but it is an ordinary inline inside the word box. It must NOT
+   be an atomic inline of its own: an empty inline box has no advance width, and an
+   atomic inline would reintroduce the break-before-space this structure exists to
+   remove. */
+.ch-space {
+  white-space: pre;
 }
 
 .ch[data-char-state="correct"] {
   /* Correct: plain and unmarked. It has to be the visually quiet state, because
      it is by far the most common one during a test. */
-  color: var(--fg);
-  opacity: 1;
-  font-weight: 400;
-  text-decoration: none;
+  color: var(--text);
 }
 
 .ch[data-char-state="incorrect"] {
-  /* Incorrect: a WAVY underline plus heavier weight. Both are non-colour cues,
-     so this state survives greyscale, forced colours and colour blindness. */
-  color: var(--incorrect);
-  opacity: 1;
-  font-weight: 700;
-  text-decoration-line: underline;
-  text-decoration-style: wavy;
-  text-underline-offset: 0.2em;
+  /* 09 §1: "--slip (+ underline 2px, not colour-only)". The 2px underline is the
+     non-colour cue; the wash is reinforcement. */
+  color: var(--slip);
+  background: var(--slip-bg);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.18em;
 }
 
 .ch[data-char-state="extra"] {
-  /* Extra: a DOUBLE underline plus italics — a shape distinct from both the wavy
-     incorrect underline and the unmarked correct character. */
-  color: var(--extra);
-  opacity: 1;
-  font-weight: 700;
-  font-style: italic;
-  text-decoration-line: underline;
-  text-decoration-style: double;
-  text-underline-offset: 0.2em;
+  /* 09 §1: "--slip at 70% + strikethrough-dotted". The strikethrough is what
+     separates this from `incorrect` once colour is gone. */
+  color: var(--slip);
+  opacity: 0.7;
+  text-decoration: line-through;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 2px;
 }
 
 .ch[data-char-state="missed"] {
-  /* Missed: struck through plus a dotted underline. A character the user never
-     produced must not be mistaken for one they produced wrongly. */
-  color: var(--missed);
-  opacity: 1;
-  font-weight: 400;
-  text-decoration-line: line-through underline;
-  text-decoration-style: dotted;
+  /* 09 §1: "--slip outline underline dashed". Dashed, and struck through the
+     character as well, so a character never produced cannot be mistaken for one
+     produced wrongly. */
+  color: var(--slip);
+  background: var(--slip-bg);
+  text-decoration: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.18em;
+  opacity: 0.85;
 }
 
 /*
  * The caret. Moved with `transform` only — `left`/`top` would relayout on every
  * keystroke, which is the difference between a compositor-only update and a
- * forced reflow. `will-change` is declared once here rather than toggled per
- * keystroke, since toggling it is itself a layout-affecting change.
+ * forced reflow. 11 §13 allows `will-change: transform` here and nowhere else.
+ *
+ * `left`/`top` are 0 because the offsets are measured from the passage's own
+ * padding box: the previous build measured them from the border box while this
+ * element sat at the padding, so the padding was counted twice and the caret
+ * landed one character right and a line below. See TypingSurface.measureSlots.
  */
 .caret {
   position: absolute;
-  top: 1rem;
-  left: 0.75rem;
+  top: 0;
+  left: 0;
   width: 2px;
   height: 1em;
-  background: var(--caret);
+  background: var(--pace);
   pointer-events: none;
   will-change: transform;
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .caret {
-    transition: transform 40ms linear;
+    transition: transform var(--dur-caret) var(--ease-caret);
   }
 }
 
-.focus-prompt {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  margin: 0;
-  padding: 0.5rem 0.9rem;
-  border-radius: 6px;
-  background: var(--bg);
-  color: var(--fg);
-  font-size: 0.95rem;
-  /* It must not eat the clicks aimed at the surface itself. */
-  pointer-events: none;
-  white-space: nowrap;
+/*
+ * 10 §3: the caret blinks while idle and stops while typing. `animation` rather
+ * than `transition`, and the `steps(1)` timing is what makes it a blink rather
+ * than a fade. Suppressed entirely under reduced motion, per 10 §3 ("caret no
+ * smoothing"), because a blinking block is exactly the kind of motion that
+ * setting exists to remove.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .passage[data-idle="true"] .caret {
+    animation: caret-blink var(--dur-blink) steps(1) infinite;
+  }
 }
 
+@keyframes caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* The test is over: the caret stops inviting more input. `visibility`, not
+   `opacity`, so assistive technology and Playwright agree it is gone. */
+.passage[data-phase="finished"] .caret {
+  visibility: hidden;
+}
+
+/*
+ * The unfocused prompt. It sits BELOW the field, not over it.
+ *
+ * 10 §3 wants a blurred overlay covering the text. That is a real conflict with
+ * STEER-2 bug (b) — the owner reported the prompt covering the passage, and a
+ * prompt that hides the text the user has to read is a prompt that costs them
+ * their place. The requirement wins and the visual treatment is adapted; the
+ * conflict is logged in HUMAN-ACTIONS.md for the owner to rule on.
+ *
+ * The slot keeps its height whether or not the prompt is in it, so focusing the
+ * field does not move the controls below it between mousedown and mouseup.
+ */
+.prompt-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui);
+  width: 100%;
+  min-height: calc(var(--t-small) * var(--lh-small));
+}
+
+.focus-prompt {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--t-small);
+  line-height: var(--lh-small);
+  text-align: center;
+}
+
+.note {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--t-caption);
+  line-height: var(--lh-caption);
+}
+
+.passage-id {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--t-caption);
+}
+
+/* ---- live readout --------------------------------------------------------- */
+
+/*
+ * 10 §5: the small live WPM/accuracy sits below the field. 09 §3's tabular
+ * numerals stop it from reflowing as the digits change — 04 §5.1 forbids content
+ * shifting during typing.
+ */
 .live-bar {
   display: flex;
-  gap: 1.25rem;
+  gap: var(--s-6);
   align-items: baseline;
+  justify-content: center;
   flex-wrap: wrap;
-  margin: 0.75rem 0;
-  font-size: 0.95rem;
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+  line-height: var(--lh-small);
+}
+
+.live-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s-2);
 }
 
 .live-label {
-  color: var(--muted);
-  margin-right: 0.35rem;
+  color: var(--text-muted);
 }
 
 .live-value {
-  font-size: 1.15rem;
-  font-variant-numeric: tabular-nums;
+  font-family: var(--font-type);
+  font-size: var(--t-body);
+  font-weight: 500;
 }
 
 .live-hint {
-  color: var(--muted);
-  font-size: 0.85rem;
-  margin-left: auto;
+  color: var(--text-muted);
+  font-size: var(--t-caption);
 }
 
+/* ---- finished panel ------------------------------------------------------- */
+
+/*
+ * 10 §6: the hero KPI is Net WPM at `--t-kpi` in the display font, with the
+ * supporting figures in a quiet row beneath. 08 §9 centres result KPIs.
+ */
 .finished {
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.75rem 0.9rem;
-  margin: 1rem 0;
+  width: 100%;
+  max-width: var(--w-type);
+  margin-top: var(--s-4);
+  padding: var(--s-6) var(--s-4) var(--s-4);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  text-align: center;
+  /*
+   * The typing font stays on this element and every child resets to the UI or
+   * display stack below. `ch` is the advance of "0" in the element's OWN font, so
+   * resetting the font here would resolve `68ch` against a 16px UI face and make
+   * the results panel a third narrower than the field it sits under. The children
+   * are where the font actually shows.
+   */
+}
+
+.headline,
+.finished-actions {
+  font-family: var(--font-ui);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
 }
 
 .headline {
   display: flex;
-  gap: 1.25rem;
-  margin: 0 0 0.5rem;
-  font-size: 1.4rem;
-  font-variant-numeric: tabular-nums;
+  gap: var(--s-8);
+  justify-content: center;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin: 0 0 var(--s-4);
+}
+
+.headline-net-wpm {
+  font-family: var(--font-display);
+  font-size: var(--t-kpi);
+  line-height: var(--lh-kpi);
+  letter-spacing: var(--track-display);
+  font-weight: 600;
+  color: var(--text);
+}
+
+/*
+ * 09 §3 gives the KPI a `clamp(72px, 10vw, 160px)`, so its floor is 72px. At
+ * 360px the panel is about 296px wide, and "56.0 WPM" at 72px is wider than
+ * that — the number would break across two lines mid-figure. Below the pack's
+ * 480px breakpoint the KPI steps down to the `--t-h2` scale instead, and stays
+ * on one line. Logged in HUMAN-ACTIONS.md as a breakpoint adaptation: the pack
+ * sizes the KPI for the desktop hero and does not say what it does on a phone.
+ */
+@media (max-width: 480px) {
+  .headline-net-wpm {
+    font-size: var(--t-h2);
+  }
+}
+
+@media (min-width: 481px) {
+  .headline-net-wpm {
+    white-space: nowrap;
+  }
+}
+
+.headline-accuracy {
+  font-family: var(--font-display);
+  font-size: var(--t-h3);
+  line-height: var(--lh-h3);
+  letter-spacing: var(--track-display);
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 .finished-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: var(--s-3);
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 0 0 var(--s-3);
+}
+
+/* 10 §2 + 08 §5: a keycap-style primary — flow fill, bevel, 2px of travel on
+   press. Hit targets stay at or above the §5 control heights. */
+button {
+  font: inherit;
+  font-family: var(--font-ui);
+  font-size: var(--t-body);
+  min-height: var(--h-control-lg);
+  padding: 0 var(--s-5);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-key);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) linear;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  button {
+    box-shadow: var(--bevel-rest);
+  }
+}
+
+button[data-variant="primary"] {
+  background: var(--flow);
+  color: var(--on-flow);
+  border-color: var(--flow);
+}
+
+button:active {
+  transform: translateY(2px);
+}
+
+select {
+  font: inherit;
+  font-family: var(--font-ui);
+  font-size: var(--t-body);
+  min-height: var(--h-control-md);
+  padding: 0 var(--s-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-input);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.controls {
+  display: flex;
+  gap: var(--s-3);
   align-items: center;
-  margin: 0 0 0.4rem;
+  margin-bottom: var(--s-4);
+  font-size: var(--t-small);
+  color: var(--text-muted);
 }
 
-.passage-id {
-  color: var(--muted);
-  font-size: 0.8rem;
-  margin: 1rem 0 0;
+.banner {
+  max-width: var(--w-type);
+  margin: var(--s-10) auto 0;
+  color: var(--text-muted);
+  font-size: var(--t-caption);
+  line-height: var(--lh-caption);
 }
 
-/* ---- utilities ---------------------------------------------------------- */
+/* ---- utilities ------------------------------------------------------------ */
 
 .visually-hidden {
   position: absolute;
@@ -278,33 +537,16 @@ h1 {
   margin: -1px;
   padding: 0;
   overflow: hidden;
-  clip: rect(0 0 0 0);
   clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
 }
 
-button,
-select {
-  font: inherit;
-  font-size: 1rem;
-  padding: 0.45rem 0.9rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg);
-  color: var(--fg);
-}
-
-/* Interactive targets stay at or above 24x24 CSS px (WCAG 2.2). */
-button,
-select,
-.passage {
-  min-height: 24px;
-}
-
+/* 13 §1 / 09 §9: one focus-ring treatment for every interactive element. */
 :focus-visible {
-  outline: 3px solid var(--focus);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
+  border-radius: var(--r-key);
 }
 
 @media (forced-colors: active) {
@@ -314,10 +556,12 @@ select,
   .ch[data-char-state="correct"] {
     color: CanvasText;
   }
+  .ch[data-char-state="incorrect"],
+  .ch[data-char-state="extra"],
   .ch[data-char-state="missed"] {
-    color: GrayText;
+    color: LinkText;
   }
   .caret {
-    background: CanvasText;
+    background: Highlight;
   }
 }

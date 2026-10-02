@@ -47,6 +47,32 @@ interface CharSlot {
   height: number;
 }
 
+type WordToken = { kind: "word"; index: number; chars: string[] };
+
+/**
+ * Split the passage into words, each carrying the space that follows it, keeping
+ * every character's index in the original string so `charRefs` stays indexed by
+ * buffer position.
+ *
+ * A trailing space stays a CHARACTER with its own state and its own rect — it is
+ * only absorbed into the preceding word's box. That is what makes STEER-2 bug (d)
+ * impossible rather than merely unlikely: see the note where `tokens` is built.
+ */
+function groupIntoWords(chars: readonly string[]): WordToken[] {
+  const tokens: WordToken[] = [];
+  let index = 0;
+  while (index < chars.length) {
+    const start = index;
+    while (index < chars.length && chars[index] !== " ") index += 1;
+    if (index === start) continue; // A leading space has no word to belong to.
+    const word = chars.slice(start, index);
+    if (index < chars.length) word.push(" "); // The space belongs to this word.
+    tokens.push({ kind: "word", index: start, chars: word });
+    index += 1;
+  }
+  return tokens;
+}
+
 export function TypingSurface({ passage, errorMode, onFinish, onNewPassage }: TypingSurfaceProps) {
   const [phase, setPhase] = useState<SurfacePhase>("idle");
   const [focused, setFocused] = useState(false);
@@ -61,10 +87,47 @@ export function TypingSurface({ passage, errorMode, onFinish, onNewPassage }: Ty
   /** What the user has produced so far, mirrored from the engine for painting. */
   const bufferRef = useRef<string[]>([]);
   const slotsRef = useRef<CharSlot[]>([]);
+  /** The passage's line box height in px, read on layout. Drives the caret. */
+  const lineHeightRef = useRef(0);
   const rafRef = useRef<number | null>(null);
   const pausedAtRef = useRef(0);
 
   const chars = useMemo(() => [...passage.text], [passage.text]);
+
+  /**
+   * The passage split into words and the spaces between them, keeping each
+   * character's index in the original string.
+   *
+   * WHY THE DOM IS SHAPED THIS WAY. Every character used to be an atomic inline
+   * box of its own, which is what made per-character carets and per-character
+   * states easy — and which quietly destroyed word integrity. CSS Text allows a
+   * line break between two adjacent atomic inlines, so a passage rendered as one
+   * inline box per character has a break opportunity between EVERY pair of
+   * letters. On a wide field the browser happened to break at spaces, so the bug
+   * was invisible. At 360px it shredded the text mid-word — "wh / enever",
+   * "brot / her" — even though "whenever" fitted the line several times over.
+   *
+   * Making the WORD the atomic box, with the characters inline inside it, is what
+   * restores the unit the reader sees. The characters still have their own
+   * elements, rects and states; they simply stop being individually breakable.
+   *
+   * AND THE WORD OWNS ITS TRAILING SPACE, which is the other half of the same idea.
+   * A space at top level is an atomic inline box in its own right, so CSS Text
+   * permits a line break BEFORE it — and a break before a space puts a space at the
+   * start of the next line, which reads as a gap the user did not type (STEER-2
+   * bug d). The obvious fix was to measure which spaces had been pushed to a line
+   * start and collapse them to zero width, which is a fixed-point search over the
+   * layout. It was found doing exactly that on 367px through 442px: the passage fits
+   * 18 characters in a 326px box for 324px, so 2px of slack decided which side of the
+   * break the space landed on, and a reflow the search never saw left it leading.
+   *
+   * Putting the space inside the word's box removes the break opportunity, so no
+   * reflow can produce a leading space. There is no search, no tolerance and no
+   * attribute to strand; the invariant is structural. The space keeps its own
+   * character element and its own state, because it is still a character the user
+   * produces.
+   */
+  const tokens = useMemo(() => groupIntoWords(chars), [chars]);
 
   // ---- layout ------------------------------------------------------------
   //
@@ -72,15 +135,43 @@ export function TypingSurface({ passage, errorMode, onFinish, onNewPassage }: Ty
   // inside the keystroke path. A layout read per keystroke is a forced reflow,
   // which is exactly what the caret-rendering rules forbid and what the 16 ms
   // p95 input-to-paint budget (NFR-01) cannot afford.
+  //
+  // THE OFFSET ORIGIN. Slots are measured from the passage's PADDING box — the
+  // box the caret, positioned at `left: 0; top: 0`, actually lives in. They used
+  // to be measured from the BORDER box, so the border and the padding were both
+  // added on top of a position that already included them: the caret landed one
+  // character to the right (the 12px horizontal padding is one advance in the
+  // mono stack) and a full line below (the 16px vertical padding). That is the
+  // "one character right and below the end of the text" the owner reported, and
+  // `e2e/typing-surface-design.spec.ts` pins it character by character.
   const measureSlots = useCallback(() => {
     const host = surfaceRef.current;
     if (host === null) return;
-    const base = host.getBoundingClientRect();
-    slotsRef.current = charRefs.current.map((span) => {
-      if (span === null) return { left: 0, top: 0, width: 0, height: 0 };
-      const r = span.getBoundingClientRect();
-      return { left: r.left - base.left, top: r.top - base.top, width: r.width, height: r.height };
-    });
+    const spans = charRefs.current;
+    const read = (): CharSlot[] => {
+      const base = host.getBoundingClientRect();
+      const originX = base.left + host.clientLeft;
+      const originY = base.top + host.clientTop;
+      return spans.map((span) => {
+        if (span === null) return { left: 0, top: 0, width: 0, height: 0 };
+        const r = span.getBoundingClientRect();
+        return { left: r.left - originX, top: r.top - originY, width: r.width, height: r.height };
+      });
+    };
+    // One pass. There used to be a fixed-point loop here, collapsing spaces the
+    // browser had parked at the start of a line; the word box now makes that
+    // break impossible, so there is nothing left to iterate towards. See the note
+    // where `tokens` is built.
+    const slots = read();
+    // The caret is as tall as the LINE, not as tall as the character it sits on.
+    // A character is an inline box, so its rect is the font's box — shorter than
+    // the line box the reader perceives. 10 §3 asks for a caret at 100% of the
+    // line height, and this is where that number comes from now that a
+    // character's own box cannot supply it. Read once per layout, never per
+    // keystroke. `normal` would give a useless "normal", so it is not accepted.
+    const lineHeight = parseFloat(getComputedStyle(host).lineHeight);
+    lineHeightRef.current = Number.isFinite(lineHeight) ? lineHeight : 0;
+    slotsRef.current = slots;
   }, []);
 
   const moveCaret = useCallback((index: number) => {
@@ -95,7 +186,9 @@ export function TypingSurface({ passage, errorMode, onFinish, onNewPassage }: Ty
     const atEnd = index >= slots.length;
     const x = atEnd ? slot.left + slot.width : slot.left;
     caret.style.transform = `translate3d(${x}px, ${slot.top}px, 0)`;
-    caret.style.height = `${slot.height}px`;
+    // The line box, so the caret spans the full line the way 10 §3 describes. The
+    // character fallback only applies before the first layout has run.
+    caret.style.height = `${lineHeightRef.current || slot.height}px`;
   }, []);
 
   /**
@@ -115,26 +208,44 @@ export function TypingSurface({ passage, errorMode, onFinish, onNewPassage }: Ty
     [passage.text, moveCaret],
   );
 
-  /** One frame performs every per-keystroke DOM write. */
+  /**
+   * One frame performs every per-keystroke DOM write.
+   *
+   * Split out from the scheduling so `finish` can run the same body
+   * SYNCHRONOUSLY before it tears the attempt down. `finish` used to cancel the
+   * pending frame outright, which threw away the frame holding the last live
+   * figures and froze the readout at a value up to 250 ms stale — the moment it
+   * is compared against the headline the user is about to read.
+   */
+  const runFrame = useCallback(() => {
+    const capture = captureRef.current;
+    if (capture === null) return;
+    paint(phase === "finished");
+    const live = computeLiveSummary(passage.text, capture.events, errorMode, {
+      // The capture's OWN clock. Passing `performance.now()` here was a units
+      // error: events and markers are stamped origin-relative from the first
+      // keystroke, so the live figure was divided by the page's whole lifetime
+      // instead of by the time spent typing. Markers travel with it for the same
+      // reason `computeFromEvents` takes them — one duration rule, two callers.
+      nowMs: capture.elapsedMs(),
+      markers: capture.markers,
+    });
+    if (liveWpmRef.current !== null) {
+      liveWpmRef.current.textContent = live.netWpm === null ? "n/a" : live.netWpm.toFixed(1);
+    }
+    if (liveAccRef.current !== null) {
+      liveAccRef.current.textContent =
+        live.keystrokeAccuracy === null ? "n/a" : `${live.keystrokeAccuracy.toFixed(1)}%`;
+    }
+  }, [errorMode, paint, passage.text, phase]);
+
   const scheduleFrame = useCallback(() => {
     if (rafRef.current !== null) return;
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = null;
-      const capture = captureRef.current;
-      if (capture === null) return;
-      paint(phase === "finished");
-      const live = computeLiveSummary(passage.text, capture.events, errorMode, {
-        nowMs: performance.now(),
-      });
-      if (liveWpmRef.current !== null) {
-        liveWpmRef.current.textContent = live.netWpm === null ? "n/a" : live.netWpm.toFixed(1);
-      }
-      if (liveAccRef.current !== null) {
-        liveAccRef.current.textContent =
-          live.keystrokeAccuracy === null ? "n/a" : `${live.keystrokeAccuracy.toFixed(1)}%`;
-      }
+      runFrame();
     });
-  }, [errorMode, paint, passage.text, phase]);
+  }, [runFrame]);
 
   const cancelFrame = useCallback(() => {
     if (rafRef.current !== null) {
@@ -174,13 +285,16 @@ export function TypingSurface({ passage, errorMode, onFinish, onNewPassage }: Ty
       layout: "qwerty-us",
       errorMode,
     });
+    // Flush, then cancel: the readout is updated to the instant the test ended
+    // before the pending frame is dropped. Cancelling first discarded it.
+    runFrame();
     cancelFrame();
     setPhase("finished");
     paint(true);
     const computed = computeResult(log, text);
     setResult(computed);
     onFinish?.(computed);
-  }, [cancelFrame, errorMode, onFinish, passage.id, passage.text, paint]);
+  }, [cancelFrame, errorMode, onFinish, passage.id, passage.text, paint, runFrame]);
 
   /**
    * The live figures must keep moving while the user is idle mid-test, because
@@ -306,45 +420,68 @@ export function TypingSurface({ passage, errorMode, onFinish, onNewPassage }: Ty
 
   return (
     <div className="surface-shell">
-      <div className="surface-row">
-        <div
-          className="passage"
-          ref={surfaceRef}
-          tabIndex={0}
-          role="textbox"
-          aria-multiline="true"
-          aria-label={COPY.typingSurfaceInstructions}
-          data-testid="surface"
-          data-phase={phase}
-          onKeyDown={handleKeyDown}
-          onKeyUp={handleKeyUp}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          onPaste={handlePaste}
-        >
-          {chars.map((ch, i) => (
-            <span
-              key={`${passage.id}-${i}`}
-              className="ch"
-              data-char-state="untyped"
-              ref={(el) => {
-                charRefs.current[i] = el;
-              }}
-            >
-              {ch === " " ? "\u00A0" : ch}
-            </span>
-          ))}
-          <div className="caret" ref={caretRef} data-testid="caret" aria-hidden="true" />
-        </div>
+      <div
+        className="passage"
+        ref={surfaceRef}
+        tabIndex={0}
+        role="textbox"
+        aria-multiline="true"
+        aria-label={COPY.typingSurfaceInstructions}
+        data-testid="surface"
+        id="surface"
+        data-phase={phase}
+        // The caret blinks only before the first keystroke (10 §3), and only
+        // where motion is welcome at all.
+        data-idle={phase === "idle" ? "true" : "false"}
+        onKeyDown={handleKeyDown}
+        onKeyUp={handleKeyUp}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onPaste={handlePaste}
+      >
+        {tokens.map((token) => (
+          // The word, and the space after it, are ONE atomic box. See
+          // groupIntoWords.
+          <span className="word" key={`w-${passage.id}-${token.index}`}>
+            {token.chars.map((ch, offset) => {
+              const index = token.index + offset;
+              return (
+                <span
+                  key={`${passage.id}-${index}`}
+                  className={ch === " " ? "ch ch-space" : "ch"}
+                  data-char-state="untyped"
+                  ref={(el) => {
+                    charRefs.current[index] = el;
+                  }}
+                >
+                  {/* A space is rendered as U+00A0 so the browser cannot collapse
+                      it away at the end of a line and make the rendered text stop
+                      matching the target. */}
+                  {ch === " " ? "\u00A0" : ch}
+                </span>
+              );
+            })}
+          </span>
+        ))}
+        <div className="caret" ref={caretRef} data-testid="caret" aria-hidden="true" />
+      </div>
 
-        {/*
-          Rendered only while unfocused, and positioned as an overlay rather than
-          in the flow. Inserting it in the flow shifted everything below it
-          between mousedown and mouseup, which is exactly the window in which a
-          click is composed — so the Restart and New passage buttons underneath
-          silently swallowed every click. A prompt must never move the controls
-          the user is reaching for.
-        */}
+      {/*
+        The unfocused prompt, BELOW the field.
+
+        It used to be an absolutely-positioned overlay in the middle of the
+        passage, which hid the text the user has just been asked to read — the
+        owner's "the prompt covers the passage". 10 §3 wants a blurred scrim over
+        the text; the requirement to keep the text readable wins over that
+        treatment, and the conflict is logged in HUMAN-ACTIONS.md.
+
+        The slot stays in the flow even when the prompt is not, so nothing below
+        it moves when the prompt appears or disappears. That movement is not
+        cosmetic: it happens between mousedown and mouseup, and it used to move
+        the Restart and New passage buttons out from under a click being composed
+        on the field.
+      */}
+      <div className="prompt-slot">
         {!focused && (
           <p className="focus-prompt" data-testid="focus-prompt">
             {COPY.focusPrompt}
@@ -358,21 +495,35 @@ export function TypingSurface({ passage, errorMode, onFinish, onNewPassage }: Ty
         </p>
       )}
 
-      <div className="live-bar">
-        <span className="live-item">
-          <span className="live-label">{COPY.liveNetWpmLabel}</span>
-          <strong className="live-value" ref={liveWpmRef} data-testid="live-net-wpm">
-            n/a
-          </strong>
-        </span>
-        <span className="live-item">
-          <span className="live-label">{COPY.liveAccuracyLabel}</span>
-          <strong className="live-value" ref={liveAccRef} data-testid="live-accuracy">
-            n/a
-          </strong>
-        </span>
-        <span className="live-hint">{COPY.hintRestart}</span>
-      </div>
+      {/*
+        The live readout. HIDDEN once the result is up.
+
+        While typing, the two figures are keystroke accuracy and net WPM so far —
+        different measures from the headline's final accuracy and net WPM across
+        the whole test, and a genuinely different question. Once the test is over
+        the headline is answering the same screen, so a live figure beside it can
+        only contradict it. The owner saw exactly that: 14.3 WPM / 98.9% live
+        against 58.0 WPM / 100.0% finished.
+      */}
+      {phase !== "finished" && (
+        <div className="live-bar" data-testid="live-bar">
+          <span className="live-item">
+            <span className="live-label">{COPY.liveNetWpmLabel}</span>
+            <strong className="live-value" ref={liveWpmRef} data-testid="live-net-wpm">
+              n/a
+            </strong>
+          </span>
+          <span className="live-item">
+            <span className="live-label" data-testid="live-accuracy-label">
+              {COPY.liveAccuracyLabel}
+            </span>
+            <strong className="live-value" ref={liveAccRef} data-testid="live-accuracy">
+              n/a
+            </strong>
+          </span>
+          <span className="live-hint">{COPY.hintRestart}</span>
+        </div>
+      )}
 
       {/*
         The one and only automatic announcement (a11y.announce.testFinished).
@@ -415,8 +566,10 @@ function FinishedPanel({
         {COPY.resultsTitle}
       </h2>
       <p className="headline">
-        <strong data-testid="headline-net-wpm">{COPY.headlineNetWpm(result.summary.netWpm)}</strong>
-        <strong data-testid="headline-accuracy">
+        <strong className="headline-net-wpm" data-testid="headline-net-wpm">
+          {COPY.headlineNetWpm(result.summary.netWpm)}
+        </strong>
+        <strong className="headline-accuracy" data-testid="headline-accuracy">
           {COPY.headlineAccuracy(result.summary.finalAccuracy)}
         </strong>
       </p>

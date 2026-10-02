@@ -28,42 +28,55 @@ export function App() {
   }, []);
 
   return (
-    <main>
-      <h1 data-testid="app-title">RealType</h1>
+    <div className="app">
+      {/*
+        13 §1: a keyboard user must be able to reach the typing field in one key.
+        It is off-screen until focused rather than `display: none`, because a
+        hidden link is not focusable and so would be no link at all.
+      */}
+      <a className="skip-link" href="#surface">
+        Skip to the typing field
+      </a>
 
-      <div className="controls">
-        <label htmlFor="passage">Passage</label>
-        <select
-          id="passage"
-          value={passage.id}
-          data-testid="passage-select"
-          onChange={(event) => {
-            const next = PASSAGES.find((p) => p.id === event.target.value);
-            if (next !== undefined) setPassage(next);
-          }}
-        >
-          {PASSAGES.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.id}
-            </option>
-          ))}
-        </select>
-      </div>
+      <main>
+        <h1 className="app-title" data-testid="app-title">
+          RealType
+        </h1>
 
-      <TypingSurface
-        // Remounting on a passage change is deliberate: it resets every ref, the
-        // capture and the offsets in one step, instead of relying on an effect to
-        // remember to undo the previous attempt.
-        key={passage.id}
-        passage={passage}
-        errorMode={errorMode}
-        onNewPassage={newPassage}
-      />
+        <div className="controls">
+          <label htmlFor="passage">Passage</label>
+          <select
+            id="passage"
+            value={passage.id}
+            data-testid="passage-select"
+            onChange={(event) => {
+              const next = PASSAGES.find((p) => p.id === event.target.value);
+              if (next !== undefined) setPassage(next);
+            }}
+          >
+            {PASSAGES.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.id}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <TypingSurface
+          // Remounting on a passage change is deliberate: it resets every ref, the
+          // capture and the offsets in one step, instead of relying on an effect to
+          // remember to undo the previous attempt.
+          key={passage.id}
+          passage={passage}
+          errorMode={errorMode}
+          onNewPassage={newPassage}
+        />
+      </main>
 
       <p className="banner" role="note">
         Practice surface. Every score comes from the RealType engine in this repository — nothing is
         sent anywhere and nothing is saved.
       </p>
-    </main>
+    </div>
   );
 }

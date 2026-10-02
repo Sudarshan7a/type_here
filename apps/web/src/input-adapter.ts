@@ -21,7 +21,7 @@ export interface CaptureOptions {
 
 export class InputCapture {
   private readonly captured: KeyEvent[] = [];
-  private readonly markers: LogMarker[] = [];
+  private readonly focusMarkers: LogMarker[] = [];
   /** Clock origin: the first accepted keydown. Until then, time is not spent. */
   private origin: number | null = null;
 
@@ -69,12 +69,38 @@ export class InputCapture {
   markAt(at: number, kind: LogMarker["kind"], detail?: LogMarker["detail"]): number | null {
     if (this.origin === null) return null;
     const t = at - this.origin;
-    this.markers.push(detail === undefined ? { kind, t } : { kind, t, detail });
+    this.focusMarkers.push(detail === undefined ? { kind, t } : { kind, t, detail });
     return t;
   }
 
   get eventCount(): number {
     return this.captured.length;
+  }
+
+  /**
+   * The capture's clock, in the SAME origin-relative units as `events` and
+   * `markers`.
+   *
+   * This method exists because of a defect the owner reported as "the live
+   * readout says 14.3 WPM and the finished headline says 58.0". The surface used
+   * to pass a raw `performance.now()` as the live clock, while every event and
+   * marker it had ever handed the engine was stamped `t - origin` from the first
+   * keystroke (chapter 4 edge E1). The live summary therefore subtracted an
+   * origin-relative timestamp from an absolute one, so every live figure was
+   * divided by the page's lifetime since load rather than by the time the user
+   * had actually spent typing. On a fast test that is a several-fold error, in
+   * one direction, always.
+   *
+   * Before the first keystroke there is no clock (ENG-04), so this is 0 — the
+   * same "no data" state the engine already returns.
+   */
+  elapsedMs(): number {
+    return this.origin === null ? 0 : this.now() - this.origin;
+  }
+
+  /** Focus / blur / visibility markers, read-only, on the same clock as events. */
+  get markers(): readonly LogMarker[] {
+    return this.focusMarkers;
   }
 
   /**
@@ -90,14 +116,14 @@ export class InputCapture {
 
   reset(): void {
     this.captured.length = 0;
-    this.markers.length = 0;
+    this.focusMarkers.length = 0;
     this.origin = null;
   }
 
   toLog(options: CaptureOptions): InputLog {
     return {
       events: [...this.captured],
-      ...(this.markers.length > 0 ? { markers: [...this.markers] } : {}),
+      ...(this.focusMarkers.length > 0 ? { markers: [...this.focusMarkers] } : {}),
       meta: {
         mode: options.mode,
         textId: options.textId,
