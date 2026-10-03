@@ -52,6 +52,31 @@ const SURFACE_COPY: ReadonlyArray<{ key: string; expected: string }> = [
   { key: "settings.caretStyle.line", expected: "Line" },
   { key: "settings.caretStyle.block", expected: "Block" },
   { key: "settings.caretStyle.underline", expected: "Underline" },
+  // CUS-02: the theme switcher. Pinned so the two shipped palettes cannot
+  // drift from the table nobody reviews.
+  { key: "settings.theme.label", expected: "Theme" },
+  { key: "settings.theme.nightInk", expected: "Night Ink" },
+  { key: "settings.theme.daylight", expected: "Daylight" },
+  // CUS-02: the interface-face selector. Pinned character for character
+  // because the claims ban lives in the wording — "a highly legible face"
+  // describes the typeface and promises no outcome.
+  { key: "settings.uiFont.label", expected: "Interface font" },
+  { key: "settings.uiFont.geist", expected: "Geist (default)" },
+  { key: "settings.uiFont.system", expected: "System" },
+  { key: "settings.uiFont.atkinson", expected: "Atkinson Hyperlegible" },
+  {
+    key: "settings.uiFont.note",
+    expected:
+      "A highly legible face for the app interface. The typing text always stays in JetBrains Mono, whatever is selected here.",
+  },
+  // CUS-02: focus mode. Pinned so the "what stays usable" promise cannot
+  // silently narrow.
+  { key: "settings.focusMode.label", expected: "Focus mode" },
+  {
+    key: "settings.focusMode.note",
+    expected:
+      "Hides the title, settings and notes, and softens the readout around the text. The passage, results and replay stay fully usable.",
+  },
   // ENG-09: the auto-insertion toggles. Pinned so the honest-limit note
   // cannot drift into a promise.
   { key: "settings.autoIndent.label", expected: "Auto-indent" },

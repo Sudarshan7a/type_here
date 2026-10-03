@@ -6,7 +6,7 @@
  * clock — belongs to packages/engine, and the surface is the only thing that
  * talks to it.
  */
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ErrorMode } from "@realtype/engine";
 import { LayoutSchema, type CaretStyle, type Layout } from "@realtype/schemas";
 
@@ -84,7 +84,6 @@ function storeLayout(layout: Layout): void {
 /** Storage keys for the ENG-09 auto-insertion toggles (off by default). */
 export const AUTO_INDENT_STORAGE_KEY = "realtype.autoIndent";
 export const AUTO_PAIR_STORAGE_KEY = "realtype.autoPair";
-
 /** Read an armed toggle: only the exact string "true" arms it. */
 function readStoredToggle(key: string): boolean {
   try {
@@ -104,6 +103,89 @@ function storeToggle(key: string, value: boolean): void {
     // Private mode and locked-down storage: the selection still applies.
   }
 }
+
+/**
+ * CUS-02 theme selection. Display-only, like the caret style: it reaches no
+ * metric and no `modelVersion`, so it lives in the web app rather than in
+ * @realtype/schemas (no contract bump for a palette choice).
+ *
+ * `night-ink` is the `:root` default; `daylight` is `data-theme="daylight"`.
+ * An explicit `night-ink` value inherits the same dark tokens — it names the
+ * default so the selector always shows something truthful, and it opts out of
+ * the OS-light mapping, which is what "I chose Night Ink" has to mean.
+ */
+export const THEME_STORAGE_KEY = "realtype.theme";
+export type Theme = "night-ink" | "daylight";
+export const SUPPORTED_THEMES: readonly Theme[] = ["night-ink", "daylight"];
+
+/** Parse a stored theme value. Unknown or corrupt values are ignored. */
+export function parseStoredTheme(raw: unknown): Theme | null {
+  return raw === "night-ink" || raw === "daylight" ? raw : null;
+}
+
+/**
+ * The first-run theme: what the visitor already sees. A light OS gets
+ * Daylight through the CSS `prefers-color-scheme` mapping, so the derived
+ * default matches it rather than silently switching to dark. Outside a
+ * browser (SSR, tests) there is no OS to ask — Night Ink, the `:root`
+ * default. Never persisted: persistence happens on selection only.
+ */
+export function defaultTheme(): Theme {
+  try {
+    if (
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-color-scheme: light)").matches
+    ) {
+      return "daylight";
+    }
+  } catch {
+    // A matchMedia that throws is no evidence about the OS.
+  }
+  return "night-ink";
+}
+
+/** Read a stored string value, or null on first run / outside a browser. */
+function readStoredString(key: string): string | null {
+  try {
+    if (typeof localStorage === "undefined") return null;
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+/** Persist a string selection. A storage failure keeps the visit's choice. */
+function storeString(key: string, value: string): void {
+  try {
+    if (typeof localStorage === "undefined") return;
+    localStorage.setItem(key, value);
+  } catch {
+    // Private mode and locked-down storage: the selection still applies.
+  }
+}
+
+/**
+ * CUS-02 interface-face selection. Display-only like the theme. `geist` is
+ * the `:root` default (`--font-ui`); `system` and `atkinson` swap that token
+ * via `data-ui-font`. The typing face (`--font-type`) is never involved, so
+ * this choice can never silently restyle the text being typed.
+ */
+export const UI_FONT_STORAGE_KEY = "realtype.uiFont";
+export type UiFont = "geist" | "system" | "atkinson";
+export const SUPPORTED_UI_FONTS: readonly UiFont[] = ["geist", "system", "atkinson"];
+
+/** Parse a stored interface-face value. Unknown values fall back to Geist. */
+export function parseStoredUiFont(raw: unknown): UiFont | null {
+  return raw === "geist" || raw === "system" || raw === "atkinson" ? raw : null;
+}
+
+/**
+ * CUS-02 focus mode. Display-only like the rest. Off by default, armed only
+ * by the toggle — nothing auto-activates it, and persistence is the same
+ * guest-first exact-"true" pattern as the auto-insertion toggles.
+ */
+export const FOCUS_MODE_STORAGE_KEY = "realtype.focusMode";
 
 export function App() {
   const [passage, setPassage] = useState<Passage>(PASSAGES[0]!);
@@ -158,6 +240,61 @@ export function App() {
     storeToggle(AUTO_PAIR_STORAGE_KEY, next);
   }, []);
 
+  // CUS-02: the theme switcher. Guest-first persistence like the layout:
+  // first run starts from the derived default (what the visitor already
+  // sees), every later visit from the stored choice. React state changes only
+  // here, on selection — never in the key path (AGENTS.md rule 2). The effect
+  // below writes `data-theme` on <html>; with no stored choice there is no
+  // attribute and the CSS OS mapping decides, exactly as before.
+  const [theme, setTheme] = useState<Theme>(
+    () => parseStoredTheme(readStoredString(THEME_STORAGE_KEY)) ?? defaultTheme(),
+  );
+
+  const changeTheme = useCallback((next: Theme) => {
+    setTheme(next);
+    storeString(THEME_STORAGE_KEY, next);
+  }, []);
+
+  useEffect(() => {
+    try {
+      document.documentElement.dataset.theme = theme;
+    } catch {
+      // Outside a browser there is no <html> to mark (SSR, tests).
+    }
+  }, [theme]);
+
+  // CUS-02: the interface-face selector. Same shape as the theme: derived
+  // default (Geist, the `:root` default), stored choice wins, selection-only
+  // state, `data-ui-font` on <html>. The typing face is untouched.
+  const [uiFont, setUiFont] = useState<UiFont>(
+    () => parseStoredUiFont(readStoredString(UI_FONT_STORAGE_KEY)) ?? "geist",
+  );
+
+  const changeUiFont = useCallback((next: UiFont) => {
+    setUiFont(next);
+    storeString(UI_FONT_STORAGE_KEY, next);
+  }, []);
+
+  useEffect(() => {
+    try {
+      document.documentElement.dataset.uiFont = uiFont;
+    } catch {
+      // Outside a browser there is no <html> to mark (SSR, tests).
+    }
+  }, [uiFont]);
+
+  // CUS-02: focus mode. Off by default, armed only by the toggle below —
+  // never auto-activated (no media query, no timer, no first-run logic).
+  // `data-focus-mode` rides the `.app` div so it server-renders truthfully.
+  const [focusMode, setFocusMode] = useState<boolean>(() =>
+    readStoredToggle(FOCUS_MODE_STORAGE_KEY),
+  );
+
+  const changeFocusMode = useCallback((next: boolean) => {
+    setFocusMode(next);
+    storeToggle(FOCUS_MODE_STORAGE_KEY, next);
+  }, []);
+
   const newPassage = useCallback(() => {
     setPassage((current) => {
       const index = PASSAGES.findIndex((p) => p.id === current.id);
@@ -167,7 +304,7 @@ export function App() {
   }, []);
 
   return (
-    <div className="app">
+    <div className="app" data-focus-mode={focusMode ? "on" : "off"}>
       {/*
         13 §1: a keyboard user must be able to reach the typing field in one key.
         It is off-screen until focused rather than `display: none`, because a
@@ -252,7 +389,67 @@ export function App() {
             />
             {COPY.autoPairLabel}
           </label>
+
+          <label htmlFor="theme">{COPY.themeLabel}</label>
+          <select
+            id="theme"
+            value={theme}
+            data-testid="theme-select"
+            onChange={(event) => {
+              const next = parseStoredTheme(event.target.value);
+              if (next !== null) changeTheme(next);
+            }}
+          >
+            {SUPPORTED_THEMES.map((name) => (
+              <option key={name} value={name}>
+                {COPY.themeOptions[name]}
+              </option>
+            ))}
+          </select>
+
+          <label htmlFor="ui-font">{COPY.uiFontLabel}</label>
+          <select
+            id="ui-font"
+            value={uiFont}
+            data-testid="ui-font-select"
+            onChange={(event) => {
+              const next = parseStoredUiFont(event.target.value);
+              if (next !== null) changeUiFont(next);
+            }}
+          >
+            {SUPPORTED_UI_FONTS.map((name) => (
+              <option key={name} value={name}>
+                {COPY.uiFontOptions[name]}
+              </option>
+            ))}
+          </select>
         </div>
+
+        {/*
+          The focus toggle lives OUTSIDE `.controls` in its own row: focus mode
+          hides `.controls`, and the way back out must never be among the things
+          hidden. A plain labelled checkbox, keyboard-reachable in both modes.
+        */}
+        <div className="focus-control">
+          <label htmlFor="focus-mode">
+            <input
+              id="focus-mode"
+              type="checkbox"
+              data-testid="focus-mode-toggle"
+              checked={focusMode}
+              onChange={(event) => changeFocusMode(event.target.checked)}
+            />
+            {COPY.focusModeLabel}
+          </label>
+        </div>
+
+        <p className="note" data-testid="ui-font-note">
+          {COPY.uiFontNote}
+        </p>
+
+        <p className="note" data-testid="focus-mode-note">
+          {COPY.focusModeNote}
+        </p>
 
         <p className="note" data-testid="auto-note">
           {COPY.autoNote}
