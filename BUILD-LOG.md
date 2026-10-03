@@ -1,7 +1,13 @@
 # BUILD LOG
 
 ## Current Position
-Phase: Phase 1 (M1 engine) — loop WAVE 0.6 done. ENG-09 stays IN PROGRESS with the MVP scope landed and two owned deferrals.
+Phase: Phase 1 (M1 engine) — loop WAVE 0.7 done. ENG-10 moved NOT STARTED → DONE-VERIFIED (first NOT STARTED row closed by the loop).
+Last completed task: **Raw chars (PR #33):** 5 engine strict-equality pins + 2 e2e verbatim proofs, both mutants killed (engine case-fold, adapter quote-rewrite), neighbors green. Spec-checker: DONE-VERIFIED as LAB PROXY with dispositions (M1-04 sink follow-up owns the disable-attributes; mobile deferred to ENG-13). Test-hygiene finding recorded: spellCheck={false} is DOM-property-only, invisible to SSR scans — live-DOM e2e is the pin. PR merged after CI green.
+Ledger: MVP 9/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 1/20 | overall 10/216 DONE-VERIFIED (21 IN PROGRESS, 184 NOT STARTED, 1 REJECTED).
+Next task, in the loop order (LOOP-TO-DONE-PROMPT.md WAVE 0):
+1. **WAVE 0.8** — CUS-01 stays IN PROGRESS until owner eyeballs surface (human; verify machine layers still green).
+2. **WAVE 0.9** — CUS-02 theme switcher UI + dyslexia face + focus mode (caret style shipped).
+Previous position (WAVE 0.6 closeout):
 Last completed task: **Fixture + toggles (PR #31):** ENG-FIXTURE-E-AUTOINSERT (KSPC 0.75 pin, hand-computed, recompute bit-exact incl. the new flag rule, mutant-proven) + auto-indent/auto-pair checkboxes (default off, persisted, carried to log settings, honest prose-does-nothing note, copy-table pinned). Spec-checker: stays IN PROGRESS — `partial` needs a code-mode definition (disposition: boolean now, enum migration tracked on PRG-11) and `auto:true` production needs code passages (tracked on PRG-11/PRG-15). PR merged after CI green.
 Ledger: MVP 8/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 1/20 | overall 9/216 DONE-VERIFIED (21 IN PROGRESS, 185 NOT STARTED, 1 REJECTED). No status moved this round.
 Next task, in the loop order (LOOP-TO-DONE-PROMPT.md WAVE 0):
