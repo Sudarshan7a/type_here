@@ -2,6 +2,7 @@
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import prettier from "eslint-config-prettier";
+import { copyClaimsPlugin } from "./tools/eslint-plugin-copy-claims.mjs";
 
 export default tseslint.config(
   {
@@ -45,6 +46,20 @@ export default tseslint.config(
             "Use performance.now() for timing (chapter 4 E10): wall-clock jumps break elapsed-time math.",
         },
       ],
+    },
+  },
+  {
+    // PRG-05 (absolute prohibition): user-facing copy must never promise speed
+    // gains, improved programming ability, or hiring outcomes. The rule checks
+    // string literals, template quasis, JSX text and JSX attribute values; the
+    // pattern registry, allowlist rationale and Markdown-corpus half live in
+    // tools/eslint-plugin-copy-claims.mjs (single source of truth).
+    files: ["**/*.{js,mjs,cjs,jsx,ts,tsx}"],
+    plugins: {
+      "copy-claims": copyClaimsPlugin,
+    },
+    rules: {
+      "copy-claims/no-outcome-promises": "error",
     },
   },
 );
