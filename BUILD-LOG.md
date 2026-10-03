@@ -1,7 +1,13 @@
 # BUILD LOG
 
 ## Current Position
-Phase: Phase 1 (M1 engine) — loop WAVE 0.7 done. ENG-10 moved NOT STARTED → DONE-VERIFIED (first NOT STARTED row closed by the loop).
+Phase: Phase 1 (M1 engine) — loop WAVE 0.9 done. CUS-02 moved IN PROGRESS → DONE-VERIFIED. (WAVE 0.8: CUS-01's three machine layers re-verified green after all UI landings; owner eyeball remains the human item.)
+Last completed task: **Themes/focus (PR #35, worktree slice):** switcher + Atkinson UI face (OFL, FONT-04, 187.5KB bundle) + focus mode, 15 unit/SSR + 10 e2e (contrast computed live, forced-colors, 24px targets, describedby, focus rescue, heading-in-tree). **Reviews (mandatory for UI):** a11y-auditor FAIL (dim contrast 2.39–3.86, forced-colors dimming, checkbox targets, h1 removal, unconditional writes) + ui-reviewer PASS-WITH-NOTES (flash, frozen default, daylight drift) — ALL fixed by integrator in-worktree (dim 0.9, forced-colors block, 24px boxes, conditional writes, h1 visually-hidden, describedby, rescue ref, daylight-equality test, note softened) and re-audited APPROVE. PR merged after CI green.
+Ledger: MVP 10/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 1/20 | overall 11/216 DONE-VERIFIED (20 IN PROGRESS, 184 NOT STARTED, 1 REJECTED).
+Next task, in the loop order (LOOP-TO-DONE-PROMPT.md WAVE 0):
+1. **WAVE 0.10** — CUS-03 Esc=menu, full keyboard-only flow, shortcuts list.
+2. **WAVE 0.11** — A11Y-01/NFR-11 full sweep (human SR pass stays human).
+Previous position (WAVE 0.7 closeout):
 Last completed task: **Raw chars (PR #33):** 5 engine strict-equality pins + 2 e2e verbatim proofs, both mutants killed (engine case-fold, adapter quote-rewrite), neighbors green. Spec-checker: DONE-VERIFIED as LAB PROXY with dispositions (M1-04 sink follow-up owns the disable-attributes; mobile deferred to ENG-13). Test-hygiene finding recorded: spellCheck={false} is DOM-property-only, invisible to SSR scans — live-DOM e2e is the pin. PR merged after CI green.
 Ledger: MVP 9/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 1/20 | overall 10/216 DONE-VERIFIED (21 IN PROGRESS, 184 NOT STARTED, 1 REJECTED).
 Next task, in the loop order (LOOP-TO-DONE-PROMPT.md WAVE 0):
