@@ -41,8 +41,8 @@ ADR-005 and only a `RESPONSE` or `STEER` file can enable it. `—` means no flag
 | Status | Rows |
 |---|---|
 | DONE-VERIFIED | 12 |
-| IN PROGRESS | 19 |
-| NOT STARTED | 184 |
+| IN PROGRESS | 20 |
+| NOT STARTED | 183 |
 | LAUNCH-GATED | 0 |
 | BLOCKED-EXTERNAL | 0 |
 | DEFERRED-BY-HUMAN | 0 |
@@ -247,7 +247,7 @@ measuring input-to-paint in this surface (NFR-01), and the no-network-during-a-t
 
 | ID | name | tag | depends-on | status | flag | test IDs | evidence | notes |
 |---|---|---|---|---|---|---|---|---|
-| A11Y-01 | WCAG 2.2 AA for non-test UI; 200% text; reduced motion | MVP | — | IN PROGRESS | — | e2e/typing-surface.spec.ts AC2/AC6, apps/web/tests/typing-surface.test.tsx | LAB PROXY | duplicated by NFR-11. The typing surface ships accessibility with the feature rather than after it: every character state carries a non-colour cue (wavy underline / double underline / strikethrough / weight), asserted on the COMPUTED style so it cannot quietly regress to colour-only; the caret transition sits inside `prefers-reduced-motion: no-preference`, asserted in BOTH directions because an unstyled page also reports 0s; the key sink carries the string table's accessible name and instructions; exactly one `aria-live="polite"` region, which fires once at finish and never per keystroke; targets are at least 24x24 CSS px; there is a `forced-colors` block. **Still open:** the full WCAG 2.2 AA sweep across every screen (this is one screen), 200% zoom and text-spacing override, and the screen-reader pass |
+| A11Y-01 | WCAG 2.2 AA for non-test UI; 200% text; reduced motion | MVP | — | IN PROGRESS | — | e2e/typing-surface.spec.ts AC2/AC6, apps/web/tests/typing-surface.test.tsx | LAB PROXY | duplicated by NFR-11. The typing surface ships accessibility with the feature rather than after it: every character state carries a non-colour cue (wavy underline / double underline / strikethrough / weight), asserted on the COMPUTED style so it cannot quietly regress to colour-only; the caret transition sits inside `prefers-reduced-motion: no-preference`, asserted in BOTH directions because an unstyled page also reports 0s; the key sink carries the string table's accessible name and instructions; exactly one `aria-live="polite"` region, which fires once at finish and never per keystroke; targets are at least 24x24 CSS px; there is a `forced-colors` block. **Loop WAVE 0.11 (PR #39, a11y-auditor PASS-WITH-NOTES):** machine sweep `e2e/a11y-sweep.spec.ts` (18 tests, CI green) covers every screen — 200%-zoom equivalent, 1.4.12 spacing override, forced-colors full pass, motion both directions incl. blink, ~20-pair/theme contrast sweep, all-targets ≥24, replay non-color cues — and fixed 4 real violations (replay wrap, scrub target, spacing click-shift, button motion under reduce). Stays IN PROGRESS: the screen-reader pass is human-only (item filed). |
 | A11Y-02 | No-timer practice, adjustable targets | MVP | — | NOT STARTED | — | — | — | fixes PP-20 |
 | A11Y-03 | Screen-reader guided mode + audio cues | V1 | A11Y-01 | NOT STARTED | — | — | — | |
 | A11Y-04 | One-handed learning tracks | V1 | LOC-01 | NOT STARTED | — | — | — | |
@@ -390,7 +390,7 @@ measuring input-to-paint in this surface (NFR-01), and the no-network-during-a-t
 | NFR-08 | Security: OWASP ASVS L1→L2, strict CSP, rate limit, dep scanning | UNTAGGED | INT-04 | IN PROGRESS | — | apps/api security tests | LAB PROXY | helmet CSP + rate limiting + redaction land. ASVS L1→L2 audit not done |
 | NFR-09 | Privacy: GDPR + India DPDP; minimisation; opt-in research; no trackers in test flow | UNTAGGED | USR-04 | IN PROGRESS | — | telemetry canary | LAB PROXY | scrubbing proven; the DPDP/GDPR posture itself is unverified |
 | NFR-10 | Compatibility: latest 2 of Chrome/Edge/Firefox/Safari; iOS | UNTAGGED | — | NOT STARTED | — | — | — | Firefox/WebKit e2e still commented out |
-| NFR-11 | Accessibility: WCAG 2.2 AA (non-test UI) | UNTAGGED | A11Y-01 | NOT STARTED | — | — | — | duplicate of A11Y-01 |
+| NFR-11 | Accessibility: WCAG 2.2 AA (non-test UI) | UNTAGGED | A11Y-01 | IN PROGRESS | — | e2e/a11y-sweep.spec.ts | LAB PROXY | duplicate of A11Y-01; tracks it. Machine sweep green (PR #39); screen-reader human pass still open. |
 | NFR-12 | Testing: golden, property, Playwright e2e, latency harness; V1 load tests | UNTAGGED | — | IN PROGRESS | — | 114 named test IDs | LAB PROXY | harness strong; 114 named IDs tracked, many not yet written |
 | NFR-13 | Observability: structured logs, metrics, error tracking, dashboards | UNTAGGED | OPS-13 | NOT STARTED | — | — | — | real error tracking is an external account |
 | NFR-14 | i18n: externalised strings; RTL-ready | UNTAGGED | LOC-03 | NOT STARTED | — | — | — | |
