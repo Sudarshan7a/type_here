@@ -188,6 +188,16 @@
 | `settings.caretStyle.line` | Line | The design-pack default: a thin bar sized to the letter. |
 | `settings.caretStyle.block` | Block | A tinted block over the character, with a solid edge marking the insertion point. |
 | `settings.caretStyle.underline` | Underline | A short rule under the character, clearing the descenders. |
+| `settings.theme.label` | Theme | CUS-02. Night Ink is the default; Daylight is the light palette. Both palettes already live in tokens.css — the switcher only selects. |
+| `settings.theme.nightInk` | Night Ink | The default dark palette. |
+| `settings.theme.daylight` | Daylight | The light palette. |
+| `settings.uiFont.label` | Interface font | CUS-02. The interface face only — never the typing face. |
+| `settings.uiFont.geist` | Geist (default) | The default interface face. |
+| `settings.uiFont.system` | System | The device's own interface face. |
+| `settings.uiFont.atkinson` | Atkinson Hyperlegible | A highly legible face. Names the typeface; claims nothing about any reader. |
+| `settings.uiFont.note` | An interface face option for the app chrome. The typing text always stays in JetBrains Mono, whatever is selected here. | Factual only: what changes and what does not. No readability, accessibility or speed outcome is promised. |
+| `settings.focusMode.label` | Focus mode | CUS-02. User toggle only — never activates on its own. |
+| `settings.focusMode.note` | Hides the title, settings and notes, and softens the readout around the text. The passage, results and replay stay fully usable. | Factual only: what hides, what softens, what stays. |
 | `settings.errorMode.free.label` | Free (default) | |
 | `settings.errorMode.free.description` | Type naturally; mistakes are marked but don't block you. | |
 | `settings.errorMode.mustCorrect.label` | Must-correct | |

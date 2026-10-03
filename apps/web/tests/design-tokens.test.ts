@@ -92,6 +92,46 @@ describe("design tokens — tokens.css is the only place a colour is named", () 
     }
   });
 
+  it("keeps the two Daylight definitions identical, so the OS mapping cannot drift", () => {
+    // `[data-theme="daylight"]` (stored choice) and the `prefers-color-scheme:
+    // light` `:not([data-theme])` mapping (no stored choice) must paint the
+    // same palette — a one-token drift would make first paint disagree with a
+    // stored Daylight choice. Presence-only checks cannot see that.
+    const tokens = readFileSync(TOKENS_FILE, "utf8");
+    // Brace-depth extraction (not first-`}`): the @media wrapper holds an
+    // inner rule, so naive slicing would under-capture the day a second rule
+    // is added inside it.
+    const block = (open: number): Map<string, string> => {
+      let depth = 0;
+      let i = open;
+      for (; i < tokens.length; i++) {
+        if (tokens[i] === "{") depth += 1;
+        else if (tokens[i] === "}") {
+          depth -= 1;
+          if (depth === 0) break;
+        }
+      }
+      const body = tokens.slice(open, i);
+      const out = new Map<string, string>();
+      for (const m of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) out.set(m[1]!, m[2]!.trim());
+      return out;
+    };
+    const storedOpen = tokens.indexOf('[data-theme="daylight"]');
+    const stored = block(tokens.indexOf("{", storedOpen));
+    const mediaOpen = tokens.indexOf("@media (prefers-color-scheme: light)");
+    const innerOpen = tokens.indexOf("{", tokens.indexOf(":root:not([data-theme])", mediaOpen));
+    const mapped = block(innerOpen);
+    expect(stored.size).toBeGreaterThan(0);
+    expect(mapped.size).toBe(stored.size);
+    expect([...mapped.keys()].sort()).toEqual([...stored.keys()].sort());
+    for (const [name, value] of stored) {
+      expect(
+        mapped.get(name),
+        `Daylight token ${name} drifted between the stored block and the OS mapping`,
+      ).toBe(value);
+    }
+  });
+
   it("carries the type scale, spacing, radius, motion and layout tokens", () => {
     const tokens = readFileSync(TOKENS_FILE, "utf8");
     // §3 type, §4 spacing + containers, §5 radius, §7 motion, §6 z-index.

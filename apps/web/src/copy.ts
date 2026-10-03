@@ -22,6 +22,56 @@ export const COPY = {
   },
 
   /**
+   * settings.theme.label — CUS-02. Night Ink (the `:root` default) and Daylight
+   * (the `data-theme="daylight"` palette) are the two palettes tokens.css
+   * already defines. The default is whatever the visitor already sees: Night
+   * Ink, unless their OS asks for light and they have never chosen — the CSS
+   * `prefers-color-scheme` mapping, which the switcher does not override until
+   * a selection is made. No outcome is promised.
+   */
+  themeLabel: "Theme",
+
+  /** settings.theme.{nightInk,daylight} — CUS-02, the two shipped palettes. */
+  themeOptions: {
+    "night-ink": "Night Ink",
+    daylight: "Daylight",
+  } as const,
+
+  /**
+   * settings.uiFont.label — CUS-02. The INTERFACE face only. The typing face
+   * stays JetBrains Mono whatever is selected here — the two faces are
+   * independent by design, so this choice can never silently restyle the text
+   * being typed. Factual only: what changes and what does not. No outcome —
+   * readability, accessibility or speed — is promised.
+   */
+  uiFontLabel: "Interface font",
+
+  /** settings.uiFont.{geist,system,atkinson} — CUS-02, default Geist. */
+  uiFontOptions: {
+    geist: "Geist (default)",
+    system: "System",
+    atkinson: "Atkinson Hyperlegible",
+  } as const,
+
+  /**
+   * settings.uiFont.note — CUS-02. Factual only: what the option changes, which
+   * face does the typing, and that nothing about legibility, accessibility or
+   * speed is claimed. "A highly legible face" describes the typeface; it is
+   * not a statement about any reader.
+   */
+  uiFontNote:
+    "An interface face option for the app chrome. The typing text always stays in JetBrains Mono, whatever is selected here.",
+
+  /**
+   * settings.focusMode.label / settings.focusMode.note — CUS-02. Factual only:
+   * what is hidden, what is softened, and what stays fully usable. Never
+   * activates on its own; the toggle below is the only way in.
+   */
+  focusModeLabel: "Focus mode",
+  focusModeNote:
+    "Hides the title, settings and notes, and softens the readout around the text. The passage, results and replay stay fully usable.",
+
+  /**
    * settings.layout.label — LOC-01 (M2-06 §2). The selector is a plain labelled
    * control beside the passage picker, always visible, never covering the text.
    */

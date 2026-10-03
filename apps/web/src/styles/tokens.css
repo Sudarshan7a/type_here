@@ -95,6 +95,32 @@
     U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+/*
+ * CUS-02: the legible interface face. Atkinson Hyperlegible (Braille
+ * Institute, SIL OFL 1.1 — see docs/content-license-register.md FONT-03) is
+ * offered as an interface-face option beside Geist and the system stack. Latin
+ * 400 only, the same precedent as the two faces above: the interface sets
+ * 500/600 in places (live figures, titles, headlines) and those synthesise,
+ * as they already do today. A 700 file would cost another ~17 KB against the
+ * 200 KB bundle budget for a weight the option does not need to be honest.
+ *
+ * `font-display: swap`, like the rest. It is NOT preloaded: index.html
+ * preloads the typing face only, which is the one on the critical path, and
+ * the UI face arrives with the stylesheet. The typing face is untouched —
+ * `--font-type` never mentions this family, so selecting it for the interface
+ * can never silently restyle the text being typed.
+ */
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/atkinson-hyperlegible-latin-400-normal.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 /* ---- theme: Night Ink (dark), the default -------------------------------- */
 
 :root {
@@ -125,6 +151,14 @@
      declares. The prose is followed, so the stack actually matches a loaded
      face rather than a name that can never resolve. [TRANSCRIPTION] */
   --font-ui: "Geist Sans", system-ui, sans-serif;
+  /*
+   * CUS-02: the legible alternative to `--font-ui`. Swapped in by
+   * `:root[data-ui-font="atkinson"]` below. It is a separate token rather than
+   * an inline stack so the choice stays a token, like everything else here.
+   * `--font-type` is deliberately NOT part of this: the typing face stays
+   * JetBrains Mono whatever the interface does.
+   */
+  --font-legible: "Atkinson Hyperlegible", system-ui, sans-serif;
   --font-type: "JetBrains Mono", "Geist Mono", ui-monospace, monospace;
   --t-caption: 12px;
   --t-small: 14px;
@@ -210,6 +244,21 @@
   --z-dialog: 40;
   --z-toast: 60;
   --z-tooltip: 70;
+
+  /*
+   * CUS-02 focus mode: how far the secondary lines around the passage (the
+   * prompt slot, the live readout) step back while focus mode is on. The
+   * passage itself stays at full strength. A token rather than a literal, so
+   * the dimming stays reviewable in one place.
+   *
+   * 0.9 is the strongest dimming that keeps every dimmed pair at WCAG AA
+   * (blended over the page background, computed, not eyeballed):
+   * night-ink muted 6.49 / text 13.39, daylight muted 4.92 / text 12.35 —
+   * all ≥ 4.5:1. At 0.85 daylight-muted falls to 4.40 and fails. The
+   * numbers are pinned by computed-contrast assertions in
+   * e2e/appearance.spec.ts; do not lower this without re-measuring.
+   */
+  --focus-dim: 0.9;
 }
 
 /* ---- theme: Daylight (light) --------------------------------------------- */
@@ -242,9 +291,42 @@
 }
 
 /*
+ * CUS-02 selections. The switcher in App.tsx writes these attributes on
+ * <html> on selection only — never per keystroke — and persists the choice
+ * guest-first in localStorage. With no attribute the `:root` defaults and the
+ * `prefers-color-scheme` mapping below still decide, exactly as before the
+ * switcher existed, so the default theme is never changed silently.
+ *
+ * `night-ink` names the `:root` default explicitly: it sets only
+ * `color-scheme` and inherits every Night Ink value, which keeps the dark
+ * palette in one place instead of a duplicated block that could drift. It also
+ * opts OUT of the OS-light mapping (which matches `:not([data-theme])`),
+ * which is what "I chose Night Ink" has to mean on a light-OS machine.
+ */
+:root[data-theme="night-ink"] {
+  color-scheme: dark;
+}
+
+/*
+ * The interface-face selector. `geist` is the `:root` default and needs no
+ * rule; `system` drops to the device stack; `atkinson` swaps in the legible
+ * token. `--font-type` is untouched by all three — the typing face stays
+ * JetBrains Mono whatever the interface does.
+ */
+:root[data-ui-font="system"] {
+  --font-ui: system-ui, sans-serif;
+}
+
+:root[data-ui-font="atkinson"] {
+  --font-ui: var(--font-legible);
+}
+
+/*
  * A visitor whose OS asks for light and who has not chosen a theme in-app gets
- * Daylight. The theme switcher (Phase 3) sets `data-theme` on <html> before
- * first paint; until then this is what respects the OS preference.
+ * Daylight. The switcher effect writes `data-theme` after mount when a stored
+ * choice exists; until then this is what respects the OS preference — live,
+ * including later OS switches. Must stay identical to the block above (pinned
+ * by the daylight-equality test in design-tokens.test.ts).
  */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
@@ -265,5 +347,8 @@
     --on-flow: #ffffff;
     --slip-bg: rgba(204, 33, 73, 0.1);
     --focus-ring: #8f5e00;
+    --bevel-rest: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 0 rgba(18, 24, 43, 0.16);
+    --bevel-press: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    --elev-menu: 0 8px 24px rgba(20, 30, 70, 0.14), 0 0 0 1px var(--line);
   }
 }

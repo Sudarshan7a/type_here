@@ -595,6 +595,89 @@ select {
   line-height: var(--lh-caption);
 }
 
+/* ---- focus mode (CUS-02) -------------------------------------------------- */
+
+/*
+ * A user toggle only: `.app` carries `data-focus-mode="on"` when the visitor
+ * arms it, and nothing else ever sets it — no media query, no timer, no
+ * auto-activation. It persists guest-first like the other selections.
+ *
+ * HIDE the non-essential chrome (title, settings row, static notes, the
+ * passage id, the practice banner) and DIM the secondary lines around the
+ * passage (the prompt slot, the live readout). The passage, the caret, the
+ * finished panel and the replay viewer are untouched and stay fully usable.
+ *
+ * Three things this deliberately does NOT do:
+ *
+ *  - No covering construct of any kind: hiding and dimming only, so the AC6
+ *    live-DOM scan (no fixed/sticky/semantic interrupters) holds with focus
+ *    mode on exactly as with it off. Nothing here takes itself out of flow.
+ *  - No transitions at all: `display` cannot transition and the dimming is
+ *    instant, so there is no motion to suppress — reduced-motion-safe by
+ *    construction rather than by a media query that could go missing.
+ *  - The hiding is scoped to notes that are direct children of `main` (the
+ *    static settings chrome). Notes inside the finished panel and the replay
+ *    viewer — the error summary, the corrupted/unavailable notices, the engine
+ *    stamp — and the paused notice in the surface shell are test feedback,
+ *    not chrome, so they stay visible and the replay stays fully usable.
+ */
+.app[data-focus-mode="on"] .controls,
+.app[data-focus-mode="on"] .banner,
+.app[data-focus-mode="on"] .passage-id,
+.app[data-focus-mode="on"] > main > .note {
+  display: none;
+}
+
+/*
+ * The page keeps its heading for assistive technology: with no result yet
+ * the h1 is the document's only heading, and display:none would remove it
+ * from the accessibility tree. Visually hidden instead — sighted users get
+ * the uncluttered field, AT users keep the document heading.
+ */
+.app[data-focus-mode="on"] .app-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.app[data-focus-mode="on"] .prompt-slot,
+.app[data-focus-mode="on"] .live-bar {
+  opacity: var(--focus-dim);
+}
+
+/*
+ * The focus toggle lives OUTSIDE `.controls` in its own row, precisely so the
+ * rule above never hides it: it is the way back out, and a way out that
+ * disappears when used is not a way out. A keyboard user reaches it with two
+ * Tabs from the top (skip link, then this), pinned in e2e/appearance.spec.ts.
+ */
+.focus-control {
+  display: flex;
+  gap: var(--s-3);
+  align-items: center;
+  margin-bottom: var(--s-4);
+  font-size: var(--t-small);
+  color: var(--text-muted);
+}
+
+/*
+ * WCAG 2.2 2.5.8: every control needs a ≥24×24 target. Selects get there via
+ * --h-control-md; native checkboxes do not, so the box itself is sized up.
+ * Labels keep their own hit area on top of this. Covers the focus toggle and
+ * (same pre-existing pattern) the auto-insertion toggles in .controls.
+ */
+.controls input[type="checkbox"],
+.focus-control input[type="checkbox"] {
+  min-width: var(--s-6);
+  min-height: var(--s-6);
+}
+
 /* ---- utilities ------------------------------------------------------------ */
 
 .visually-hidden {
@@ -630,5 +713,18 @@ select {
   }
   .caret {
     background: Highlight;
+  }
+  /*
+   * CUS-02: the focus-mode dimming is an author opacity, and it still applies
+   * after the OS remaps colours — dimming CanvasText to unreadable. Forced
+   * colours mean the user asked for maximum legibility, so dimming is off
+   * here and the focus ring uses the system highlight.
+   */
+  .app[data-focus-mode="on"] .prompt-slot,
+  .app[data-focus-mode="on"] .live-bar {
+    opacity: 1;
+  }
+  :focus-visible {
+    outline-color: Highlight;
   }
 }
