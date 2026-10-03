@@ -85,6 +85,17 @@
 | `results.details.rollover` | Rollover: {value}% | |
 | `results.details.burst` | Best 5-second burst: {value} WPM | |
 | `results.replay.cta` | Watch replay | |
+| `results.replay.play` | Play replay | Starts stepping through the retained attempt |
+| `results.replay.pause` | Pause replay | Pauses the stepping; the same button resumes |
+| `results.replay.restart` | Restart replay | Returns playback to the first frame |
+| `results.replay.close` | Close replay | Hides the viewer; the finished panel stays |
+| `results.replay.speed` | Replay speed | Label for the time-scale control (display only, never scoring) |
+| `results.replay.seek` | Move through the replay | Accessible label for the scrub control and time readout |
+| `results.replay.time` | {current}s of {total}s | Timestamp readout; both slots are seconds with one decimal |
+| `results.replay.errorsNone` | Replay: no errors. | Static text summary beside an error-free replay |
+| `results.replay.errorsSome` | Replay: {count} errors ({detail}). | {detail} names positions in words ("position 5", "positions 5, 9"); never colour-only |
+| `results.replay.corrupted` | This replay doesn't match the finished text, so it may be incomplete. The scores above are unaffected. | Shown when the log fails the final-text-exact check |
+| `results.replay.unavailable` | No replay is kept for this test. | Shown when no in-memory log was retained |
 | `results.savePrompt.title` | Save your progress? | |
 | `results.savePrompt.body` | Create a free account to keep your history, track goals, and pick up where you left off on another device. | No pressure language, states the actual benefit |
 | `results.savePrompt.cta` | Save my progress | |

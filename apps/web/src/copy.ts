@@ -110,4 +110,48 @@ export const COPY = {
   /** footer.howWeCalculate is the permanent home of this; shown small here. */
   engineStamp: (modelVersion: string): string =>
     `Scores from the RealType engine, model ${modelVersion}`,
+
+  /** results.replay.cta — offered on the finished panel; replays the retained attempt. */
+  replayWatch: "Watch replay",
+
+  /** results.replay.play / results.replay.pause — the single playback toggle. */
+  replayPlay: "Play replay",
+  replayPause: "Pause replay",
+
+  /** results.replay.restart — restarts playback from the first frame. */
+  replayRestart: "Restart replay",
+
+  /** results.replay.close — hides the viewer; the finished panel stays. */
+  replayClose: "Close replay",
+
+  /** results.replay.speed — label for the time-scale control (display only). */
+  replaySpeedLabel: "Replay speed",
+
+  /** results.replay.seek — accessible label for the scrub control and time readout. */
+  replaySeekLabel: "Move through the replay",
+
+  /** results.replay.time — the timestamp readout; both slots are seconds. */
+  replayTime: (current: string, total: string): string => `${current}s of ${total}s`,
+
+  /** results.replay.errorsNone — static text summary beside an error-free replay. */
+  replayErrorsNone: "Replay: no errors.",
+
+  /**
+   * results.replay.errorsSome — static text summary naming the error positions
+   * in words ({detail} is "position 5" or "positions 5, 9"), so the summary
+   * never depends on colour alone.
+   */
+  replayErrorsSome: (count: number, detail: string): string =>
+    count === 1 ? `Replay: 1 error (${detail}).` : `Replay: ${count} errors (${detail}).`,
+
+  /**
+   * results.replay.corrupted — shown when the retained log fails the
+   * final-text-exact check. Factual only: what happened and that the scores
+   * above are unaffected. No outcome is promised.
+   */
+  replayCorrupted:
+    "This replay doesn't match the finished text, so it may be incomplete. The scores above are unaffected.",
+
+  /** results.replay.unavailable — shown when no in-memory log was retained. */
+  replayUnavailable: "No replay is kept for this test.",
 } as const;
