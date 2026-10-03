@@ -348,6 +348,12 @@ test("forced colours keep focus mode legible with a visible ring", async ({ page
     .getByTestId("focus-mode-toggle")
     .evaluate((el) => getComputedStyle(el).outlineWidth);
   expect(Number.parseFloat(ring)).toBeGreaterThan(0);
+  const ringColor = await page
+    .getByTestId("focus-mode-toggle")
+    .evaluate((el) => getComputedStyle(el).outlineColor);
+  // Forced-colors maps Highlight to the OS accent: anything but a fully
+  // transparent ring proves the indicator survives the palette remap.
+  expect(ringColor.replace(/\s+/g, "")).not.toBe("rgba(0,0,0,0)");
 });
 
 test("every checkbox control offers a 24px target", async ({ page }) => {
