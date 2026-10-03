@@ -445,6 +445,8 @@ test.describe("reduced motion, both directions", () => {
     for (const d of caret.durations.split(",").map((t) => t.trim())) {
       expect(["0s", "0ms"], `caret transition must be 0 under reduce, got ${d}`).toContain(d);
     }
+    // The idle blink is suppressed too — not just the move transition.
+    expect(caret.animation, "caret blink must be none under reduce").toBe("none");
 
     // Buttons: no transition under reduce (the press feedback is instant).
     const button = await page.evaluate(() => {
@@ -493,12 +495,14 @@ test.describe("reduced motion, both directions", () => {
     const caret = await page.getByTestId("caret").evaluate((el) => ({
       duration: getComputedStyle(el).transitionDuration,
       property: getComputedStyle(el).transitionProperty,
+      animation: getComputedStyle(el).animationName,
     }));
     expect(
       Number.parseFloat(caret.duration),
       "the caret must animate by default, or the reduce check proves nothing",
     ).toBeGreaterThan(0);
     expect(caret.property).toContain("transform");
+    expect(caret.animation, "the idle blink exists by default").not.toBe("none");
 
     // No autoplay by design in either mode — pressing play is the only start.
     await finishPassage(page);

@@ -772,6 +772,9 @@ details[data-testid="shortcuts"] summary {
   .ch[data-char-state="correct"] {
     color: CanvasText;
   }
+  .ch[data-char-state="untyped"] {
+    color: CanvasText;
+  }
   .ch[data-char-state="incorrect"],
   .ch[data-char-state="extra"],
   .ch[data-char-state="missed"] {
