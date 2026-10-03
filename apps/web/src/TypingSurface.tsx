@@ -558,6 +558,12 @@ export function TypingSurface({
         // autofill and spellcheck machinery have no hook. spellCheck is set
         // explicitly so the intent survives any future sink change.
         spellCheck={false}
+        // ENG-10: raw characters preserved. No transformation runs against
+        // this surface today: the div performs none, and the engine compares
+        // produced keys with strict equality (pinned in eng-raw-chars.test).
+        // autocapitalize/autocomplete/autocorrect attributes belong to the
+        // real input sink of M1-04 §2 when it lands — they are not valid div
+        // attributes, so they are deliberately absent here, not forgotten.
         // The declared layout this run is attributed to (LOC-01). A readout
         // hook for the layout-selector acceptance test, not a visual.
         data-layout={layout}
