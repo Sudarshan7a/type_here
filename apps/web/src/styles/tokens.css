@@ -250,8 +250,15 @@
    * prompt slot, the live readout) step back while focus mode is on. The
    * passage itself stays at full strength. A token rather than a literal, so
    * the dimming stays reviewable in one place.
+   *
+   * 0.9 is the strongest dimming that keeps every dimmed pair at WCAG AA
+   * (blended over the page background, computed, not eyeballed):
+   * night-ink muted 6.49 / text 13.39, daylight muted 4.92 / text 12.35 —
+   * all ≥ 4.5:1. At 0.85 daylight-muted falls to 4.40 and fails. The
+   * numbers are pinned by computed-contrast assertions in
+   * e2e/appearance.spec.ts; do not lower this without re-measuring.
    */
-  --focus-dim: 0.55;
+  --focus-dim: 0.9;
 }
 
 /* ---- theme: Daylight (light) --------------------------------------------- */
@@ -316,8 +323,10 @@
 
 /*
  * A visitor whose OS asks for light and who has not chosen a theme in-app gets
- * Daylight. The theme switcher (Phase 3) sets `data-theme` on <html> before
- * first paint; until then this is what respects the OS preference.
+ * Daylight. The switcher effect writes `data-theme` after mount when a stored
+ * choice exists; until then this is what respects the OS preference — live,
+ * including later OS switches. Must stay identical to the block above (pinned
+ * by the daylight-equality test in design-tokens.test.ts).
  */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
@@ -338,5 +347,8 @@
     --on-flow: #ffffff;
     --slip-bg: rgba(204, 33, 73, 0.1);
     --focus-ring: #8f5e00;
+    --bevel-rest: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 0 rgba(18, 24, 43, 0.16);
+    --bevel-press: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    --elev-menu: 0 8px 24px rgba(20, 30, 70, 0.14), 0 0 0 1px var(--line);
   }
 }

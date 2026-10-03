@@ -6,7 +6,7 @@
  * clock — belongs to packages/engine, and the surface is the only thing that
  * talks to it.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ErrorMode } from "@realtype/engine";
 import { LayoutSchema, type CaretStyle, type Layout } from "@realtype/schemas";
 
@@ -244,8 +244,12 @@ export function App() {
   // first run starts from the derived default (what the visitor already
   // sees), every later visit from the stored choice. React state changes only
   // here, on selection — never in the key path (AGENTS.md rule 2). The effect
-  // below writes `data-theme` on <html>; with no stored choice there is no
-  // attribute and the CSS OS mapping decides, exactly as before.
+  // below writes `data-theme` on <html> ONLY when a stored choice exists;
+  // with no stored choice there is no attribute and the CSS OS mapping
+  // decides live (including later OS switches). No pre-paint inline script:
+  // the security-headers gate pins script-src 'self', so a returning visitor
+  // whose stored theme differs from the OS sees one frame of the OS palette
+  // before the effect reconciles — accepted MVP debt, recorded in the ledger.
   const [theme, setTheme] = useState<Theme>(
     () => parseStoredTheme(readStoredString(THEME_STORAGE_KEY)) ?? defaultTheme(),
   );
@@ -257,7 +261,11 @@ export function App() {
 
   useEffect(() => {
     try {
-      document.documentElement.dataset.theme = theme;
+      if (parseStoredTheme(readStoredString(THEME_STORAGE_KEY)) !== null) {
+        document.documentElement.dataset.theme = theme;
+      } else {
+        delete document.documentElement.dataset.theme;
+      }
     } catch {
       // Outside a browser there is no <html> to mark (SSR, tests).
     }
@@ -277,7 +285,11 @@ export function App() {
 
   useEffect(() => {
     try {
-      document.documentElement.dataset.uiFont = uiFont;
+      if (parseStoredUiFont(readStoredString(UI_FONT_STORAGE_KEY)) !== null) {
+        document.documentElement.dataset.uiFont = uiFont;
+      } else {
+        delete document.documentElement.dataset.uiFont;
+      }
     } catch {
       // Outside a browser there is no <html> to mark (SSR, tests).
     }
@@ -289,10 +301,20 @@ export function App() {
   const [focusMode, setFocusMode] = useState<boolean>(() =>
     readStoredToggle(FOCUS_MODE_STORAGE_KEY),
   );
+  const focusToggleRef = useRef<HTMLInputElement>(null);
 
   const changeFocusMode = useCallback((next: boolean) => {
     setFocusMode(next);
     storeToggle(FOCUS_MODE_STORAGE_KEY, next);
+    // If focus sits on a control the hide is about to remove (e.g. toggled
+    // via AT while focused inside .controls), move it to the toggle that
+    // survives — focus must never drop to <body> on this action.
+    if (next && document.activeElement instanceof HTMLElement) {
+      const controls = document.querySelector(".controls");
+      if (controls !== null && controls.contains(document.activeElement)) {
+        focusToggleRef.current?.focus();
+      }
+    }
   }, []);
 
   const newPassage = useCallback(() => {
@@ -412,6 +434,7 @@ export function App() {
             id="ui-font"
             value={uiFont}
             data-testid="ui-font-select"
+            aria-describedby="ui-font-note"
             onChange={(event) => {
               const next = parseStoredUiFont(event.target.value);
               if (next !== null) changeUiFont(next);
@@ -434,20 +457,22 @@ export function App() {
           <label htmlFor="focus-mode">
             <input
               id="focus-mode"
+              ref={focusToggleRef}
               type="checkbox"
               data-testid="focus-mode-toggle"
               checked={focusMode}
+              aria-describedby="focus-mode-note"
               onChange={(event) => changeFocusMode(event.target.checked)}
             />
             {COPY.focusModeLabel}
           </label>
         </div>
 
-        <p className="note" data-testid="ui-font-note">
+        <p className="note" id="ui-font-note" data-testid="ui-font-note">
           {COPY.uiFontNote}
         </p>
 
-        <p className="note" data-testid="focus-mode-note">
+        <p className="note" id="focus-mode-note" data-testid="focus-mode-note">
           {COPY.focusModeNote}
         </p>
 

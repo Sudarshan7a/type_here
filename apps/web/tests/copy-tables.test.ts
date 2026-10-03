@@ -58,8 +58,8 @@ const SURFACE_COPY: ReadonlyArray<{ key: string; expected: string }> = [
   { key: "settings.theme.nightInk", expected: "Night Ink" },
   { key: "settings.theme.daylight", expected: "Daylight" },
   // CUS-02: the interface-face selector. Pinned character for character
-  // because the claims ban lives in the wording — "a highly legible face"
-  // describes the typeface and promises no outcome.
+  // because the claims ban lives in the wording — the note names what the
+  // option is and promises no outcome.
   { key: "settings.uiFont.label", expected: "Interface font" },
   { key: "settings.uiFont.geist", expected: "Geist (default)" },
   { key: "settings.uiFont.system", expected: "System" },
@@ -67,7 +67,7 @@ const SURFACE_COPY: ReadonlyArray<{ key: string; expected: string }> = [
   {
     key: "settings.uiFont.note",
     expected:
-      "A highly legible face for the app interface. The typing text always stays in JetBrains Mono, whatever is selected here.",
+      "An interface face option for the app chrome. The typing text always stays in JetBrains Mono, whatever is selected here.",
   },
   // CUS-02: focus mode. Pinned so the "what stays usable" promise cannot
   // silently narrow.

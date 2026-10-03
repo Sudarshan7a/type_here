@@ -195,7 +195,7 @@
 | `settings.uiFont.geist` | Geist (default) | The default interface face. |
 | `settings.uiFont.system` | System | The device's own interface face. |
 | `settings.uiFont.atkinson` | Atkinson Hyperlegible | A highly legible face. Names the typeface; claims nothing about any reader. |
-| `settings.uiFont.note` | A highly legible face for the app interface. The typing text always stays in JetBrains Mono, whatever is selected here. | Factual only: what changes and what does not. No readability, accessibility or speed outcome is promised. |
+| `settings.uiFont.note` | An interface face option for the app chrome. The typing text always stays in JetBrains Mono, whatever is selected here. | Factual only: what changes and what does not. No readability, accessibility or speed outcome is promised. |
 | `settings.focusMode.label` | Focus mode | CUS-02. User toggle only — never activates on its own. |
 | `settings.focusMode.note` | Hides the title, settings and notes, and softens the readout around the text. The passage, results and replay stay fully usable. | Factual only: what hides, what softens, what stays. |
 | `settings.errorMode.free.label` | Free (default) | |

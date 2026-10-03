@@ -60,7 +60,7 @@ export const COPY = {
    * not a statement about any reader.
    */
   uiFontNote:
-    "A highly legible face for the app interface. The typing text always stays in JetBrains Mono, whatever is selected here.",
+    "An interface face option for the app chrome. The typing text always stays in JetBrains Mono, whatever is selected here.",
 
   /**
    * settings.focusMode.label / settings.focusMode.note — CUS-02. Factual only:

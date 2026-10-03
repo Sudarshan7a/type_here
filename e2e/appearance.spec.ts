@@ -34,11 +34,13 @@ test("the theme switcher swaps the palettes and persists across reload", async (
 
   // Default: whatever the OS asks for, with the selector showing it
   // truthfully. (Headless Chromium here reports light; a dark machine reports
-  // dark. The test pins the mapping, not the machine.)
+  // dark. The test pins the mapping, not the machine.) With no stored choice
+  // there is deliberately NO data-theme attribute: the CSS OS mapping decides
+  // live, including later OS switches.
   const firstBg = await rootToken(page, "--bg");
   const firstTheme = await page.getByTestId("theme-select").inputValue();
   expect(["#0d1120", "#f2f5fc"]).toContain(firstBg.toLowerCase());
-  expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe(firstTheme);
+  expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBeUndefined();
 
   // Switch to the other palette: the COMPUTED tokens change, not just the
   // attribute.
@@ -158,7 +160,12 @@ test("focus mode hides chrome, keeps the test completable, and replay works insi
   await expect(page.getByTestId("theme-select")).toBeHidden();
   await expect(page.getByTestId("ui-font-note")).toBeHidden();
   await expect(page.locator(".banner")).toBeHidden();
-  await expect(page.getByTestId("app-title")).toBeHidden();
+  // … except the page keeps its heading for assistive technology: visually
+  // hidden (a 1px box), never display:none, still in the accessibility tree.
+  const titleBox = await page.getByTestId("app-title").boundingBox();
+  expect(titleBox, "app title must collapse to a visually-hidden box").not.toBeNull();
+  expect(Math.max(titleBox!.width, titleBox!.height)).toBeLessThanOrEqual(2);
+  await expect(page.getByRole("heading", { name: /RealType/ })).toBeAttached();
   // … the way back out stays visible: the toggle lives outside `.controls`.
   await expect(page.getByTestId("focus-mode-toggle")).toBeVisible();
 
@@ -261,4 +268,115 @@ test("the new controls fit 360px with no horizontal scroll, focus on or off", as
       `horizontal scroll at 360px (focus ${focus ? "on" : "off"})`,
     ).toBeLessThanOrEqual(overflow.clientWidth + 1);
   }
+});
+
+/** Contrast of dimmed text: computed color at effective opacity (walked up to body), blended over the page background. */
+async function dimmedContrast(
+  page: Page,
+  selector: string,
+): Promise<{ pair: string; ratio: number }> {
+  return page.evaluate((sel) => {
+    const el = document.querySelector(sel);
+    if (!(el instanceof HTMLElement)) return { pair: sel, ratio: 0 };
+    const parse = (s: string): [number, number, number] => {
+      const m = /rgba?\(([^)]+)\)/.exec(s) ?? ["", "0,0,0"];
+      const parts = m[1]!.split(",").map((p) => Number.parseFloat(p));
+      return [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0];
+    };
+    const lum = (c: [number, number, number]): number => {
+      const l = c.map((v) => {
+        const s = v / 255;
+        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * l[0]! + 0.7152 * l[1]! + 0.0722 * l[2]!;
+    };
+    const fg = parse(getComputedStyle(el).color);
+    // Opacity multiplies down the ancestor chain; walk to <body>.
+    let alpha = 1;
+    for (let node: HTMLElement | null = el; node; node = node.parentElement) {
+      alpha *= Number.parseFloat(getComputedStyle(node).opacity || "1");
+    }
+    // The dimmed lines sit directly on the page background.
+    const bg = parse(getComputedStyle(document.body).backgroundColor);
+    const blended: [number, number, number] = [
+      fg[0] * alpha + bg[0] * (1 - alpha),
+      fg[1] * alpha + bg[1] * (1 - alpha),
+      fg[2] * alpha + bg[2] * (1 - alpha),
+    ];
+    const hi = Math.max(lum(blended), lum(bg));
+    const lo = Math.min(lum(blended), lum(bg));
+    return { pair: sel, ratio: (hi + 0.05) / (lo + 0.05) };
+  }, selector);
+}
+
+test("focus dimming keeps every dimmed pair at WCAG AA in both themes", async ({ page }) => {
+  // --focus-dim 0.9 is the strongest dimming whose worst pair (daylight
+  // muted, 4.92:1) clears 4.5:1 — computed here from the live page, per
+  // theme, so a token drift fails the build instead of quietly excluding
+  // low-vision readers from focus mode.
+  for (const theme of ["daylight", "night-ink"] as const) {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await page.getByTestId("theme-select").selectOption(theme);
+    await page.getByTestId("focus-mode-toggle").check();
+    for (const sel of [
+      '[data-testid="focus-prompt"]',
+      '[data-testid="live-bar"] .live-label',
+      '[data-testid="live-bar"] .live-value',
+    ]) {
+      const { ratio } = await dimmedContrast(page, sel);
+      expect(ratio, `${theme} ${sel} contrast ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(4.5);
+    }
+  }
+});
+
+test("forced colours keep focus mode legible with a visible ring", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ forcedColors: "active" });
+  await page.goto("/");
+  await page.getByTestId("focus-mode-toggle").check();
+
+  // Author dimming is off: the lines compute to full opacity.
+  const opacity = await page.getByTestId("live-bar").evaluate((el) => getComputedStyle(el).opacity);
+  expect(Number.parseFloat(opacity)).toBe(1);
+
+  // The toggle keeps a visible focus indicator under the OS palette.
+  await page.getByTestId("focus-mode-toggle").focus();
+  const ring = await page
+    .getByTestId("focus-mode-toggle")
+    .evaluate((el) => getComputedStyle(el).outlineWidth);
+  expect(Number.parseFloat(ring)).toBeGreaterThan(0);
+});
+
+test("every checkbox control offers a 24px target", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  for (const id of ["focus-mode-toggle", "auto-indent-toggle", "auto-pair-toggle"] as const) {
+    const box = await page.getByTestId(id).boundingBox();
+    expect(box, `${id} must have a real box`).not.toBeNull();
+    expect(box!.width, `${id} width`).toBeGreaterThanOrEqual(24);
+    expect(box!.height, `${id} height`).toBeGreaterThanOrEqual(24);
+  }
+});
+
+test("notes describe their controls and focus never drops to body", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("ui-font-select")).toHaveAttribute(
+    "aria-describedby",
+    "ui-font-note",
+  );
+  await expect(page.getByTestId("focus-mode-toggle")).toHaveAttribute(
+    "aria-describedby",
+    "focus-mode-note",
+  );
+
+  // Toggling while focus sits inside the soon-hidden controls rescues focus
+  // to the surviving toggle instead of dropping it to <body>.
+  await page.getByTestId("passage-select").focus();
+  await page.getByTestId("focus-mode-toggle").evaluate((el) => (el as HTMLElement).click());
+  await expect(page.locator(".app")).toHaveAttribute("data-focus-mode", "on");
+  expect(await page.evaluate(() => document.activeElement?.tagName)).not.toBe("BODY");
+  await expect(page.getByTestId("focus-mode-toggle")).toBeFocused();
 });
