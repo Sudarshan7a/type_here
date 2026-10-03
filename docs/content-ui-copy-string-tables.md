@@ -194,6 +194,9 @@
 | `settings.errorMode.mustCorrect.description` | You'll need to fix a mistake before moving past it. Good for accuracy-focused practice. | |
 | `settings.reducedMotion.label` | Reduce motion | |
 | `settings.reducedMotion.description` | Turns off animations and celebrations. You'll still see clear feedback, just without the movement. | |
+| `settings.autoIndent.label` | Auto-indent | ENG-09. Arms automatic indentation for code passages; prose passages produce no automatic insertions. |
+| `settings.autoPair.label` | Auto-pair | ENG-09. Arms automatic bracket pairing for code passages; prose passages produce no automatic insertions. |
+| `settings.autoNote` | These arm automatic insertions for code passages. Prose passages produce no automatic insertions, so the toggles change nothing here — the choice is carried into each result for when code passages arrive. | Factual only: what the toggles arm and the honest MVP limit. No outcome is promised. |
 | `settings.noTimerPractice.label` | No-timer practice | |
 | `settings.noTimerPractice.description` | Practice without a countdown. Take all the time you need. | |
 | `settings.dataPrivacy.exportCta` | Export my data | |

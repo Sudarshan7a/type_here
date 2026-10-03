@@ -46,6 +46,8 @@ function logFor(layout: Layout) {
     textHash: HASH,
     layout,
     errorMode: "free",
+    autoIndent: false,
+    autoPair: false,
   });
 }
 
@@ -80,6 +82,8 @@ describe("composition lifecycle feeds the engine IME guard (M1-04 §6, ENG-06)",
       textHash: HASH,
       layout: "qwerty-us",
       errorMode: "free",
+      autoIndent: false,
+      autoPair: false,
     });
     expect(InputLogSchema.safeParse(log).success).toBe(true);
     expect(log.events).toHaveLength(2);
@@ -107,6 +111,8 @@ describe("composition lifecycle feeds the engine IME guard (M1-04 §6, ENG-06)",
       textHash: HASH,
       layout: "qwerty-us",
       errorMode: "free",
+      autoIndent: false,
+      autoPair: false,
     });
     expect(InputLogSchema.safeParse(log).success).toBe(true);
 
@@ -131,6 +137,8 @@ describe("composition lifecycle feeds the engine IME guard (M1-04 §6, ENG-06)",
         textHash: HASH,
         layout: "qwerty-us",
         errorMode: "free",
+        autoIndent: false,
+        autoPair: false,
       });
       expect(log.events).toHaveLength(0);
       expect(capture.isComposing).toBe(false);
@@ -147,6 +155,8 @@ describe("composition lifecycle feeds the engine IME guard (M1-04 §6, ENG-06)",
       textHash: HASH,
       layout: "qwerty-us",
       errorMode: "free",
+      autoIndent: false,
+      autoPair: false,
     });
     expect(log.events[0]?.composition).toBe(true);
     expect(filterEvents(log.events).textAffecting).toHaveLength(0);
@@ -161,6 +171,8 @@ describe("composition lifecycle feeds the engine IME guard (M1-04 §6, ENG-06)",
       textHash: HASH,
       layout: "qwerty-us",
       errorMode: "free",
+      autoIndent: false,
+      autoPair: false,
     });
     expect(log.events[0]).not.toHaveProperty("composition");
   });
@@ -177,6 +189,8 @@ describe("composition lifecycle feeds the engine IME guard (M1-04 §6, ENG-06)",
       textHash: HASH,
       layout: "qwerty-us",
       errorMode: "free",
+      autoIndent: false,
+      autoPair: false,
     });
     expect(log.events[0]).not.toHaveProperty("composition");
   });
@@ -239,6 +253,18 @@ describe("App shell layout wiring (server-rendered)", () => {
     expect(html).not.toContain('role="dialog"');
     expect(html).not.toContain("popover");
   });
+
+  it("renders the auto-insertion toggles off by default with an honest note (ENG-09)", () => {
+    expect(html).toContain('data-testid="auto-indent-toggle"');
+    expect(html).toContain(COPY.autoIndentLabel);
+    expect(html).toContain('data-testid="auto-pair-toggle"');
+    expect(html).toContain(COPY.autoPairLabel);
+    // Off by default: no checked attribute on either box in static markup.
+    expect(html).not.toMatch(/<input[^>]*data-testid="auto-indent-toggle"[^>]*checked/);
+    expect(html).not.toMatch(/<input[^>]*data-testid="auto-pair-toggle"[^>]*checked/);
+    expect(html).toContain('data-testid="auto-note"');
+    expect(html).toContain(COPY.autoNote);
+  });
 });
 
 describe("layout and IME copy honesty (claims ban)", () => {
@@ -247,7 +273,7 @@ describe("layout and IME copy honesty (claims ban)", () => {
   });
 
   it("promises no outcome — no speed, skill or hiring claims", () => {
-    for (const text of [COPY.layoutFirstRun, COPY.layoutWhy, COPY.imeNotice]) {
+    for (const text of [COPY.layoutFirstRun, COPY.layoutWhy, COPY.imeNotice, COPY.autoNote]) {
       expect(text).not.toMatch(
         /\b(faster|fastest|boost|speed\s*gains?|type\s*more|hireable|hiring|job-ready)\b/i,
       );

@@ -257,6 +257,10 @@ function computeMetrics(events, target, mode) {
     backspaces = backspaces.filter((e) => e.t <= rep.stoppedAt);
   }
   const userChars = chars.filter((e) => !e.auto);
+  // Integrity flag, mirroring input-filter.ts: auto input is recorded, never
+  // banned. Every pre-existing fixture has no auto events, so this is [] for
+  // all of them and ["auto-events-present"] only where auto input occurred.
+  const flags = chars.some((e) => e.auto) ? ["auto-events-present"] : [];
   const presses = [...userChars, ...backspaces].sort((a, b) => a.t - b.t);
   if (presses.length === 0) throw new Error("no scored keystrokes");
   const durationMs = presses[presses.length - 1].t - presses[0].t;
@@ -300,7 +304,7 @@ function computeMetrics(events, target, mode) {
       modelVersion: "1.1.0",
       difficultyBand: null,
       verified: false,
-      flags: [],
+      flags,
     },
     details: {
       durationMs,
@@ -519,6 +523,19 @@ const EDUAL_ALT_EVENTS = [
   up("a", 500, { code: "KeyQ" }),
 ].sort((a, b) => a.t - b.t);
 
+// E-AUTOINSERT (e-autoinsert.ts): auto-paired ")" excluded from typed counts.
+// The auto press carries no keyup (nobody pressed it) — unlike withKeyups.
+const EAUTO_TARGET = "ab()";
+const EAUTO_EVENTS = [
+  down("a", 0),
+  up("a", 100),
+  down("b", 500),
+  up("b", 600),
+  down("(", 1000, { code: "Digit9", shift: true }),
+  up("(", 1100, { code: "Digit9" }),
+  down(")", 1150, { code: "Digit0", shift: true, auto: true }),
+].sort((a, b) => a.t - b.t);
+
 const CASES = [
   ["ENG-FIXTURE-A01", withKeyups(A01_DOWNS), TARGET_CAT, "free"],
   ["ENG-FIXTURE-B01", withKeyups(B01_DOWNS), TARGET_CAT, "free"],
@@ -534,6 +551,7 @@ const CASES = [
   ["ENG-FIXTURE-E6", EEMOJI_EVENTS, EEMOJI_TARGET, "free"],
   ["ENG-FIXTURE-E-DUALKEY", EDUAL_EVENTS, EDUAL_TARGET, "free"],
   ["ENG-FIXTURE-E-DUALKEY-ALT", EDUAL_ALT_EVENTS, EDUAL_ALT_TARGET, "free"],
+  ["ENG-FIXTURE-E-AUTOINSERT", EAUTO_EVENTS, EAUTO_TARGET, "free"],
 ];
 
 // --- run --------------------------------------------------------------------
@@ -551,6 +569,7 @@ for (const t of [
   EEMOJI_TARGET,
   EDUAL_TARGET,
   EDUAL_ALT_TARGET,
+  EAUTO_TARGET,
 ]) {
   console.log(
     `  ${JSON.stringify(t)} (${[...t].length} chars) -> ${createHash("sha256").update(t, "utf8").digest("hex")}`,

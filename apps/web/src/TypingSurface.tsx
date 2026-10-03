@@ -52,6 +52,15 @@ export interface TypingSurfaceProps {
    * surface when it changes, so one run never mixes two layouts.
    */
   layout: Layout;
+  /**
+   * The armed auto-insertion toggles (ENG-09, D-M5-5). Carried into the log's
+   * settings unchanged. Required like `layout`, so no run silently drops
+   * them. They take effect per finished test (read at finish time); no
+   * producer exists in prose mode, so they change nothing on screen today —
+   * code passages (WAVE 3) will produce `auto: true` events from them.
+   */
+  autoIndent: boolean;
+  autoPair: boolean;
   /** Notified once per finished test, for the parent's history or telemetry. */
   onFinish?: (result: EngineResult) => void;
   /** Offered on the finished panel. Omitted when the host has nowhere to go. */
@@ -96,6 +105,8 @@ export function TypingSurface({
   errorMode,
   caretStyle = "line",
   layout,
+  autoIndent,
+  autoPair,
   onFinish,
   onNewPassage,
 }: TypingSurfaceProps) {
@@ -331,6 +342,10 @@ export function TypingSurface({
       // coerces). Attribution for this run; passages stay English for the MVP.
       layout,
       errorMode,
+      // ENG-09: the armed toggles, carried as-is. Read here, at finish time,
+      // so one run never mixes two settings.
+      autoIndent,
+      autoPair,
     });
     // Flush, then cancel: the readout is updated to the instant the test ended
     // before the pending frame is dropped. Cancelling first discarded it.
@@ -346,7 +361,18 @@ export function TypingSurface({
     setRetainedLog({ events: [...capture.events], markers: [...capture.markers] });
     setReplayOpen(false);
     onFinish?.(computed);
-  }, [cancelFrame, errorMode, layout, onFinish, passage.id, passage.text, paint, runFrame]);
+  }, [
+    cancelFrame,
+    errorMode,
+    layout,
+    autoIndent,
+    autoPair,
+    onFinish,
+    passage.id,
+    passage.text,
+    paint,
+    runFrame,
+  ]);
 
   /**
    * The live figures must keep moving while the user is idle mid-test, because

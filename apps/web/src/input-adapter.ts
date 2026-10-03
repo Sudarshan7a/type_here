@@ -17,6 +17,9 @@ export interface CaptureOptions {
   textHash: string;
   layout: Layout;
   errorMode: InputLog["meta"]["settings"]["errorMode"];
+  /** ENG-09: the armed auto-insertion toggles, carried into the log as-is. */
+  autoIndent: boolean;
+  autoPair: boolean;
 }
 
 export class InputCapture {
@@ -194,8 +197,8 @@ export class InputCapture {
         layout: options.layout,
         settings: {
           errorMode: options.errorMode,
-          autoIndent: false,
-          autoPair: false,
+          autoIndent: options.autoIndent,
+          autoPair: options.autoPair,
           layout: options.layout,
         },
         engineVersion: ENGINE_VERSION_STAMP,

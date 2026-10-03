@@ -21,7 +21,13 @@ const passage = PASSAGES[0]!;
 
 describe("TypingSurface markup", () => {
   const html = renderToStaticMarkup(
-    <TypingSurface passage={passage} errorMode="free" layout="qwerty-us" />,
+    <TypingSurface
+      passage={passage}
+      errorMode="free"
+      layout="qwerty-us"
+      autoIndent={false}
+      autoPair={false}
+    />,
   );
 
   it("gives the key sink the accessible name from the string table", () => {
@@ -132,7 +138,13 @@ describe("TypingSurface markup", () => {
 
 describe("TypingSurface ships no interrupting chrome (CUS-01)", () => {
   const html = renderToStaticMarkup(
-    <TypingSurface passage={passage} errorMode="free" layout="qwerty-us" />,
+    <TypingSurface
+      passage={passage}
+      errorMode="free"
+      layout="qwerty-us"
+      autoIndent={false}
+      autoPair={false}
+    />,
   );
 
   /**

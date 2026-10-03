@@ -81,6 +81,30 @@ function storeLayout(layout: Layout): void {
   }
 }
 
+/** Storage keys for the ENG-09 auto-insertion toggles (off by default). */
+export const AUTO_INDENT_STORAGE_KEY = "realtype.autoIndent";
+export const AUTO_PAIR_STORAGE_KEY = "realtype.autoPair";
+
+/** Read an armed toggle: only the exact string "true" arms it. */
+function readStoredToggle(key: string): boolean {
+  try {
+    if (typeof localStorage === "undefined") return false;
+    return localStorage.getItem(key) === "true";
+  } catch {
+    return false;
+  }
+}
+
+/** Persist a toggle. A storage failure keeps the visit's selection. */
+function storeToggle(key: string, value: boolean): void {
+  try {
+    if (typeof localStorage === "undefined") return;
+    localStorage.setItem(key, String(value));
+  } catch {
+    // Private mode and locked-down storage: the selection still applies.
+  }
+}
+
 export function App() {
   const [passage, setPassage] = useState<Passage>(PASSAGES[0]!);
   // Free mode is the only error mode exposed for now; the contract carries five
@@ -111,6 +135,27 @@ export function App() {
     // Telemetry layout_changed is DEFERRED (WAVE 0.15 NFR-09/OPS-13): the web
     // app has no telemetry client yet, and only layout NAMES would ever be
     // sent — never keystroke content (keystroke-privacy skill).
+  }, []);
+
+  // ENG-09: the armed auto-insertion toggles. Off by default, persisted
+  // guest-first like the layout. State changes only on toggle — never in the
+  // key path (AGENTS.md rule 2). No producer exists in prose mode: arming
+  // changes nothing on screen today, and the note beside the controls says
+  // so. Code passages (WAVE 3, PRG-11/PRG-15) will produce `auto: true`
+  // events from these.
+  const [autoIndent, setAutoIndent] = useState<boolean>(() =>
+    readStoredToggle(AUTO_INDENT_STORAGE_KEY),
+  );
+  const [autoPair, setAutoPair] = useState<boolean>(() => readStoredToggle(AUTO_PAIR_STORAGE_KEY));
+
+  const changeAutoIndent = useCallback((next: boolean) => {
+    setAutoIndent(next);
+    storeToggle(AUTO_INDENT_STORAGE_KEY, next);
+  }, []);
+
+  const changeAutoPair = useCallback((next: boolean) => {
+    setAutoPair(next);
+    storeToggle(AUTO_PAIR_STORAGE_KEY, next);
   }, []);
 
   const newPassage = useCallback(() => {
@@ -185,7 +230,33 @@ export function App() {
               </option>
             ))}
           </select>
+
+          <label htmlFor="auto-indent">
+            <input
+              id="auto-indent"
+              type="checkbox"
+              data-testid="auto-indent-toggle"
+              checked={autoIndent}
+              onChange={(event) => changeAutoIndent(event.target.checked)}
+            />
+            {COPY.autoIndentLabel}
+          </label>
+
+          <label htmlFor="auto-pair">
+            <input
+              id="auto-pair"
+              type="checkbox"
+              data-testid="auto-pair-toggle"
+              checked={autoPair}
+              onChange={(event) => changeAutoPair(event.target.checked)}
+            />
+            {COPY.autoPairLabel}
+          </label>
         </div>
+
+        <p className="note" data-testid="auto-note">
+          {COPY.autoNote}
+        </p>
 
         {/*
           First-run layout prompt and the IME notice (M1-04 §6, M2-06 §2). Plain
@@ -214,6 +285,8 @@ export function App() {
           errorMode={errorMode}
           caretStyle={caretStyle}
           layout={layout}
+          autoIndent={autoIndent}
+          autoPair={autoPair}
           onNewPassage={newPassage}
         />
       </main>
