@@ -37,6 +37,8 @@ describe("input adapter produces a contract-valid log", () => {
       textHash: "ab".repeat(32),
       layout: "qwerty-us",
       errorMode: "free",
+      autoIndent: false,
+      autoPair: false,
     });
 
     expect(InputLogSchema.safeParse(log).success).toBe(true);
@@ -59,6 +61,8 @@ describe("input adapter produces a contract-valid log", () => {
       textHash: "ab".repeat(32),
       layout: "qwerty-us",
       errorMode: "free",
+      autoIndent: false,
+      autoPair: false,
     });
     expect(log.events.filter((e) => e.repeat)).toHaveLength(1);
   });
@@ -77,6 +81,8 @@ describe("input adapter produces a contract-valid log", () => {
       textHash: "ab".repeat(32),
       layout: "qwerty-us",
       errorMode: "free",
+      autoIndent: false,
+      autoPair: false,
     });
     expect(InputLogSchema.safeParse(log).success).toBe(true);
     expect(log.markers?.map((m) => m.kind)).toEqual(["blur", "visibility", "visibility", "focus"]);
@@ -127,6 +133,8 @@ describe("input adapter produces a contract-valid log", () => {
         textHash: "ab".repeat(32),
         layout: "qwerty-us",
         errorMode: "free",
+        autoIndent: false,
+        autoPair: false,
       });
 
       // Keystrokes are 0 and 2000 relative to the 1000 origin.
@@ -155,6 +163,8 @@ describe("input adapter produces a contract-valid log", () => {
         textHash: "ab".repeat(32),
         layout: "qwerty-us",
         errorMode: "free",
+        autoIndent: false,
+        autoPair: false,
       });
       // The keystroke is still the origin at 0.
       expect(log.events[0]?.t).toBe(0);
@@ -176,6 +186,8 @@ describe("input adapter produces a contract-valid log", () => {
       textHash: "ab".repeat(32),
       layout: "qwerty-us",
       errorMode: "free",
+      autoIndent: false,
+      autoPair: false,
     });
     expect(log.events[0]?.isTrusted).toBe(false);
   });
@@ -188,10 +200,41 @@ describe("input adapter produces a contract-valid log", () => {
       textHash: "ab".repeat(32),
       layout: "qwerty-us",
       errorMode: "free",
+      autoIndent: false,
+      autoPair: false,
     });
     // An empty log is still schema-valid; it is the ENGINE that must report
     // "not available" rather than 0 WPM (asserted in eng-edge-robustness).
     expect(InputLogSchema.safeParse(log).success).toBe(true);
     expect(log.events).toHaveLength(0);
+  });
+
+  it("carries the armed auto-insertion toggles into the log settings (ENG-09)", () => {
+    const capture = new InputCapture();
+    capture.handleKeyDown(fakeKeyEvent({ key: "a", timeStamp: 0 }));
+    const log = capture.toLog({
+      mode: "classic",
+      textId: "x",
+      textHash: "ab".repeat(32),
+      layout: "qwerty-us",
+      errorMode: "free",
+      autoIndent: true,
+      autoPair: true,
+    });
+    expect(InputLogSchema.safeParse(log).success).toBe(true);
+    expect(log.meta.settings.autoIndent).toBe(true);
+    expect(log.meta.settings.autoPair).toBe(true);
+    // Off stays off: the default path must not arm anything silently.
+    const off = capture.toLog({
+      mode: "classic",
+      textId: "x",
+      textHash: "ab".repeat(32),
+      layout: "qwerty-us",
+      errorMode: "free",
+      autoIndent: false,
+      autoPair: false,
+    });
+    expect(off.meta.settings.autoIndent).toBe(false);
+    expect(off.meta.settings.autoPair).toBe(false);
   });
 });

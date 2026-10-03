@@ -60,6 +60,18 @@ export const COPY = {
   imeNotice:
     "Typing with an IME (for example Chinese, Japanese, or Korean entry): suggestions shown while you compose are never scored. Only the text you confirm counts.",
 
+  /**
+   * settings.autoIndent.label / settings.autoPair.label (ENG-09, D-M5-5).
+   * Factual only: what the toggles arm. No producer exists in prose mode, so
+   * the note says plainly that these matter to code passages (WAVE 3), not to
+   * the English passages on screen — an armed toggle that did nothing silently
+   * would be the dishonest version.
+   */
+  autoIndentLabel: "Auto-indent",
+  autoPairLabel: "Auto-pair",
+  autoNote:
+    "These arm automatic insertions for code passages. Prose passages produce no automatic insertions, so the toggles change nothing here — the choice is carried into each result for when code passages arrive.",
+
   /** home.hint.restart */
   hintRestart: "Press Tab to restart",
 

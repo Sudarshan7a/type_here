@@ -229,6 +229,19 @@ Digit0 = column 9 = rp, KeyQ = column 0 = lp → cross-hand; char-based
 a bare `@` without its code is genuinely ambiguous). The Digit0 code is a
 verified production (levels-04 §2.2, pinned in VERIFIED_PRODUCTIONS).
 
+### E-AUTOINSERT (ENG-09 D-M5-5) — `ENG-FIXTURE-E-AUTOINSERT-auto-pair-excluded-from-counts`, target `ab()`
+
+`a`@0/100, `b`@500/600, `(`@1000/1100 (Shift+Digit9), auto `)`@1150 (Shift+
+Digit0, auto:true, no keyup — nobody pressed it). 3 printable presses, all
+correct; buffer `ab()`, length 4, all correct. Duration 1000 ms (last scoring
+press − first; the auto press at 1150 extends no clock). raw = 3/5 ÷
+(1000/60000) = 36.0; gross = net = 4/5 ÷ (1000/60000) = 48.0 (the final text
+carries the auto char); accuracies 100%; KSPC (3+0)/4 = 0.75 — the pin;
+burst 3 → 7.2; IKI 1000/2 = 500 ms; rollover 0/2. autoInserts 1,
+totalAttempts 3 (the auto branch returns before the attempt counter),
+flags ["auto-events-present"]. recompute.mjs reproduces every number
+bit-exact, including the flag (its classifier now mirrors the integrity rule).
+
 ## Wart W1 — final-text denominators count UTF-16 units (flagged, not fixed)
 
 `metrics.ts` (frozen this slice) computes `final.length`, so every
