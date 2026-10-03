@@ -265,6 +265,13 @@ describe("App shell layout wiring (server-rendered)", () => {
     expect(html).toContain('data-testid="auto-note"');
     expect(html).toContain(COPY.autoNote);
   });
+
+  it("renders the shortcuts list as a native disclosure with every binding (CUS-03)", () => {
+    expect(html).toContain('data-testid="shortcuts"');
+    expect(html).toContain(COPY.shortcutsTitle);
+    expect(html).toContain(COPY.shortcutsIntro);
+    for (const line of COPY.shortcuts) expect(html).toContain(line);
+  });
 });
 
 describe("layout and IME copy honesty (claims ban)", () => {
