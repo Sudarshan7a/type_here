@@ -207,6 +207,13 @@
 | `settings.autoIndent.label` | Auto-indent | ENG-09. Arms automatic indentation for code passages; prose passages produce no automatic insertions. |
 | `settings.autoPair.label` | Auto-pair | ENG-09. Arms automatic bracket pairing for code passages; prose passages produce no automatic insertions. |
 | `settings.autoNote` | These arm automatic insertions for code passages. Prose passages produce no automatic insertions, so the toggles change nothing here — the choice is carried into each result for when code passages arrive. | Factual only: what the toggles arm and the honest MVP limit. No outcome is promised. |
+| `help.shortcuts.title` | Keyboard shortcuts | CUS-03. Native disclosure beside the settings; every entry names a binding the app honors, each exercised in e2e. |
+| `help.shortcuts.intro` | Everything here works without a mouse. | |
+| `help.shortcuts.tab` | Tab, while typing: restart the test. | |
+| `help.shortcuts.escape` | Escape, while typing: leave the typing field. Tab then moves on. | |
+| `help.shortcuts.activate` | Enter or Space: activate the focused button, select, checkbox, or link. | |
+| `help.shortcuts.replay` | Arrow keys: move through the replay, when its slider is focused. Home and End jump to the ends. | |
+| `help.shortcuts.type` | Letters and punctuation: type the passage, while the field is focused. | |
 | `settings.noTimerPractice.label` | No-timer practice | |
 | `settings.noTimerPractice.description` | Practice without a countdown. Take all the time you need. | |
 | `settings.dataPrivacy.exportCta` | Export my data | |

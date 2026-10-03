@@ -122,6 +122,22 @@ export const COPY = {
   autoNote:
     "These arm automatic insertions for code passages. Prose passages produce no automatic insertions, so the toggles change nothing here — the choice is carried into each result for when code passages arrive.",
 
+  /**
+   * help.shortcuts.* (CUS-03). The keyboard list. Every entry names a binding
+   * the app actually honors — Tab-to-restart, Escape-to-leave, native control
+   * keys, replay scrub keys — pinned by e2e/keyboard-flow.spec.ts. Adding a
+   * binding here without a test is how a shortcuts list starts lying.
+   */
+  shortcutsTitle: "Keyboard shortcuts",
+  shortcutsIntro: "Everything here works without a mouse.",
+  shortcuts: [
+    "Tab, while typing: restart the test.",
+    "Escape, while typing: leave the typing field. Tab then moves on.",
+    "Enter or Space: activate the focused button, select, checkbox, or link.",
+    "Arrow keys: move through the replay, when its slider is focused. Home and End jump to the ends.",
+    "Letters and punctuation: type the passage, while the field is focused.",
+  ] as const,
+
   /** home.hint.restart */
   hintRestart: "Press Tab to restart",
 

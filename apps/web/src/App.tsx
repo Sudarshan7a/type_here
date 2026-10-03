@@ -481,6 +481,23 @@ export function App() {
         </p>
 
         {/*
+          CUS-03: the shortcuts list. A native disclosure: keyboard-operable
+          by construction, static text beside the settings, never covering
+          the field. Every entry is a binding the app honors, each exercised
+          in e2e/keyboard-flow.spec.ts or the replay suite.
+        */}
+        <details className="note" data-testid="shortcuts">
+          <summary>
+            {COPY.shortcutsTitle} — {COPY.shortcutsIntro}
+          </summary>
+          <ul>
+            {COPY.shortcuts.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </details>
+
+        {/*
           First-run layout prompt and the IME notice (M1-04 §6, M2-06 §2). Plain
           text beside the settings, above the surface — never covering it, so
           AC6 (no interrupting chrome) holds by construction.
