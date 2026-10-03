@@ -108,6 +108,39 @@ export function ReplayViewer({
   }, [frames, target]);
   const targetChars = useMemo(() => [...target], [target]);
 
+  /**
+   * The word-box mirror of TypingSurface.groupIntoWords: the WORD is the
+   * atomic box with its trailing space inside (same `.word` class, same NBSP
+   * space), so the replay wraps at word boundaries at any width. Rendering
+   * every character as a top-level inline with NBSP spaces gave the line zero
+   * break opportunities — one unbreakable run past the viewport (WCAG 1.4.10).
+   * Slots stay indexed by buffer position, so paintFrame is untouched; slots
+   * past the target (extras) ride in one trailing box.
+   */
+  const replayTokens = useMemo(() => {
+    const tokens: { index: number; chars: string[] }[] = [];
+    let index = 0;
+    while (index < targetChars.length) {
+      const start = index;
+      while (index < targetChars.length && targetChars[index] !== " ") index += 1;
+      if (index === start) {
+        index += 1;
+        continue;
+      }
+      const word = targetChars.slice(start, index);
+      if (index < targetChars.length) word.push(" ");
+      tokens.push({ index: start, chars: word });
+      index += 1;
+    }
+    if (slotCount > targetChars.length) {
+      tokens.push({
+        index: targetChars.length,
+        chars: Array.from({ length: slotCount - targetChars.length }, () => ""),
+      });
+    }
+    return tokens;
+  }, [targetChars, slotCount]);
+
   /** Write one frame to the DOM: states, caret, scrub and timestamp. */
   const paintFrame = useCallback(
     (index: number) => {
@@ -270,17 +303,25 @@ export function ReplayViewer({
   return (
     <section className="replay" aria-label={COPY.replayWatch} data-testid="replay">
       <div className="replay-text" ref={wordHostRef} data-testid="replay-text">
-        {Array.from({ length: slotCount }, (_, i) => (
-          <span
-            key={i}
-            className={targetChars[i] === " " ? "ch ch-space" : "ch"}
-            data-char-state="untyped"
-            data-replay-char={i}
-            ref={(el) => {
-              charRefs.current[i] = el;
-            }}
-          >
-            {targetChars[i] === " " ? " " : (targetChars[i] ?? "")}
+        {replayTokens.map((token) => (
+          <span className="word" key={`rw-${token.index}`}>
+            {token.chars.map((ch, offset) => {
+              const i = token.index + offset;
+              const isSpace = ch === " ";
+              return (
+                <span
+                  key={i}
+                  className={isSpace ? "ch ch-space" : "ch"}
+                  data-char-state="untyped"
+                  data-replay-char={i}
+                  ref={(el) => {
+                    charRefs.current[i] = el;
+                  }}
+                >
+                  {isSpace ? " " : ch}
+                </span>
+              );
+            })}
           </span>
         ))}
         <div className="caret" ref={caretRef} data-testid="replay-caret" aria-hidden="true" />
