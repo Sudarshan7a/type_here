@@ -376,6 +376,19 @@ body {
   text-align: center;
 }
 
+/*
+ * WCAG 1.4.12: a user text-spacing override adds paragraph margins, which
+ * would grow the slot beyond its reservation when the prompt re-inserts on
+ * blur — shifting the finished actions between mousedown and mouseup and
+ * losing the click (pinned in e2e/a11y-sweep.spec.ts). The no-shift invariant
+ * holds only if the prompt carries no external margin, so it is zeroed here
+ * with the weight to survive such an override. Scoped to this one line: the
+ * override keeps working everywhere else.
+ */
+.prompt-slot .focus-prompt {
+  margin-bottom: 0 !important;
+}
+
 .note {
   margin: 0;
   color: var(--text-muted);
@@ -550,6 +563,17 @@ button:active {
   transform: translateY(2px);
 }
 
+/*
+ * Reduced motion: buttons go instant. The press feedback stays (the 2px
+ * travel above is a state change, not an animation), but nothing eases
+ * toward it — the motion catalog's "Button press → Reduced: none".
+ */
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+}
+
 select {
   font: inherit;
   font-family: var(--font-ui);
@@ -593,6 +617,41 @@ select {
   color: var(--text-muted);
   font-size: var(--t-caption);
   line-height: var(--lh-caption);
+}
+
+/* ---- replay viewer (ENG-08) -------------------------------------------------- */
+
+/*
+ * The viewer renders inside the finished panel, in normal flow under the
+ * surface — never covering it (AGENTS.md rule 1). These are the only replay
+ * layout rules: positioning context, wrapping, and target size. The character
+ * states reuse the `.ch` rules above, so the non-colour cues are identical to
+ * the live surface (pinned in e2e/a11y-sweep.spec.ts).
+ *
+ * Wrapping mirrors the surface's word-box structure (see `groupIntoWords` in
+ * TypingSurface.tsx and `replayTokens` in ReplayViewer.tsx): the word is the
+ * atomic box with its trailing space inside, so the text wraps at word
+ * boundaries at any width instead of running one unbreakable NBSP line past
+ * the viewport (WCAG 1.4.10 Reflow). `position: relative` makes this the
+ * caret's containing block, matching `.passage`.
+ */
+.replay-text {
+  position: relative;
+}
+
+/* The control rows wrap instead of overflowing narrow viewports. */
+.replay-controls,
+.replay-scrub-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  align-items: center;
+}
+
+/* WCAG 2.2 2.5.8: the scrub slider is a control too — its default box is
+   shorter than the 24px floor, so it is sized up like the checkboxes. */
+.replay-scrub-row input[type="range"] {
+  min-height: var(--s-6);
 }
 
 /* ---- focus mode (CUS-02) -------------------------------------------------- */
@@ -711,6 +770,9 @@ details[data-testid="shortcuts"] summary {
      the non-colour cues above are all the user has left. Borders keep the
      structure visible. */
   .ch[data-char-state="correct"] {
+    color: CanvasText;
+  }
+  .ch[data-char-state="untyped"] {
     color: CanvasText;
   }
   .ch[data-char-state="incorrect"],
