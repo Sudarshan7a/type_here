@@ -1,7 +1,13 @@
 # BUILD LOG
 
 ## Current Position
-Phase: Phase 1 (M1 engine) — loop WAVE 0.5 done. ENG-08 moved IN PROGRESS → DONE-VERIFIED.
+Phase: Phase 1 (M1 engine) — loop WAVE 0.6 done. ENG-09 stays IN PROGRESS with the MVP scope landed and two owned deferrals.
+Last completed task: **Fixture + toggles (PR #31):** ENG-FIXTURE-E-AUTOINSERT (KSPC 0.75 pin, hand-computed, recompute bit-exact incl. the new flag rule, mutant-proven) + auto-indent/auto-pair checkboxes (default off, persisted, carried to log settings, honest prose-does-nothing note, copy-table pinned). Spec-checker: stays IN PROGRESS — `partial` needs a code-mode definition (disposition: boolean now, enum migration tracked on PRG-11) and `auto:true` production needs code passages (tracked on PRG-11/PRG-15). PR merged after CI green.
+Ledger: MVP 8/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 1/20 | overall 9/216 DONE-VERIFIED (21 IN PROGRESS, 185 NOT STARTED, 1 REJECTED). No status moved this round.
+Next task, in the loop order (LOOP-TO-DONE-PROMPT.md WAVE 0):
+1. **WAVE 0.7** — ENG-10 smart-quotes/autocorrect/capitalization off; raw chars.
+2. **WAVE 0.8** — CUS-01 stays IN PROGRESS until owner eyeballs surface (human).
+Previous position (WAVE 0.5 closeout):
 Last completed task: **Viewer (PR #28):** finished in-progress work found on a stale worktree — engine `framesForLog` (9 goldens) + `ReplayViewer` (refs-painted, 0.5/1/2/4×, scrub, worded errors, corrupted/unavailable notes) + retained-log wiring (Watch-replay button, last-finished in memory only); fixed an eslint-disable for an unconfigured rule via useCallback (behavior-preserving). **Gaps (PR #29, direct slice):** 16-fixture final-text-exact loop (M1-10 check), keyboard-operability + eviction + reduced-motion e2e, ADR-009 (in-panel-only MVP scope; `/replay/:id` waits on M2-01). Spec-checker blockers 1–5 all closed; bundle 165.5KB. Both PRs merged after CI green.
 Ledger: MVP 8/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 1/20 | overall 9/216 DONE-VERIFIED (21 IN PROGRESS, 185 NOT STARTED, 1 REJECTED).
 Next task, in the loop order (LOOP-TO-DONE-PROMPT.md WAVE 0):

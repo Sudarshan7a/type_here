@@ -52,6 +52,15 @@ const SURFACE_COPY: ReadonlyArray<{ key: string; expected: string }> = [
   { key: "settings.caretStyle.line", expected: "Line" },
   { key: "settings.caretStyle.block", expected: "Block" },
   { key: "settings.caretStyle.underline", expected: "Underline" },
+  // ENG-09: the auto-insertion toggles. Pinned so the honest-limit note
+  // cannot drift into a promise.
+  { key: "settings.autoIndent.label", expected: "Auto-indent" },
+  { key: "settings.autoPair.label", expected: "Auto-pair" },
+  {
+    key: "settings.autoNote",
+    expected:
+      "These arm automatic insertions for code passages. Prose passages produce no automatic insertions, so the toggles change nothing here — the choice is carried into each result for when code passages arrive.",
+  },
   // The one and only automatic announcement.
   {
     key: "a11y.announce.testFinished",
