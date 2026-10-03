@@ -108,3 +108,11 @@ Thresholds pending human decision (Track A, `docs/WEEK-0-2-PLAN.md` §3) — the
 - **Commit convention (M0-04 item 6):** `<MILESTONE-TASK-ID> (<REQ-ID>): <short imperative subject>` — e.g. `M1-03 (ENG-02): add text model`.
 - **Revisit trigger:** typescript-eslint ships TS 7 support; any pinned major goes EOL.
 - **Note:** packages declare their own devDependencies (pnpm strictness) — TypeScript and Vitest are duplicated per-package by design, installed once on disk via the store.
+
+### 2026-10-03 - ADR-009: ENG-08 MVP replay is in-panel only; /replay/:id waits on routing
+- **Decision:** the MVP replay viewer lives inside the finished panel (Watch replay toggle over the retained in-memory log). The sitemap's /replay/:id route, persisted replay history, and deep links wait on M2-01 routing + retained-history storage, which are separate rows.
+- **Conflict:** master-spec sitemap (:251) and replay page (:296-297) describe /replay/:id; implementation-guide M1-10 describes frames without mandating a route.
+- **Why this resolution:** no router exists in the app and adding one for a single toggle would widen the slice; the in-panel viewer satisfies every M1-10 frame requirement and the M3-08 recent-test check for the just-finished attempt. Retention is documented as last-finished-only, in-memory, cleared on restart.
+- **Approver:** autonomous loop (spec-checker reviewed, no AGENTS.md conflict).
+- **Revisit trigger:** M2-01 routing lands, or the owner asks for shareable replay links.
+

@@ -102,6 +102,58 @@ test("ENG-08: a typo run names its error positions in words", async ({ page }) =
   await expect(summary).toHaveText(/position 5/);
 });
 
+test("ENG-08: the viewer is fully keyboard operable", async ({ page }) => {
+  await finishPassage(page);
+  await openReplay(page);
+
+  // Play from the keyboard: focus + Enter starts the stepping.
+  const play = page.getByTestId("replay-play-pause");
+  await play.focus();
+  await page.keyboard.press("Enter");
+  await expect
+    .poll(async () => (await replayStates(page)).filter((s) => s === "correct").length, {
+      message: "keyboard-started replay must paint characters correct",
+      timeout: 30_000,
+    })
+    .toBeGreaterThan(0);
+  await page.keyboard.press("Enter"); // pause
+
+  // Scrub from the keyboard: End jumps to the last frame.
+  const scrub = page.getByTestId("replay-scrub");
+  await scrub.focus();
+  await page.keyboard.press("End");
+  await expect
+    .poll(async () => (await replayStates(page)).filter((s) => s === "correct").length, {
+      message: "keyboard scrub to End must reach the final frame",
+      timeout: 10_000,
+    })
+    .toBe(PASSAGE.length);
+});
+
+test("ENG-08: restarting evicts the retained log", async ({ page }) => {
+  await finishPassage(page);
+  await openReplay(page);
+  await expect(page.getByTestId("replay")).toBeVisible();
+
+  // Tab restarts (AC5): the result goes away, and the retained log with it —
+  // retention is the last finished attempt, in memory, cleared on restart.
+  await page.getByTestId("surface").click();
+  await page.keyboard.press("Tab");
+  await expect(page.getByTestId("finished")).toHaveCount(0);
+  await expect(page.getByTestId("replay-watch")).toHaveCount(0);
+});
+
+test("ENG-08: nothing moves before an explicit press under reduced motion", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await finishPassage(page);
+  await openReplay(page);
+
+  // No autoplay by design — under reduced motion this is also the requirement:
+  // one full second with no press leaves every character untyped.
+  await page.waitForTimeout(1_000);
+  expect(new Set(await replayStates(page))).toEqual(new Set(["untyped"]));
+});
+
 test("ENG-08: the viewer never covers the typing surface", async ({ page }) => {
   await finishPassage(page);
   await openReplay(page);

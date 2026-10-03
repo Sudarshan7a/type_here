@@ -1,7 +1,25 @@
 import { describe, expect, it } from "vitest";
 
 import { keyDown, keyUp, withKeyups } from "../fixtures/helpers.js";
+import { computeResult } from "../src/index.js";
 import { framesForLog } from "../src/replay.js";
+
+import * as a01 from "../fixtures/a01.js";
+import * as b01 from "../fixtures/b01.js";
+import * as c01 from "../fixtures/c01.js";
+import * as d01 from "../fixtures/d01.js";
+import * as d02 from "../fixtures/d02.js";
+import * as d03 from "../fixtures/d03.js";
+import * as d04 from "../fixtures/d04.js";
+import * as e01 from "../fixtures/e01.js";
+import * as e02 from "../fixtures/e02.js";
+import * as e03 from "../fixtures/e03.js";
+import * as eCaps from "../fixtures/e-caps.js";
+import * as eDeadkey from "../fixtures/e-deadkey.js";
+import * as eEmoji from "../fixtures/e-emoji.js";
+import * as eDualkey from "../fixtures/e-dualkey.js";
+import * as f01 from "../fixtures/f01.js";
+import * as g01 from "../fixtures/g01.js";
 
 /**
  * Deterministic replay (ENG-08, implementation guide M1-10).
@@ -145,6 +163,53 @@ describe("framesForLog — deterministic replay (ENG-08)", () => {
     const replay = framesForLog("hi", events, "free");
     expect(replay.frames.map((f) => f.text)).toEqual(["", "h", "hi"]);
     expect(replay.finalText).toBe("hi");
+    expect(replay.corrupted).toBe(false);
+  });
+});
+
+describe("framesForLog — every chapter fixture replays to its scored text (M1-10 check)", () => {
+  // The replay must reproduce the exact final text the scorer computed, for
+  // every fixture in the corpus — not just the tiny hand logs above. The
+  // expectation is cross-consistency between the two engine paths (fold vs
+  // computeResult), which is exactly what the M1-10 check demands; no new
+  // numbers are asserted here, so there is nothing to hand-compute.
+  const MODULES = [
+    a01,
+    b01,
+    c01,
+    d01,
+    d02,
+    d03,
+    d04,
+    e01,
+    e02,
+    e03,
+    eCaps,
+    eDeadkey,
+    eEmoji,
+    f01,
+    g01,
+  ];
+  for (const mod of MODULES) {
+    it(`${mod.FIXTURE_ID} replays to the exact scored final text`, () => {
+      const expected = computeResult(mod.log, mod.text).finalText;
+      const replay = framesForLog(mod.text.text, mod.log.events, mod.log.meta.settings.errorMode, {
+        expectedFinalText: expected,
+      });
+      expect(replay.finalText).toBe(expected);
+      expect(replay.corrupted).toBe(false);
+    });
+  }
+
+  it("e-dualkey alt log replays to its own scored text", () => {
+    const expected = computeResult(eDualkey.logAlt, eDualkey.textAlt).finalText;
+    const replay = framesForLog(
+      eDualkey.textAlt.text,
+      eDualkey.logAlt.events,
+      eDualkey.logAlt.meta.settings.errorMode,
+      { expectedFinalText: expected },
+    );
+    expect(replay.finalText).toBe(expected);
     expect(replay.corrupted).toBe(false);
   });
 });
