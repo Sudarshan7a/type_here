@@ -128,6 +128,26 @@ test("ENG-08: the viewer is fully keyboard operable", async ({ page }) => {
       timeout: 10_000,
     })
     .toBe(PASSAGE.length);
+
+  // Home jumps back to the start. The first keystroke carries t=0 (the
+  // capture clock starts on the first accepted key), so time 0 already
+  // includes its frame — what Home must do deterministically is return the
+  // scrub to 0 and the paint to (at most) that first frame.
+  await page.keyboard.press("Home");
+  await expect
+    .poll(async () => Number(await scrub.inputValue()), {
+      message: "keyboard scrub to Home must return the slider to 0",
+      timeout: 10_000,
+    })
+    .toBe(0);
+  expect(
+    (await replayStates(page)).filter((s) => s === "correct").length,
+    "time 0 holds at most the t=0 first keystroke",
+  ).toBeLessThanOrEqual(1);
+  await page.keyboard.press("End");
+  const atEnd = Number(await scrub.inputValue());
+  await page.keyboard.press("ArrowLeft");
+  expect(Number(await scrub.inputValue())).toBeLessThan(atEnd);
 });
 
 test("ENG-08: restarting evicts the retained log", async ({ page }) => {
