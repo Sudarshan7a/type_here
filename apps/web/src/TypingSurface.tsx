@@ -23,11 +23,12 @@ import {
   type EngineResult,
   type ErrorMode,
 } from "@realtype/engine";
-import type { CaretStyle, Layout } from "@realtype/schemas";
+import type { CaretStyle, Layout, LogMarker, KeyEvent } from "@realtype/schemas";
 
 import { COPY } from "./copy";
 import { InputCapture } from "./input-adapter";
 import type { Passage } from "./passages";
+import { ReplayViewer } from "./ReplayViewer";
 
 /** What the surface is doing, as far as the user is concerned. */
 export type SurfacePhase = "idle" | "running" | "paused" | "finished";
@@ -101,6 +102,14 @@ export function TypingSurface({
   const [phase, setPhase] = useState<SurfacePhase>("idle");
   const [focused, setFocused] = useState(false);
   const [result, setResult] = useState<EngineResult | null>(null);
+  // ENG-08: the just-finished attempt's log, retained in memory for replay.
+  // Set once in finish(), cleared on restart — never per keystroke, never
+  // persisted, never sent anywhere. Only the latest finished attempt is kept.
+  const [retainedLog, setRetainedLog] = useState<{
+    events: readonly KeyEvent[];
+    markers: readonly LogMarker[];
+  } | null>(null);
+  const [replayOpen, setReplayOpen] = useState(false);
 
   const surfaceRef = useRef<HTMLDivElement>(null);
   const charRefs = useRef<Array<HTMLSpanElement | null>>([]);
@@ -297,6 +306,8 @@ export function TypingSurface({
     pausedAtRef.current = 0;
     cancelFrame();
     setResult(null);
+    setRetainedLog(null);
+    setReplayOpen(false);
     setPhase("idle");
     // Layout offsets belong to the text, not to the attempt, so they survive a
     // restart; the painting does not, so it is redrawn immediately.
@@ -329,6 +340,11 @@ export function TypingSurface({
     paint(true);
     const computed = computeResult(log, text);
     setResult(computed);
+    // Retain a copy of the raw events for the replay viewer (ENG-08). The
+    // capture is replaced on restart, so this snapshot is stable; markers
+    // travel with it because frame timing shares the log's clock.
+    setRetainedLog({ events: [...capture.events], markers: [...capture.markers] });
+    setReplayOpen(false);
     onFinish?.(computed);
   }, [cancelFrame, errorMode, layout, onFinish, passage.id, passage.text, paint, runFrame]);
 
@@ -639,7 +655,17 @@ export function TypingSurface({
       </p>
 
       {result !== null && (
-        <FinishedPanel result={result} onRestart={restart} onNewPassage={onNewPassage} />
+        <FinishedPanel
+          result={result}
+          onRestart={restart}
+          onNewPassage={onNewPassage}
+          target={passage.text}
+          errorMode={errorMode}
+          retainedLog={retainedLog}
+          replayOpen={replayOpen}
+          onWatchReplay={() => setReplayOpen(true)}
+          onCloseReplay={() => setReplayOpen(false)}
+        />
       )}
 
       <p className="passage-id" data-testid="passage-id">
@@ -653,10 +679,24 @@ function FinishedPanel({
   result,
   onRestart,
   onNewPassage,
+  target,
+  errorMode,
+  retainedLog,
+  replayOpen,
+  onWatchReplay,
+  onCloseReplay,
 }: {
   result: EngineResult;
   onRestart: () => void;
   onNewPassage: (() => void) | undefined;
+  /** The passage that was typed — the replay folds against the same target. */
+  target: string;
+  errorMode: ErrorMode;
+  /** The retained attempt log, or null when nothing was kept for this test. */
+  retainedLog: { events: readonly KeyEvent[]; markers: readonly LogMarker[] } | null;
+  replayOpen: boolean;
+  onWatchReplay: () => void;
+  onCloseReplay: () => void;
 }) {
   return (
     <section className="finished" aria-labelledby="finished-title" data-testid="finished">
@@ -680,7 +720,27 @@ function FinishedPanel({
             {COPY.newPassage}
           </button>
         )}
+        {/*
+          ENG-08: the viewer renders below, inside the finished panel — in
+          normal flow under the surface, never covering it (rule 1). The
+          button shows whenever a log was retained for this test.
+        */}
+        {retainedLog !== null && (
+          <button type="button" data-testid="replay-watch" onClick={onWatchReplay}>
+            {COPY.replayWatch}
+          </button>
+        )}
       </p>
+      {replayOpen && retainedLog !== null && (
+        <ReplayViewer
+          target={target}
+          events={retainedLog.events}
+          markers={retainedLog.markers}
+          errorMode={errorMode}
+          expectedFinalText={result.finalText}
+          onClose={onCloseReplay}
+        />
+      )}
       <p className="note" data-testid="engine-stamp">
         {COPY.engineStamp(result.summary.modelVersion)}
       </p>

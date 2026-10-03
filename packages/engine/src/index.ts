@@ -59,6 +59,8 @@ export {
   type TextModel,
 } from "./text-model.js";
 
+export { framesForLog, type ReplayFrame, type ReplayOptions, type ReplayResult } from "./replay.js";
+
 export {
   DEFAULT_PAUSE_TIMEOUT_MS,
   SESSION_STATES,
