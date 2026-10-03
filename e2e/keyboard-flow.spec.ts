@@ -77,9 +77,12 @@ test("CUS-03: the shortcuts list documents only bindings that work", async ({ pa
   await expect(list).toBeVisible();
 
   // The disclosure itself opens and closes from the keyboard (it starts
-  // closed on a fresh load).
+  // closed on a fresh load) — and its row is a 24px target (WCAG 2.5.8).
   const summary = list.locator("summary").first();
   await summary.focus();
+  const summaryBox = await summary.boundingBox();
+  expect(summaryBox, "summary row must have a real box").not.toBeNull();
+  expect(summaryBox!.height).toBeGreaterThanOrEqual(24);
   await expect(list).not.toHaveAttribute("open", "");
   await page.keyboard.press("Enter");
   await expect(list).toHaveAttribute("open", "");
