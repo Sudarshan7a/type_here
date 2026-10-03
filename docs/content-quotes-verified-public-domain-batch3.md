@@ -1,5 +1,7 @@
 # Content Library — Verified Public-Domain Quotes, Batch 3: Epictetus (Elizabeth Carter translation, 1759)
 
+**License:** `public domain (verified)` — Epictetus, *Enchiridion*, trans. Elizabeth Carter, 1759. No attribution required.
+
 **Sourcing policy reminder:** same discipline as Batches 1–2 — only lines traceable to a specifically-named, dated translation.
 
 **Verification trail:** Epictetus (c. 55 – c. 135 CE) never wrote anything himself; his teachings were transcribed by his student Arrian into the *Discourses* and the *Enchiridion* ("Handbook"). Elizabeth Carter (1717–1806) produced the first English translation in 1759, republished in further editions through 1807 and 1865. This is independently confirmed public domain by: (1) the Internet Archive hosting the original 1759, 1807, and 1865 scanned editions directly, with explicit statements that the text is in the public domain; (2) LibriVox's public-domain audiobook recording of the same translation; (3) Wikipedia's biographical confirmation of Carter's life dates (1717–1806), placing her death 220 years before this document. **Carter died in 1806 — this passes the sourcing policy's pre-1900 bar by nearly a full century, with even more margin than the Franklin or Aurelius sources already used.**
