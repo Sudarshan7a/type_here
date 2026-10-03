@@ -1,5 +1,7 @@
 # Content Library — Verified Public-Domain Quotes, Batch 2: Marcus Aurelius (George Long, 1862 translation)
 
+**License:** `public domain (verified)` — Marcus Aurelius, *Meditations*, trans. George Long, 1862. No attribution required.
+
 **Sourcing policy reminder:** same discipline as Batch 1 (`content-quotes-verified-public-domain.md`) — only lines traceable to a specifically-named, dated translation, never a generic "quotes about stoicism" compilation site's paraphrase.
 
 **Verification trail:** Marcus Aurelius (121–180 CE) wrote the *Meditations* as private notes, never intended for publication. George Long (1800–1879), a Cambridge-educated classicist, produced the standard 19th-century English translation, first published in 1862 under the title "The Thoughts of the Emperor M. Aurelius Antoninus." This translation is confirmed public domain independently by: (1) Standard Ebooks, a public-domain-transcription project, which explicitly dedicates its edition of this exact translation to the public domain via CC0; (2) the Internet Archive hosting full scanned original editions; (3) Wikipedia's biographical page confirming George Long's life dates (1800–1879), placing his death 147 years before this document. **This translation, not a modern paraphrase, is the exact source of the wording below.**

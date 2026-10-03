@@ -17,6 +17,7 @@
     "build": "pnpm -r build",
     "audit:prod": "pnpm audit --prod",
     "check:licenses": "node scripts/check-licenses.mjs",
+    "check:content-licenses": "node scripts/check-content-licenses.mjs",
     "check:bundle": "node scripts/check-bundle-size.mjs",
     "check:ledger": "node scripts/check-ledger.mjs",
     "check:policies": "node scripts/check-policies.mjs",

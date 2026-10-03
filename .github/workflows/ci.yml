@@ -72,3 +72,8 @@ jobs:
         run: |
           pnpm check:licenses
           node --test scripts/check-licenses.test.mjs
+
+      - name: "Content-licence gate (CNT-07: no GPL/AGPL corpus content, every item licensed)"
+        run: |
+          pnpm check:content-licenses
+          node --test scripts/check-content-licenses.test.mjs
