@@ -128,7 +128,7 @@ measuring input-to-paint in this surface (NFR-01), and the no-network-during-a-t
 
 | ID | name | tag | depends-on | status | flag | test IDs | evidence | notes |
 |---|---|---|---|---|---|---|---|---|
-| PRG-01 | Token-aware engine (Tree-sitter WASM / lexer) | MVP | ENG-01, ENG-05 | IN PROGRESS | — | TOK-FIXTURE-001..007 | LAB PROXY | real Tree-sitter WASM reproduces chapter 9 §9.2.1's token map |
+| PRG-01 | Token-aware engine (Tree-sitter WASM / lexer) | MVP | ENG-01, ENG-05 | IN PROGRESS | — | TOK-FIXTURE-003/004/005 + 22 rule fixtures | LAB PROXY | Pure lexer + token map in the engine (`packages/engine/src/token-map.ts`, 12 §7.1 classes, tiling asserted); Tree-sitter kept behind the async seam in `grammar-refine.ts` — the bundle gate hard-fails on any WASM in the web build, so no grammar is added to `apps/web` yet. 28 mutants, 27 killed. Grammar loading, keystroke attribution (M5-03) and per-token timing still open |
 | PRG-02 | Language packs (initial set) | MVP | CNT-04 | NOT STARTED | — | TOK-FIXTURE-004 | — | ADR-007: build the **listed** set — JS/TS/JSX, Python, Java, SQL, HTML/CSS (6), not "3–5" |
 | PRG-03 | Layout-aware symbol maps, Shift/AltGr, OS profiles | MVP | LOC-01 | NOT STARTED | — | T0-GEN-008, T0-GEN-009 | — | AltGr chars currently return `unknown` (human action) |
 | PRG-04 | Safety: display-only, sanitized, never execute | MVP | PRG-01 | DONE-VERIFIED | — | — | LAB PROXY | Sanitizer `sanitizeSnippet` in `packages/engine/src/sanitize.ts` + renderer-ban scan (`dangerouslySetInnerHTML` grep). 7/7 mutants killed. Export via engine index. PR #42 |

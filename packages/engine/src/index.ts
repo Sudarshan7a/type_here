@@ -25,6 +25,57 @@ export { perMinuteWpm } from "./wpm.js";
 
 export { sanitizeSnippet } from "./sanitize.js";
 
+export {
+  TOKEN_CLASSES,
+  TOKEN_CLASS_BY_NUMBER,
+  TOKEN_CLASS_INFO,
+  isTokenClass,
+  type TokenClass,
+  type TokenClassInfo,
+} from "./token-class.js";
+
+export {
+  EXPRESSION_KEYWORDS,
+  FALLBACK_LANGUAGE,
+  GENERIC_PROFILE,
+  JAVASCRIPT_PROFILE,
+  PYTHON_PROFILE,
+  knownLanguages,
+  languageProfile,
+  type HashMeaning,
+  type LanguageProfile,
+  type StringProfile,
+} from "./language-profiles.js";
+
+export {
+  TOKENIZER_VERSION,
+  assertTokenMap,
+  tokenAt,
+  tokenClassAt,
+  tokenClassCounts,
+  tokenize,
+  tokenizeWithProfile,
+  validateTokenMap,
+  type TokenClassCounts,
+  type TokenMap,
+  type TokenMapDiagnostic,
+  type TokenMapDiagnosticCode,
+  type TokenMapIssue,
+  type TokenMapIssueKind,
+  type TokenSpan,
+} from "./token-map.js";
+
+export {
+  grammarNodeClass,
+  mappedGrammarNodeTypes,
+  refineTokenMap,
+  refineWithGrammar,
+  type GrammarLoader,
+  type GrammarNode,
+  type GrammarParse,
+  type GrammarRefinementOutcome,
+} from "./grammar-refine.js";
+
 export { pausedMs, pausedSpans, scoredDurationMs } from "./pauses.js";
 
 export { computeLiveSummary, type LiveSummary, type LiveSummaryOptions } from "./live-summary.js";
