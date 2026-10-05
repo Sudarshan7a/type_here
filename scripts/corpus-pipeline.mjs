@@ -26,6 +26,18 @@
  *   4. tags              - the register's `content_type_tag`, normalised to a
  *                          small explicit PROVISIONAL enum (register section 5
  *                          item 7 leaves the real taxonomy open).
+ *   7. difficulty band   - CNT-02. `typabilityBand` from `@realtype/typability`
+ *                          assigns every prose-family item a band, and refuses
+ *                          code, word-pool, symbol-dense and non-English text
+ *                          with an explicit reason instead of a band. The score
+ *                          that produced the band never leaves the typability
+ *                          package (master-spec §6.2 Stage A: no multiplication).
+ *
+ * Stage 7 runs after stage 1 because a band is only worth computing for an item
+ * that may exist at all, and it runs before `serialiseCorpus` so the artifact's
+ * `typability` block (model version, boundaries, config digest, coverage) is part
+ * of the same pure build. The same function is what `scripts/check-corpus.mjs`
+ * re-runs, so a hand-edited band in `content/corpus.json` fails the gate.
  *
  * The licence gate's parsers are IMPORTED from scripts/check-content-licenses.mjs
  * (`collectCorpusInputs`, `parseRegisterMarkdown`, `discoverItemIds`,
@@ -34,6 +46,17 @@
  * silently disagree about what "licensed" means.
  */
 import { createHash } from "node:crypto";
+
+import {
+  BAND_BOUNDARIES,
+  DIFFICULTY_BANDS,
+  TYPABILITY_FEATURE_SPECS,
+  TYPABILITY_VERSION,
+  OUT_OF_SCOPE_REASONS,
+  explainTypabilityBand,
+  typabilityBand,
+  typabilityConfigDigestInput,
+} from "../packages/typability/src/index.ts";
 
 import {
   classifyLicense,
@@ -54,7 +77,15 @@ export { collectCorpusInputs };
 export const ITEM_FAMILIES = Object.freeze(["PROSE", "QUOTE", "CODE", "WORDLIST", "COMP"]);
 
 /** Corpus contract version. Bump on any shape change. */
-export const CORPUS_VERSION = "1.0.0";
+export const CORPUS_VERSION = "1.1.0";
+
+/**
+ * How close to a band boundary an item has to be before the pipeline counts it as
+ * churn risk (`coverage.nearBoundaryItems`). One score point is roughly the effect
+ * of one character edited inside a word, so this window is "an edit of one
+ * character could move this item's band".
+ */
+export const TYPABILITY_CHURN_WINDOW = 1;
 
 /**
  * Deterministic family order for the artifact. Explicit rather than alphabetical
@@ -969,7 +1000,13 @@ export function buildCorpus({ registerTexts = [], corpusTexts = [] } = {}) {
       language: languageOf(family),
       contentType: null,
       tagSource: null,
-      difficulty: raw.difficulty,
+      // Stage 7 (CNT-02) fills these four in below; declared first so the key
+      // order in the artifact stays readable.
+      difficulty: null,
+      difficultySource: "unbanded",
+      declaredDifficulty: raw.difficulty,
+      declaredBandAgrees: null,
+      bandReason: null,
       wordCount: countWords(raw.text),
       declaredWords: raw.declaredWords,
       license: row.license.trim(),
@@ -982,6 +1019,27 @@ export function buildCorpus({ registerTexts = [], corpusTexts = [] } = {}) {
       provenance: { file: raw.file, line: raw.line },
     };
     if (raw.tokenMix) item.tokenMix = raw.tokenMix;
+
+    // Stage 7: the difficulty band. `difficulty` is the band a consumer shows -
+    // the COMPUTED one, never the source document's claim, because that claim is
+    // an unreviewed authoring label (see @realtype/typability's band.ts). The
+    // claim itself is preserved verbatim in `declaredDifficulty` and whether the
+    // two agreed is recorded in `declaredBandAgrees`, so the disagreement is a
+    // visible corpus-quality signal rather than a silent overwrite.
+    //
+    // The numeric score is deliberately NOT stored per item. Stage A outputs a
+    // label; `node scripts/check-typability.mjs --item <id>` recomputes and prints
+    // it for anyone auditing a band.
+    const band = typabilityBand({
+      text: item.text,
+      family: item.family,
+      language: item.language,
+      declaredBand: raw.difficulty,
+    });
+    item.difficulty = band.band;
+    item.difficultySource = band.source;
+    item.declaredBandAgrees = band.declaredBandAgrees;
+    item.bandReason = band.reason;
 
     // Stage 4: tags.
     const resolved = resolveContentType(
@@ -1025,7 +1083,9 @@ export function buildCorpus({ registerTexts = [], corpusTexts = [] } = {}) {
     // 6.4 publish gate, as data: an item cannot go live without a licence
     // entry, a review decision and a difficulty tag. Recording the blockers
     // means the corpus states plainly that almost nothing is shippable yet
-    // rather than implying readiness it does not have.
+    // rather than implying readiness it does not have. A computed band counts as
+    // a difficulty tag for prose; an out-of-scope item still has none, which is
+    // the honest outcome rather than a gap to be filled with a guess.
     item.publishBlockers = [
       row.status.trim() === "" ? "no-review-decision" : null,
       isShippableStatus(row.status) ? null : `status-not-shippable: ${row.status.trim()}`,
@@ -1100,7 +1160,105 @@ export function buildCorpus({ registerTexts = [], corpusTexts = [] } = {}) {
     rejected,
     duplicates,
     failures,
+    typability: typabilityBlock(items),
     stats: summarise(items, rejected, duplicates),
+  };
+}
+
+/**
+ * The artifact's `typability` block (CNT-02).
+ *
+ * Three jobs, all of them about making a band reviewable rather than magic:
+ *
+ *   1. PIN THE MODEL. `modelVersion`, both boundary values and the config digest
+ *      travel with the bands. `scripts/check-typability.mjs` fails when any of
+ *      them moves without a `TYPABILITY_VERSION` bump and a version note, which is
+ *      how "the boundaries were changed" stops being an invisible edit.
+ *   2. REPORT COVERAGE HONESTLY. How many items got a real band, how many are an
+ *      explicit null with a reason, split by family. A computed band is a
+ *      COMPUTED band: it has not been reviewed by a person, and this block says
+ *      `review: "none"` so nobody downstream mistakes the two.
+ *   3. PUBLISH THE MODEL SHAPE. Feature names, weights and anchors, so a reviewer
+ *      can read what produced a band without running anything - and so a change to
+ *      any of them shows up in the artifact diff.
+ */
+export function typabilityBlock(items) {
+  const byReason = {};
+  const byFamily = {};
+  const byBand = {};
+  let banded = 0;
+  let declaredConflicts = 0;
+  let nearBoundary = 0;
+  for (const band of DIFFICULTY_BANDS) byBand[band] = 0;
+
+  for (const item of items) {
+    const family = (byFamily[item.family] ??= {
+      items: 0,
+      banded: 0,
+      unbanded: 0,
+      ...Object.fromEntries(DIFFICULTY_BANDS.map((band) => [band, 0])),
+    });
+    family.items++;
+    if (item.difficulty === null) {
+      family.unbanded++;
+      byReason[item.bandReason] = (byReason[item.bandReason] ?? 0) + 1;
+      continue;
+    }
+    banded++;
+    family.banded++;
+    byBand[item.difficulty]++;
+    family[item.difficulty]++;
+    if (item.declaredDifficulty !== null && item.declaredDifficulty !== item.difficulty) {
+      declaredConflicts++;
+    }
+    // Churn risk: an item whose band a one-character edit could plausibly cross.
+    // The score is read here, inside the build, and only its DISTANCE from a
+    // boundary is published - never the score itself.
+    const explanation = explainTypabilityBand({
+      text: item.text,
+      family: item.family,
+      language: item.language,
+    });
+    if (explanation.distanceToBoundary <= TYPABILITY_CHURN_WINDOW) nearBoundary++;
+  }
+
+  // Object key order comes from construction, never from hash order, so the
+  // committed artifact diffs cleanly.
+  const sortedReasons = Object.fromEntries(
+    Object.entries(byReason).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+  );
+  const sortedFamilies = Object.fromEntries(
+    Object.entries(byFamily).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+  );
+
+  return {
+    modelVersion: TYPABILITY_VERSION,
+    scope: "prose-only",
+    bandEnum: [...DIFFICULTY_BANDS],
+    outOfScopeReasons: [...OUT_OF_SCOPE_REASONS],
+    boundaries: { typicalMax: BAND_BOUNDARIES.typicalMax, hardMin: BAND_BOUNDARIES.hardMin },
+    configDigest: `sha256:${sha256Hex(typabilityConfigDigestInput())}`,
+    features: TYPABILITY_FEATURE_SPECS.map((spec) => ({
+      name: spec.name,
+      weight: spec.weight,
+      anchors: [...spec.anchors],
+      direction: spec.direction,
+    })),
+    coverage: {
+      items: items.length,
+      banded,
+      unbanded: items.length - banded,
+      byBand,
+      byReason: sortedReasons,
+      byFamily: sortedFamilies,
+      declaredBandConflicts: declaredConflicts,
+      nearBoundaryItems: nearBoundary,
+    },
+    // Stated here rather than left for a reader to assume: a band produced by this
+    // model is a computed label with no human review behind it.
+    review: "none",
+    reviewNote:
+      "Bands are computed by the model named above and validated offline only (implementation guide 6.5 step 6). No band has been reviewed by a person, and none has been checked against a user's speed (step 7).",
   };
 }
 
@@ -1110,11 +1268,13 @@ function summarise(items, rejected, duplicates) {
   const byFamily = new Map();
   const byContentType = new Map();
   const byDifficulty = new Map();
+  const byBandReason = new Map();
   const byTagSource = new Map();
   for (const item of items) {
     bump(byFamily, item.family);
     bump(byContentType, item.contentType);
     bump(byDifficulty, item.difficulty ?? "unspecified");
+    bump(byBandReason, item.bandReason ?? "banded");
     bump(byTagSource, item.tagSource);
   }
   const sorted = (map) =>
@@ -1125,11 +1285,16 @@ function summarise(items, rejected, duplicates) {
     duplicateGroups: duplicates.length,
     duplicateItemsDropped: duplicates.reduce((n, g) => n + g.dropped.length, 0),
     shippable: items.filter((i) => i.shippable).length,
+    // Computed bands (CNT-02). `withDeclaredDifficulty` is the count of source
+    // headers that claimed a band, kept separate because the two disagree on 142
+    // items and conflating them would hide that.
     withDifficultyBand: items.filter((i) => i.difficulty !== null).length,
+    withDeclaredDifficulty: items.filter((i) => i.declaredDifficulty !== null).length,
     sensitiveAllowlisted: items.filter((i) => "sensitiveAllowlist" in i).length,
     byFamily: sorted(byFamily),
     byContentType: sorted(byContentType),
     byDifficulty: sorted(byDifficulty),
+    byBandReason: sorted(byBandReason),
     byTagSource: sorted(byTagSource),
   };
 }
@@ -1144,6 +1309,7 @@ export function serialiseCorpus(build) {
       version: build.version,
       stats: build.stats,
       contentTypes: CONTENT_TYPES,
+      typability: build.typability,
       duplicates: build.duplicates,
       rejected: build.rejected,
       items: build.items,

@@ -144,6 +144,66 @@ export {
   type Sample,
 } from "./aggregation.js";
 
+/**
+ * LRN-02 — the adaptive proficiency model: per-key and per-bigram proficiency,
+ * §8.2 severity, expected-benefit ranking, and weak-coverage detection. Pure
+ * and deterministic; every timestamp arrives as a parameter so the server
+ * recompute reproduces the client's numbers. `rankWeak()` takes the frequency
+ * weight as a caller-supplied function, which is the whole LRN-02/CNT-03
+ * boundary: the engine ranks, the corpus says what is common.
+ */
+export {
+  CONFIDENCE_FLOOR_SAMPLES,
+  DECAY_HALF_LIFE_DAYS,
+  MIN_PROFILE_OBSERVATIONS,
+  MS_PER_DAY,
+  PROPOSED_WEAK_SEVERITY_CUT,
+  PROFICIENCY_MODEL_VERSION,
+  RECENCY_WEIGHT_FLOOR,
+  RELATIVE_ERROR_RATE_CEILING,
+  RELATIVE_SLOWNESS_CEILING,
+  SEVERITY_ERROR_WEIGHT,
+  SEVERITY_SLOWNESS_WEIGHT,
+  SHRINKAGE_K,
+  bigram,
+  bigramChars,
+  bigramProficiency,
+  bigramRef,
+  compareByHand,
+  coverageReport,
+  decayWeight,
+  emptyEvidence,
+  expectedBenefit,
+  itemEvidence,
+  itemId,
+  keyProficiency,
+  keyRef,
+  proficiency,
+  rankWeak,
+  severity,
+  shrinkEstimate,
+  singleKey,
+  staleAfterDays,
+  type Baseline,
+  type BigramId,
+  type BigramSample,
+  type CoverageOptions,
+  type CoverageReport,
+  type EvidenceOptions,
+  type HandComparison,
+  type HandSummary,
+  type ItemEvidence,
+  type ItemProficiency,
+  type ItemRef,
+  type KeySample,
+  type ProficiencyContext,
+  type RankedItem,
+  type SeverityInput,
+  type SeverityResult,
+  type SingleKey,
+  type WeaknessClass,
+} from "./proficiency.js";
+
 export {
   PASTE_BURST_CODE,
   SINGLE_OUTLIER_CODE,

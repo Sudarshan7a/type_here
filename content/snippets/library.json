@@ -3,7 +3,7 @@
   "typabilityModelVersion": null,
   "sources": {
     "corpus": "content/corpus.json",
-    "corpusVersion": "1.0.0",
+    "corpusVersion": "1.1.0",
     "tokenizer": "packages/engine/src/token-map.ts",
     "licenseClassifier": "scripts/check-content-licenses.mjs"
   },
@@ -13,7 +13,7 @@
     "withheldDuplicates": 1,
     "selectable": 0,
     "shippableByRegister": 1,
-    "withDeclaredBand": 33,
+    "withDeclaredBand": 0,
     "lexClean": 34,
     "defects": 1,
     "bySurface": {
@@ -23,9 +23,7 @@
       "web": 8
     },
     "byBand": {
-      "hard": 20,
-      "none": 1,
-      "typical": 13
+      "none": 34
     }
   },
   "coverage": {
@@ -602,9 +600,9 @@
         ]
       },
       "difficulty": {
-        "band": "typical",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -622,11 +620,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)"
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)"
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
       ]
     },
     {
@@ -703,9 +703,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -723,11 +723,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)"
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)"
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
       ]
     },
     {
@@ -819,9 +821,9 @@
         ]
       },
       "difficulty": {
-        "band": "typical",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -839,11 +841,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)"
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)"
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
       ]
     },
     {
@@ -922,9 +926,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -942,11 +946,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)"
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)"
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
       ]
     },
     {
@@ -1026,9 +1032,9 @@
         ]
       },
       "difficulty": {
-        "band": "typical",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -1046,11 +1052,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)"
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)"
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
       ]
     },
     {
@@ -1136,9 +1144,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -1156,11 +1164,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)"
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)"
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
       ]
     },
     {
@@ -1238,9 +1248,9 @@
         ]
       },
       "difficulty": {
-        "band": "typical",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -1258,11 +1268,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)"
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)"
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
       ]
     },
     {
@@ -1340,9 +1352,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -1360,11 +1372,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)"
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)"
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
       ]
     },
     {
@@ -1444,9 +1458,9 @@
         ]
       },
       "difficulty": {
-        "band": "typical",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -1464,11 +1478,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)"
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)"
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
       ]
     },
     {
@@ -1546,9 +1562,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -1566,11 +1582,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -1651,9 +1669,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -1671,11 +1689,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -1750,9 +1770,9 @@
         ]
       },
       "difficulty": {
-        "band": "typical",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -1770,11 +1790,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -1851,9 +1873,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -1871,11 +1893,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -1953,9 +1977,9 @@
         ]
       },
       "difficulty": {
-        "band": "typical",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -1973,11 +1997,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -2055,9 +2081,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -2075,11 +2101,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -2157,9 +2185,9 @@
         ]
       },
       "difficulty": {
-        "band": "typical",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -2177,11 +2205,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -2260,9 +2290,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -2280,11 +2310,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -2365,9 +2397,9 @@
         ]
       },
       "difficulty": {
-        "band": "typical",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -2385,11 +2417,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -2467,9 +2501,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -2487,11 +2521,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -2573,9 +2609,9 @@
         ]
       },
       "difficulty": {
-        "band": "typical",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -2593,11 +2629,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -2680,9 +2718,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -2700,11 +2738,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -2785,9 +2825,9 @@
         ]
       },
       "difficulty": {
-        "band": "typical",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -2805,11 +2845,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -2891,9 +2933,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -2911,11 +2953,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -2993,9 +3037,9 @@
         ]
       },
       "difficulty": {
-        "band": "typical",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -3013,11 +3057,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -3100,9 +3146,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -3120,11 +3166,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -3202,9 +3250,9 @@
         ]
       },
       "difficulty": {
-        "band": "typical",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -3222,11 +3270,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -3306,9 +3356,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -3326,11 +3376,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -3413,9 +3465,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -3433,11 +3485,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -3515,9 +3569,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -3535,11 +3589,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -3621,9 +3677,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -3641,11 +3697,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -3733,9 +3791,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -3753,11 +3811,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -3836,9 +3896,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -3856,11 +3916,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     },
     {
@@ -3941,9 +4003,9 @@
         ]
       },
       "difficulty": {
-        "band": "hard",
-        "source": "register",
-        "reason": null
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
       },
       "licence": {
         "declaration": "original work — ours",
@@ -3961,11 +4023,13 @@
       },
       "defects": [],
       "publishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ],
       "corpusShippable": false,
       "corpusPublishBlockers": [
-        "status-not-shippable: draft"
+        "status-not-shippable: draft",
+        "no-difficulty-band"
       ]
     }
   ]
