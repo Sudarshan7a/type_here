@@ -1,0 +1,1 @@
+{"agent":"w14-cnt02","dependsOn":[],"hash":"f78922d9d85be6a0063fc7fda1950c2c118ffa7f1d27d13b0729efa4fbe9097a","prev":"0000000000000000000000000000000000000000000000000000000000000000","scopes":["packages/typability/**","scripts/*typability*","docs/typability*"],"seq":1,"task":"CNT-02","ts":"2026-10-05T17:48:38.494Z","ttlMs":21600000,"type":"claim"}
