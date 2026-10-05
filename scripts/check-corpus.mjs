@@ -23,6 +23,15 @@
  *                   provenance line and a registerRef.
  *   G6  VACUITY     the artifact is non-empty and covers every family. A gate that
  *                   passes on an empty corpus proves nothing.
+ *   G7  TYPABILITY  CNT-02's own rules, delegated wholesale to
+ *                   `findTypabilityOffenders` in ./typability-gate.mjs: every
+ *                   stored band matches a fresh computation, no code item carries
+ *                   a prose band, every band is in the enum, and the model config
+ *                   that produced the bands is the one recorded with them.
+ *
+ * G7 is a delegation rather than a copy. `scripts/check-typability.mjs` calls the
+ * same function; if this gate grew its own version of the rule, the two would
+ * eventually disagree about which bands are legitimate, and nothing would notice.
  *
  * The pure core is exported for tests against fixture artifacts, so every failing
  * direction is provable without touching the real corpus.
@@ -43,6 +52,7 @@ import {
   serialiseCorpus,
   sha256Hex,
 } from "./corpus-pipeline.mjs";
+import { findTypabilityOffenders } from "./typability-gate.mjs";
 import { buildFromRepo } from "./build-corpus.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -83,6 +93,7 @@ export function findCorpusOffenders(artifact, rebuilt = null) {
       items: artifact.items,
       rejected: artifact.rejected,
       duplicates: artifact.duplicates,
+      typability: artifact.typability,
     });
     if (expected !== actual) {
       offenders.push(
@@ -194,6 +205,10 @@ export function findCorpusOffenders(artifact, rebuilt = null) {
     }
   }
 
+  // G7 typability, delegated (see the header). Appended last so its failures are
+  // read after the corpus's own, which is usually the cause.
+  offenders.push(...findTypabilityOffenders(artifact));
+
   return offenders;
 }
 
@@ -210,9 +225,11 @@ async function main() {
   }
 
   const itemCount = artifact.items.length;
+  const banded = artifact.items.filter((item) => item.difficulty !== null).length;
   console.log(
     `Corpus gate passed (CNT-01): ${itemCount} items, artifact matches a rebuild from docs/, no duplicate text, ` +
-      `no un-allowlisted sensitive findings, all tags in enum.`,
+      `no un-allowlisted sensitive findings, all tags in enum, ${banded} items carry a CNT-02 difficulty band ` +
+      `and ${itemCount - banded} an explicit out-of-scope reason.`,
   );
 }
 
