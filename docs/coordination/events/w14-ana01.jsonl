@@ -1,0 +1,1 @@
+{"agent":"w14-ana01","dependsOn":[],"hash":"48cdb8e71634d16f2038b42784706440fe0502f52c8951aaa241c6419c6ca575","prev":"0000000000000000000000000000000000000000000000000000000000000000","scopes":["apps/web/src/results/**","apps/web/tests/results*","e2e/results*"],"seq":1,"task":"ANA-01","ts":"2026-10-05T17:48:38.757Z","ttlMs":21600000,"type":"claim"}
