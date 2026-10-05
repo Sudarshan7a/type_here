@@ -1190,7 +1190,7 @@ export function validateState(state) {
     problems.push(
       problem(
         "DEPENDENCY_CYCLE",
-        `active claims form a dependency cycle: ${owners.join(" → ")} → ${cycle[0]}. Nobody can start. Break it by releasing one with outcome "partial" and narrowing its scope`,
+        `active claims form a dependency cycle: ${owners.join(" → ")}. Nobody can start. Break it by releasing one with outcome "partial" and narrowing its scope`,
         { agent: byTask.get(cycle[0])?.[0]?.agent ?? "?", task: cycle[0] },
       ),
     );
