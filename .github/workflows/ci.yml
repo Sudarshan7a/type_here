@@ -83,6 +83,13 @@ jobs:
           pnpm check:typability
           node --test scripts/check-typability.test.mjs
 
+      - name: "Snippet library gate (CNT-04: licence per record, PRG-01 lex validation, P0x placeholders withheld)"
+        # Deliberately does NOT run build:snippets: the gate re-derives from
+        # content/corpus.json and fails on drift.
+        run: |
+          pnpm check:snippets
+          node --test scripts/snippet-library.test.mjs scripts/snippet-mutants.test.mjs scripts/snippet-no-execution.test.mjs
+
       - name: "Content-licence gate (CNT-07: no GPL/AGPL corpus content, every item licensed)"
         run: |
           pnpm check:content-licenses

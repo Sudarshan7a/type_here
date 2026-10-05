@@ -1,0 +1,4036 @@
+{
+  "version": "1.0.0",
+  "typabilityModelVersion": null,
+  "sources": {
+    "corpus": "content/corpus.json",
+    "corpusVersion": "1.1.0",
+    "tokenizer": "packages/engine/src/token-map.ts",
+    "licenseClassifier": "scripts/check-content-licenses.mjs"
+  },
+  "stats": {
+    "records": 34,
+    "placeholders": 3,
+    "withheldDuplicates": 1,
+    "selectable": 0,
+    "shippableByRegister": 1,
+    "withDeclaredBand": 0,
+    "lexClean": 34,
+    "defects": 1,
+    "bySurface": {
+      "algorithm": 10,
+      "react": 6,
+      "utility": 10,
+      "web": 8
+    },
+    "byBand": {
+      "none": 34
+    }
+  },
+  "coverage": {
+    "contentSurfacesExercised": [
+      "algorithm",
+      "react",
+      "utility",
+      "web"
+    ],
+    "contentSurfacesAbsent": [],
+    "surfaceTagsExercised": [
+      "brackets",
+      "chords",
+      "data",
+      "identifiers",
+      "keywords",
+      "numbers",
+      "operators",
+      "paths",
+      "strings",
+      "whitespace"
+    ],
+    "tokenClassesExercised": [
+      "bracket",
+      "chord",
+      "data",
+      "identifier",
+      "keyword",
+      "number",
+      "operator",
+      "path",
+      "string",
+      "whitespace"
+    ],
+    "featuresExercised": [
+      "array-method-chain",
+      "arrow-function",
+      "async-await",
+      "class-declaration",
+      "default-parameter",
+      "dom-api",
+      "function-declaration",
+      "jsx",
+      "nullish-coalescing",
+      "optional-chaining",
+      "promise",
+      "react-hook",
+      "regex-literal",
+      "spread-rest",
+      "template-literal"
+    ],
+    "featuresDeclaredButUnused": [
+      "comment-line",
+      "comment-block"
+    ],
+    "tiersExercised": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "tiersUngenerated": {
+      "2": "operator/chord tier has no generator family; PRG-11 owns bracket-pair latency and tier-2 drills are hand-authored",
+      "7": "whitespace/structure is auto-indent (PRG-15), deferred to V1 by the tier tables"
+    }
+  },
+  "defects": [
+    {
+      "code": "duplicate-text",
+      "ids": [
+        "CODE-JS-001",
+        "CODE-JS-002"
+      ],
+      "kept": "CODE-JS-001",
+      "dropped": [
+        "CODE-JS-002"
+      ],
+      "fingerprint": "caf971d180e8",
+      "excerpt": "",
+      "status": "needs-human-decision",
+      "detail": "Two ids carry byte-identical text. The library keeps the emitted id WITH its duplicate defect recorded, and carries the dropped id as a withheld record with code: null - so the collision is visible from both sides and the artifact never stores the same text twice. Which id survives is an editorial decision about the source document, not something a build should settle by sort order.",
+      "decision": "Reconcile the source document: keep one id for this function and delete the other. The library will then report one clean record and no defect."
+    }
+  ],
+  "withheld": [
+    {
+      "id": "CODE-JS-P01",
+      "language": "javascript",
+      "surface": null,
+      "contentType": null,
+      "code": null,
+      "status": "withheld-do-not-ship",
+      "size": null,
+      "declaredTokenMix": null,
+      "tokenMap": null,
+      "tokenClassMix": null,
+      "tags": null,
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "MIT",
+        "licenseClass": "allowed",
+        "textRequired": true,
+        "source": "`lodash/lodash` (real repo, license confirmed)",
+        "attribution": null,
+        "registerRef": "docs/content-license-register.md",
+        "registerStatus": "**draft — DO NOT SHIP**",
+        "shippable": false
+      },
+      "provenance": null,
+      "defects": [
+        {
+          "code": "do-not-ship",
+          "detail": "register row marks it DO NOT SHIP and no content body was ever written (docs/content-code-snippets-javascript.md). Licence confirmed (MIT), exact upstream content never pulled at a pinned commit.",
+          "action": "clone the named repository at a pinned commit, copy the exact file, save the LICENSE file from that same commit, then run the item through the register's second-reviewer step. Until then this id stays withheld: its licence is confirmed but its content was never pinned, and reconstructing it from search results is exactly the failure the register exists to catch.",
+          "needsHumanDecision": true
+        }
+      ],
+      "publishBlockers": [
+        "withheld-do-not-ship",
+        "do-not-ship",
+        "no-content-body"
+      ]
+    },
+    {
+      "id": "CODE-JS-P02",
+      "language": "javascript",
+      "surface": null,
+      "contentType": null,
+      "code": null,
+      "status": "withheld-do-not-ship",
+      "size": null,
+      "declaredTokenMix": null,
+      "tokenMap": null,
+      "tokenClassMix": null,
+      "tags": null,
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "MIT",
+        "licenseClass": "allowed",
+        "textRequired": true,
+        "source": "`jashkenas/underscore` (real repo, license confirmed)",
+        "attribution": null,
+        "registerRef": "docs/content-license-register.md",
+        "registerStatus": "draft — DO NOT SHIP",
+        "shippable": false
+      },
+      "provenance": null,
+      "defects": [
+        {
+          "code": "do-not-ship",
+          "detail": "register row marks it DO NOT SHIP and no content body was ever written (docs/content-code-snippets-javascript.md). Licence confirmed (MIT), exact upstream content never pulled at a pinned commit.",
+          "action": "clone the named repository at a pinned commit, copy the exact file, save the LICENSE file from that same commit, then run the item through the register's second-reviewer step. Until then this id stays withheld: its licence is confirmed but its content was never pinned, and reconstructing it from search results is exactly the failure the register exists to catch.",
+          "needsHumanDecision": true
+        }
+      ],
+      "publishBlockers": [
+        "withheld-do-not-ship",
+        "do-not-ship",
+        "no-content-body"
+      ]
+    },
+    {
+      "id": "CODE-JS-P03",
+      "language": "javascript",
+      "surface": null,
+      "contentType": null,
+      "code": null,
+      "status": "withheld-do-not-ship",
+      "size": null,
+      "declaredTokenMix": null,
+      "tokenMap": null,
+      "tokenClassMix": null,
+      "tags": null,
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "MIT",
+        "licenseClass": "allowed",
+        "textRequired": true,
+        "source": "`sindresorhus/is` (real repo, license confirmed)",
+        "attribution": null,
+        "registerRef": "docs/content-license-register.md",
+        "registerStatus": "draft — DO NOT SHIP",
+        "shippable": false
+      },
+      "provenance": null,
+      "defects": [
+        {
+          "code": "do-not-ship",
+          "detail": "register row marks it DO NOT SHIP and no content body was ever written (docs/content-code-snippets-javascript.md). Licence confirmed (MIT), exact upstream content never pulled at a pinned commit.",
+          "action": "clone the named repository at a pinned commit, copy the exact file, save the LICENSE file from that same commit, then run the item through the register's second-reviewer step. Until then this id stays withheld: its licence is confirmed but its content was never pinned, and reconstructing it from search results is exactly the failure the register exists to catch.",
+          "needsHumanDecision": true
+        }
+      ],
+      "publishBlockers": [
+        "withheld-do-not-ship",
+        "do-not-ship",
+        "no-content-body"
+      ]
+    },
+    {
+      "id": "CODE-JS-002",
+      "language": "javascript",
+      "surface": null,
+      "contentType": null,
+      "code": null,
+      "status": "withheld-duplicate",
+      "size": null,
+      "declaredTokenMix": null,
+      "tokenMap": null,
+      "tokenClassMix": null,
+      "tags": null,
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft (needs syntax-validation pass + second reviewer)",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 13
+      },
+      "defects": [
+        {
+          "code": "duplicate-text",
+          "detail": "identical to CODE-JS-001 after whitespace/case normalisation (caf971d180e8). Kept id: unknown. Carried with code: null so the artifact never stores the same text twice.",
+          "action": "Reconcile the source document: keep one id for this function and delete the other. Which id survives is an editorial decision, so the build does not decide it by sort order.",
+          "needsHumanDecision": true
+        }
+      ],
+      "publishBlockers": [
+        "withheld-duplicate",
+        "duplicate-text",
+        "no-content-body"
+      ]
+    }
+  ],
+  "placeholders": [
+    {
+      "id": "CODE-JS-P01",
+      "language": "javascript",
+      "surface": null,
+      "contentType": null,
+      "code": null,
+      "status": "withheld-do-not-ship",
+      "size": null,
+      "declaredTokenMix": null,
+      "tokenMap": null,
+      "tokenClassMix": null,
+      "tags": null,
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "MIT",
+        "licenseClass": "allowed",
+        "textRequired": true,
+        "source": "`lodash/lodash` (real repo, license confirmed)",
+        "attribution": null,
+        "registerRef": "docs/content-license-register.md",
+        "registerStatus": "**draft — DO NOT SHIP**",
+        "shippable": false
+      },
+      "provenance": null,
+      "defects": [
+        {
+          "code": "do-not-ship",
+          "detail": "register row marks it DO NOT SHIP and no content body was ever written (docs/content-code-snippets-javascript.md). Licence confirmed (MIT), exact upstream content never pulled at a pinned commit.",
+          "action": "clone the named repository at a pinned commit, copy the exact file, save the LICENSE file from that same commit, then run the item through the register's second-reviewer step. Until then this id stays withheld: its licence is confirmed but its content was never pinned, and reconstructing it from search results is exactly the failure the register exists to catch.",
+          "needsHumanDecision": true
+        }
+      ],
+      "publishBlockers": [
+        "withheld-do-not-ship",
+        "do-not-ship",
+        "no-content-body"
+      ]
+    },
+    {
+      "id": "CODE-JS-P02",
+      "language": "javascript",
+      "surface": null,
+      "contentType": null,
+      "code": null,
+      "status": "withheld-do-not-ship",
+      "size": null,
+      "declaredTokenMix": null,
+      "tokenMap": null,
+      "tokenClassMix": null,
+      "tags": null,
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "MIT",
+        "licenseClass": "allowed",
+        "textRequired": true,
+        "source": "`jashkenas/underscore` (real repo, license confirmed)",
+        "attribution": null,
+        "registerRef": "docs/content-license-register.md",
+        "registerStatus": "draft — DO NOT SHIP",
+        "shippable": false
+      },
+      "provenance": null,
+      "defects": [
+        {
+          "code": "do-not-ship",
+          "detail": "register row marks it DO NOT SHIP and no content body was ever written (docs/content-code-snippets-javascript.md). Licence confirmed (MIT), exact upstream content never pulled at a pinned commit.",
+          "action": "clone the named repository at a pinned commit, copy the exact file, save the LICENSE file from that same commit, then run the item through the register's second-reviewer step. Until then this id stays withheld: its licence is confirmed but its content was never pinned, and reconstructing it from search results is exactly the failure the register exists to catch.",
+          "needsHumanDecision": true
+        }
+      ],
+      "publishBlockers": [
+        "withheld-do-not-ship",
+        "do-not-ship",
+        "no-content-body"
+      ]
+    },
+    {
+      "id": "CODE-JS-P03",
+      "language": "javascript",
+      "surface": null,
+      "contentType": null,
+      "code": null,
+      "status": "withheld-do-not-ship",
+      "size": null,
+      "declaredTokenMix": null,
+      "tokenMap": null,
+      "tokenClassMix": null,
+      "tags": null,
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "MIT",
+        "licenseClass": "allowed",
+        "textRequired": true,
+        "source": "`sindresorhus/is` (real repo, license confirmed)",
+        "attribution": null,
+        "registerRef": "docs/content-license-register.md",
+        "registerStatus": "draft — DO NOT SHIP",
+        "shippable": false
+      },
+      "provenance": null,
+      "defects": [
+        {
+          "code": "do-not-ship",
+          "detail": "register row marks it DO NOT SHIP and no content body was ever written (docs/content-code-snippets-javascript.md). Licence confirmed (MIT), exact upstream content never pulled at a pinned commit.",
+          "action": "clone the named repository at a pinned commit, copy the exact file, save the LICENSE file from that same commit, then run the item through the register's second-reviewer step. Until then this id stays withheld: its licence is confirmed but its content was never pinned, and reconstructing it from search results is exactly the failure the register exists to catch.",
+          "needsHumanDecision": true
+        }
+      ],
+      "publishBlockers": [
+        "withheld-do-not-ship",
+        "do-not-ship",
+        "no-content-body"
+      ]
+    }
+  ],
+  "records": [
+    {
+      "id": "CODE-JS-001",
+      "language": "javascript",
+      "surface": "utility",
+      "contentType": "code.utility",
+      "code": "function chunkArray(items, size) {\n  const result = [];\n  for (let i = 0; i < items.length; i += size) {\n    result.push(items.slice(i, i + size));\n  }\n  return result;\n}",
+      "status": "withheld-duplicate",
+      "size": {
+        "lines": 7,
+        "characters": 170,
+        "maxLineLength": 48
+      },
+      "declaredTokenMix": null,
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 15,
+          "operator": 13,
+          "chord": 2,
+          "string": 0,
+          "number": 1,
+          "number-system": 0,
+          "identifier": 75,
+          "keyword": 25,
+          "whitespace": 39,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 15,
+          "operator": 13,
+          "chord": 1,
+          "string": 0,
+          "number": 1,
+          "number-system": 0,
+          "identifier": 18,
+          "keyword": 5,
+          "whitespace": 27,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.229008,
+        "typedCharacters": 131
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "numbers",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          4,
+          6,
+          7
+        ],
+        "features": [
+          "array-method-chain",
+          "default-parameter",
+          "function-declaration"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "MIT — confirmed via the repository's own README statement (\"Lodash is released under the MIT license\") and independently via a third-party license-aggregation page reproducing the exact MIT copyright header used by the project (\"Copyright JS Foundation and other contributors\")",
+        "licenseClass": "allowed",
+        "textRequired": true,
+        "source": "`lodash/lodash`, the `isEmpty`-style small-utility pattern (paraphrased structure only — see note)",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript.md",
+        "registerStatus": "reviewed (structure verified; exact current file content NOT copied — see note)",
+        "shippable": true
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript.md",
+        "line": 46
+      },
+      "defects": [
+        {
+          "code": "duplicate-text",
+          "detail": "byte-identical to CODE-JS-002 after NFKC + whitespace + case normalisation",
+          "twins": [
+            "CODE-JS-002"
+          ],
+          "needsHumanDecision": true
+        }
+      ],
+      "publishBlockers": [
+        "no-difficulty-band",
+        "content-defect: duplicate-text",
+        "status-withheld-duplicate"
+      ],
+      "corpusShippable": true,
+      "corpusPublishBlockers": [
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-003",
+      "language": "javascript",
+      "surface": "utility",
+      "contentType": "code.utility",
+      "code": "function clamp(value, min, max) {\n  if (value < min) return min;\n  if (value > max) return max;\n  return value;\n}",
+      "status": "library",
+      "size": {
+        "lines": 5,
+        "characters": 113,
+        "maxLineLength": 33
+      },
+      "declaredTokenMix": "operators, comparison-heavy",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 10,
+          "operator": 5,
+          "chord": 0,
+          "string": 0,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 43,
+          "keyword": 30,
+          "whitespace": 25,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 10,
+          "operator": 5,
+          "chord": 0,
+          "string": 0,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 11,
+          "keyword": 6,
+          "whitespace": 19,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.170455,
+        "typedCharacters": 88
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "identifiers",
+          "keywords",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          6,
+          7
+        ],
+        "features": [
+          "function-declaration"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft (needs syntax-validation pass + second reviewer)",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 24
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-004",
+      "language": "javascript",
+      "surface": "utility",
+      "contentType": "code.utility",
+      "code": "const debounce = (fn, delay) => {\n  let timer = null;\n  return (...args) => {\n    clearTimeout(timer);\n    timer = setTimeout(() => fn(...args), delay);\n  };\n};",
+      "status": "library",
+      "size": {
+        "lines": 7,
+        "characters": 160,
+        "maxLineLength": 49
+      },
+      "declaredTokenMix": "chords, arrow functions, ternary",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 16,
+          "operator": 10,
+          "chord": 12,
+          "string": 0,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 67,
+          "keyword": 18,
+          "whitespace": 37,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 16,
+          "operator": 10,
+          "chord": 5,
+          "string": 0,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 12,
+          "keyword": 4,
+          "whitespace": 23,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.308943,
+        "typedCharacters": 123
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          6,
+          7
+        ],
+        "features": [
+          "arrow-function",
+          "spread-rest"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft (needs syntax-validation pass + second reviewer)",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 33
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-005",
+      "language": "javascript",
+      "surface": "utility",
+      "contentType": "code.utility",
+      "code": "function formatCurrency(amount, currency = \"USD\") {\n  const symbols = { USD: \"$\", EUR: \"€\", GBP: \"£\" };\n  const symbol = symbols[currency] || \"\";\n  return `${symbol}${amount.toFixed(2)}`;\n}",
+      "status": "library",
+      "size": {
+        "lines": 5,
+        "characters": 189,
+        "maxLineLength": 51
+      },
+      "declaredTokenMix": "object literals, strings",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": [
+          {
+            "char": "€",
+            "class": "string",
+            "index": 87
+          },
+          {
+            "char": "£",
+            "class": "string",
+            "index": 97
+          }
+        ]
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 10,
+          "operator": 15,
+          "chord": 0,
+          "string": 24,
+          "number": 1,
+          "number-system": 0,
+          "identifier": 84,
+          "keyword": 24,
+          "whitespace": 31,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 10,
+          "operator": 14,
+          "chord": 0,
+          "string": 11,
+          "number": 1,
+          "number-system": 0,
+          "identifier": 13,
+          "keyword": 4,
+          "whitespace": 25,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.158228,
+        "typedCharacters": 158
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "identifiers",
+          "keywords",
+          "numbers",
+          "operators",
+          "strings",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          3,
+          4,
+          6,
+          7
+        ],
+        "features": [
+          "default-parameter",
+          "function-declaration",
+          "template-literal"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft (needs syntax-validation pass + second reviewer)",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 44
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-006",
+      "language": "javascript",
+      "surface": "utility",
+      "contentType": "code.utility",
+      "code": "function slugify(text) {\n  return text\n    .toLowerCase()\n    .trim()\n    .replace(/[^\\w\\s-]/g, \"\")\n    .replace(/[\\s_-]+/g, \"-\")\n    .replace(/^-+|-+$/g, \"\");\n}",
+      "status": "library",
+      "size": {
+        "lines": 8,
+        "characters": 161,
+        "maxLineLength": 29
+      },
+      "declaredTokenMix": "regex, string methods",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 14,
+          "operator": 9,
+          "chord": 0,
+          "string": 7,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 51,
+          "keyword": 14,
+          "whitespace": 35,
+          "comment": 0,
+          "path": 0,
+          "data": 31
+        },
+        "tokens": {
+          "bracket": 14,
+          "operator": 9,
+          "chord": 0,
+          "string": 3,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 8,
+          "keyword": 2,
+          "whitespace": 13,
+          "comment": 0,
+          "path": 0,
+          "data": 3
+        },
+        "symbolShare": 0.18254,
+        "typedCharacters": 126
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "data",
+          "identifiers",
+          "keywords",
+          "operators",
+          "strings",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          3,
+          6,
+          7
+        ],
+        "features": [
+          "function-declaration",
+          "regex-literal"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft (needs syntax-validation pass + second reviewer)",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 53
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-007",
+      "language": "javascript",
+      "surface": "utility",
+      "contentType": "code.utility",
+      "code": "function unique(items) {\n  return [...new Set(items)];\n}\n\nfunction groupBy(items, keyFn) {\n  return items.reduce((acc, item) => {\n    const key = keyFn(item);\n    (acc[key] = acc[key] || []).push(item);\n    return acc;\n  }, {});\n}",
+      "status": "library",
+      "size": {
+        "lines": 11,
+        "characters": 230,
+        "maxLineLength": 43
+      },
+      "declaredTokenMix": "array methods, arrow functions",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 32,
+          "operator": 14,
+          "chord": 5,
+          "string": 0,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 89,
+          "keyword": 42,
+          "whitespace": 48,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 32,
+          "operator": 13,
+          "chord": 2,
+          "string": 0,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 21,
+          "keyword": 7,
+          "whitespace": 29,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.28022,
+        "typedCharacters": 182
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          6,
+          7
+        ],
+        "features": [
+          "array-method-chain",
+          "arrow-function",
+          "default-parameter",
+          "function-declaration",
+          "spread-rest"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft (needs syntax-validation pass + second reviewer)",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 65
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-008",
+      "language": "javascript",
+      "surface": "utility",
+      "contentType": "code.utility",
+      "code": "async function fetchWithRetry(url, retries = 3) {\n  for (let attempt = 1; attempt <= retries; attempt++) {\n    try {\n      const response = await fetch(url);\n      if (!response.ok) throw new Error(`Status ${response.status}`);\n      return await response.json();\n    } catch (err) {\n      if (attempt === retries) throw err;\n      await new Promise((r) => setTimeout(r, 300 * attempt));\n    }\n  }\n}",
+      "status": "library",
+      "size": {
+        "lines": 12,
+        "characters": 399,
+        "maxLineLength": 69
+      },
+      "declaredTokenMix": "async/await, error handling",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 30,
+          "operator": 19,
+          "chord": 7,
+          "string": 12,
+          "number": 5,
+          "number-system": 0,
+          "identifier": 155,
+          "keyword": 73,
+          "whitespace": 98,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 30,
+          "operator": 18,
+          "chord": 3,
+          "string": 5,
+          "number": 3,
+          "number-system": 0,
+          "identifier": 26,
+          "keyword": 17,
+          "whitespace": 52,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.186047,
+        "typedCharacters": 301
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "numbers",
+          "operators",
+          "strings",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          3,
+          4,
+          6,
+          7
+        ],
+        "features": [
+          "arrow-function",
+          "async-await",
+          "default-parameter",
+          "dom-api",
+          "function-declaration",
+          "promise",
+          "template-literal"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft (needs syntax-validation pass + second reviewer)",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 80
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-009",
+      "language": "javascript",
+      "surface": "utility",
+      "contentType": "code.utility",
+      "code": "function createUser({ name, email, role = \"member\", isActive = true } = {}) {\n  return { name, email, role, isActive, createdAt: Date.now() };\n}",
+      "status": "library",
+      "size": {
+        "lines": 3,
+        "characters": 144,
+        "maxLineLength": 77
+      },
+      "declaredTokenMix": "destructuring, defaults",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 12,
+          "operator": 13,
+          "chord": 0,
+          "string": 8,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 68,
+          "keyword": 18,
+          "whitespace": 25,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 12,
+          "operator": 13,
+          "chord": 0,
+          "string": 1,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 12,
+          "keyword": 3,
+          "whitespace": 23,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.210084,
+        "typedCharacters": 119
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "identifiers",
+          "keywords",
+          "operators",
+          "strings",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          3,
+          6,
+          7
+        ],
+        "features": [
+          "default-parameter",
+          "function-declaration"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft (needs syntax-validation pass + second reviewer)",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 96
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-010",
+      "language": "javascript",
+      "surface": "utility",
+      "contentType": "code.utility",
+      "code": "function isPowerOfTwo(n) {\n  return n > 0 && (n & (n - 1)) === 0;\n}\n\nfunction countSetBits(n) {\n  let count = 0;\n  while (n > 0) {\n    count += n & 1;\n    n >>= 1;\n  }\n  return count;\n}",
+      "status": "library",
+      "size": {
+        "lines": 12,
+        "characters": 185,
+        "maxLineLength": 38
+      },
+      "declaredTokenMix": "numbers, bitwise",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 18,
+          "operator": 11,
+          "chord": 8,
+          "string": 0,
+          "number": 7,
+          "number-system": 0,
+          "identifier": 47,
+          "keyword": 36,
+          "whitespace": 58,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 18,
+          "operator": 10,
+          "chord": 3,
+          "string": 0,
+          "number": 7,
+          "number-system": 0,
+          "identifier": 13,
+          "keyword": 6,
+          "whitespace": 39,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.291339,
+        "typedCharacters": 127
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "numbers",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          4,
+          6,
+          7
+        ],
+        "features": [
+          "function-declaration"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft (needs syntax-validation pass + second reviewer)",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 103
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-011",
+      "language": "javascript",
+      "surface": "utility",
+      "contentType": "code.utility",
+      "code": "class EventEmitter {\n  constructor() {\n    this.listeners = {};\n  }\n  on(event, callback) {\n    (this.listeners[event] = this.listeners[event] || []).push(callback);\n  }\n  emit(event, ...args) {\n    (this.listeners[event] || []).forEach((cb) => cb(...args));\n  }\n}",
+      "status": "library",
+      "size": {
+        "lines": 11,
+        "characters": 264,
+        "maxLineLength": 73
+      },
+      "declaredTokenMix": "class syntax",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 38,
+          "operator": 17,
+          "chord": 8,
+          "string": 0,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 129,
+          "keyword": 21,
+          "whitespace": 51,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 38,
+          "operator": 15,
+          "chord": 3,
+          "string": 0,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 21,
+          "keyword": 5,
+          "whitespace": 27,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.295775,
+        "typedCharacters": 213
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          6,
+          7
+        ],
+        "features": [
+          "array-method-chain",
+          "arrow-function",
+          "class-declaration",
+          "default-parameter",
+          "spread-rest"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft (needs syntax-validation pass + second reviewer)",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 119
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft (needs syntax-validation pass + second reviewer)",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-012",
+      "language": "javascript",
+      "surface": "algorithm",
+      "contentType": "code.algorithm",
+      "code": "function binarySearch(arr, target) {\n  let low = 0;\n  let high = arr.length - 1;\n  while (low <= high) {\n    const mid = Math.floor((low + high) / 2);\n    if (arr[mid] === target) return mid;\n    if (arr[mid] < target) low = mid + 1;\n    else high = mid - 1;\n  }\n  return -1;\n}",
+      "status": "library",
+      "size": {
+        "lines": 11,
+        "characters": 277,
+        "maxLineLength": 45
+      },
+      "declaredTokenMix": "recursion, comparison",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 21,
+          "operator": 22,
+          "chord": 3,
+          "string": 0,
+          "number": 7,
+          "number-system": 0,
+          "identifier": 103,
+          "keyword": 44,
+          "whitespace": 77,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 21,
+          "operator": 21,
+          "chord": 1,
+          "string": 0,
+          "number": 6,
+          "number-system": 0,
+          "identifier": 25,
+          "keyword": 10,
+          "whitespace": 51,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.23,
+        "typedCharacters": 200
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "numbers",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          4,
+          6,
+          7
+        ],
+        "features": [
+          "function-declaration"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 136
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-013",
+      "language": "javascript",
+      "surface": "algorithm",
+      "contentType": "code.algorithm",
+      "code": "function quickSort(arr) {\n  if (arr.length <= 1) return arr;\n  const [pivot, ...rest] = arr;\n  const left = rest.filter((x) => x < pivot);\n  const right = rest.filter((x) => x >= pivot);\n  return [...quickSort(left), pivot, ...quickSort(right)];\n}",
+      "status": "library",
+      "size": {
+        "lines": 7,
+        "characters": 247,
+        "maxLineLength": 58
+      },
+      "declaredTokenMix": "recursion, array spread",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 23,
+          "operator": 18,
+          "chord": 13,
+          "string": 0,
+          "number": 1,
+          "number-system": 0,
+          "identifier": 111,
+          "keyword": 37,
+          "whitespace": 44,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 23,
+          "operator": 16,
+          "chord": 5,
+          "string": 0,
+          "number": 1,
+          "number-system": 0,
+          "identifier": 25,
+          "keyword": 7,
+          "whitespace": 34,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.26601,
+        "typedCharacters": 203
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "numbers",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          4,
+          6,
+          7
+        ],
+        "features": [
+          "array-method-chain",
+          "arrow-function",
+          "function-declaration",
+          "spread-rest"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 151
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-014",
+      "language": "javascript",
+      "surface": "algorithm",
+      "contentType": "code.algorithm",
+      "code": "class Node {\n  constructor(value) {\n    this.value = value;\n    this.next = null;\n  }\n}\n\nclass LinkedList {\n  constructor() {\n    this.head = null;\n  }\n  append(value) {\n    const node = new Node(value);\n    if (!this.head) {\n      this.head = node;\n      return;\n    }\n    let current = this.head;\n    while (current.next) current = current.next;\n    current.next = node;\n  }\n}",
+      "status": "library",
+      "size": {
+        "lines": 22,
+        "characters": 378,
+        "maxLineLength": 48
+      },
+      "declaredTokenMix": "linked structures",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 24,
+          "operator": 27,
+          "chord": 0,
+          "string": 0,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 150,
+          "keyword": 66,
+          "whitespace": 111,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 24,
+          "operator": 27,
+          "chord": 0,
+          "string": 0,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 27,
+          "keyword": 16,
+          "whitespace": 50,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.191011,
+        "typedCharacters": 267
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "identifiers",
+          "keywords",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          6,
+          7
+        ],
+        "features": [
+          "class-declaration"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 162
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-015",
+      "language": "javascript",
+      "surface": "algorithm",
+      "contentType": "code.algorithm",
+      "code": "class LRUCache {\n  constructor(capacity) {\n    this.capacity = capacity;\n    this.cache = new Map();\n  }\n  get(key) {\n    if (!this.cache.has(key)) return -1;\n    const value = this.cache.get(key);\n    this.cache.delete(key);\n    this.cache.set(key, value);\n    return value;\n  }\n  put(key, value) {\n    if (this.cache.has(key)) this.cache.delete(key);\n    else if (this.cache.size >= this.capacity) {\n      this.cache.delete(this.cache.keys().next().value);\n    }\n    this.cache.set(key, value);\n  }\n}",
+      "status": "library",
+      "size": {
+        "lines": 20,
+        "characters": 502,
+        "maxLineLength": 56
+      },
+      "declaredTokenMix": "Map, class methods",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 44,
+          "operator": 44,
+          "chord": 0,
+          "string": 0,
+          "number": 2,
+          "number-system": 0,
+          "identifier": 214,
+          "keyword": 90,
+          "whitespace": 108,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 44,
+          "operator": 43,
+          "chord": 0,
+          "string": 0,
+          "number": 1,
+          "number-system": 0,
+          "identifier": 45,
+          "keyword": 23,
+          "whitespace": 46,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.22335,
+        "typedCharacters": 394
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "identifiers",
+          "keywords",
+          "numbers",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          4,
+          6,
+          7
+        ],
+        "features": [
+          "class-declaration"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 188
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-016",
+      "language": "javascript",
+      "surface": "algorithm",
+      "contentType": "code.algorithm",
+      "code": "function flatten(arr) {\n  return arr.reduce(\n    (flat, item) => flat.concat(Array.isArray(item) ? flatten(item) : item),\n    []\n  );\n}",
+      "status": "library",
+      "size": {
+        "lines": 6,
+        "characters": 135,
+        "maxLineLength": 76
+      },
+      "declaredTokenMix": "recursion, brackets",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 16,
+          "operator": 8,
+          "chord": 2,
+          "string": 0,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 68,
+          "keyword": 14,
+          "whitespace": 27,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 16,
+          "operator": 8,
+          "chord": 1,
+          "string": 0,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 14,
+          "keyword": 2,
+          "whitespace": 15,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.240741,
+        "typedCharacters": 108
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          6,
+          7
+        ],
+        "features": [
+          "array-method-chain",
+          "arrow-function",
+          "function-declaration"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 212
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-017",
+      "language": "javascript",
+      "surface": "algorithm",
+      "contentType": "code.algorithm",
+      "code": "function breadthFirstSearch(graph, start) {\n  const visited = new Set([start]);\n  const queue = [start];\n  const order = [];\n  while (queue.length > 0) {\n    const node = queue.shift();\n    order.push(node);\n    for (const neighbor of graph[node] || []) {\n      if (!visited.has(neighbor)) {\n        visited.add(neighbor);\n        queue.push(neighbor);\n      }\n    }\n  }\n  return order;\n}",
+      "status": "library",
+      "size": {
+        "lines": 16,
+        "characters": 388,
+        "maxLineLength": 47
+      },
+      "declaredTokenMix": "graph traversal, Set",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 39,
+          "operator": 22,
+          "chord": 0,
+          "string": 0,
+          "number": 1,
+          "number-system": 0,
+          "identifier": 171,
+          "keyword": 54,
+          "whitespace": 101,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 39,
+          "operator": 21,
+          "chord": 0,
+          "string": 0,
+          "number": 1,
+          "number-system": 0,
+          "identifier": 30,
+          "keyword": 12,
+          "whitespace": 45,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.212544,
+        "typedCharacters": 287
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "identifiers",
+          "keywords",
+          "numbers",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          4,
+          6,
+          7
+        ],
+        "features": [
+          "array-method-chain",
+          "function-declaration"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 222
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-018",
+      "language": "javascript",
+      "surface": "algorithm",
+      "contentType": "code.algorithm",
+      "code": "function isPalindrome(str) {\n  let left = 0;\n  let right = str.length - 1;\n  while (left < right) {\n    if (str[left] !== str[right]) return false;\n    left++;\n    right--;\n  }\n  return true;\n}",
+      "status": "library",
+      "size": {
+        "lines": 10,
+        "characters": 193,
+        "maxLineLength": 47
+      },
+      "declaredTokenMix": "two-pointer",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 15,
+          "operator": 10,
+          "chord": 7,
+          "string": 0,
+          "number": 2,
+          "number-system": 0,
+          "identifier": 66,
+          "keyword": 42,
+          "whitespace": 51,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 15,
+          "operator": 10,
+          "chord": 3,
+          "string": 0,
+          "number": 2,
+          "number-system": 0,
+          "identifier": 14,
+          "keyword": 9,
+          "whitespace": 29,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.225352,
+        "typedCharacters": 142
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "numbers",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          4,
+          6,
+          7
+        ],
+        "features": [
+          "function-declaration"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 242
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-019",
+      "language": "javascript",
+      "surface": "algorithm",
+      "contentType": "code.algorithm",
+      "code": "function maxSubarraySum(nums, k) {\n  let maxSum = 0;\n  let windowSum = 0;\n  for (let i = 0; i < nums.length; i++) {\n    windowSum += nums[i];\n    if (i >= k - 1) {\n      maxSum = Math.max(maxSum, windowSum);\n      windowSum -= nums[i - k + 1];\n    }\n  }\n  return maxSum;\n}",
+      "status": "library",
+      "size": {
+        "lines": 12,
+        "characters": 272,
+        "maxLineLength": 43
+      },
+      "declaredTokenMix": "sliding window, numbers",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 19,
+          "operator": 21,
+          "chord": 6,
+          "string": 0,
+          "number": 5,
+          "number-system": 0,
+          "identifier": 112,
+          "keyword": 28,
+          "whitespace": 81,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 19,
+          "operator": 20,
+          "chord": 3,
+          "string": 0,
+          "number": 5,
+          "number-system": 0,
+          "identifier": 25,
+          "keyword": 7,
+          "whitespace": 47,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.240838,
+        "typedCharacters": 191
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "numbers",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          4,
+          6,
+          7
+        ],
+        "features": [
+          "default-parameter",
+          "function-declaration"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 256
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-020",
+      "language": "javascript",
+      "surface": "algorithm",
+      "contentType": "code.algorithm",
+      "code": "function isBalanced(str) {\n  const stack = [];\n  const pairs = { \")\": \"(\", \"]\": \"[\", \"}\": \"{\" };\n  for (const char of str) {\n    if (\"([{\".includes(char)) stack.push(char);\n    else if (char in pairs) {\n      if (stack.pop() !== pairs[char]) return false;\n    }\n  }\n  return stack.length === 0;\n}",
+      "status": "library",
+      "size": {
+        "lines": 11,
+        "characters": 296,
+        "maxLineLength": 52
+      },
+      "declaredTokenMix": "stack, brackets",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 28,
+          "operator": 16,
+          "chord": 6,
+          "string": 23,
+          "number": 1,
+          "number-system": 0,
+          "identifier": 92,
+          "keyword": 57,
+          "whitespace": 73,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 28,
+          "operator": 16,
+          "chord": 2,
+          "string": 7,
+          "number": 1,
+          "number-system": 0,
+          "identifier": 19,
+          "keyword": 14,
+          "whitespace": 45,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.224215,
+        "typedCharacters": 223
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "numbers",
+          "operators",
+          "strings",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          3,
+          4,
+          6,
+          7
+        ],
+        "features": [
+          "array-method-chain",
+          "function-declaration"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 272
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-021",
+      "language": "javascript",
+      "surface": "algorithm",
+      "contentType": "code.algorithm",
+      "code": "function fibonacci(n, memo = {}) {\n  if (n in memo) return memo[n];\n  if (n <= 1) return n;\n  memo[n] = fibonacci(n - 1, memo) + fibonacci(n - 2, memo);\n  return memo[n];\n}",
+      "status": "library",
+      "size": {
+        "lines": 6,
+        "characters": 172,
+        "maxLineLength": 60
+      },
+      "declaredTokenMix": "dynamic programming, arrays",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 20,
+          "operator": 14,
+          "chord": 0,
+          "string": 0,
+          "number": 3,
+          "number-system": 0,
+          "identifier": 64,
+          "keyword": 32,
+          "whitespace": 39,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 20,
+          "operator": 13,
+          "chord": 0,
+          "string": 0,
+          "number": 3,
+          "number-system": 0,
+          "identifier": 19,
+          "keyword": 7,
+          "whitespace": 31,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.255639,
+        "typedCharacters": 133
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "identifiers",
+          "keywords",
+          "numbers",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          4,
+          6,
+          7
+        ],
+        "features": [
+          "default-parameter",
+          "function-declaration"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 287
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-022",
+      "language": "javascript",
+      "surface": "web",
+      "contentType": "code.web",
+      "code": "function renderList(items) {\n  const html = items.map((item) => `<li>${item.name}</li>`).join(\"\");\n  document.getElementById(\"list\").innerHTML = html;\n}",
+      "status": "library",
+      "size": {
+        "lines": 4,
+        "characters": 152,
+        "maxLineLength": 69
+      },
+      "declaredTokenMix": "DOM, template literals",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 12,
+          "operator": 9,
+          "chord": 2,
+          "string": 22,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 78,
+          "keyword": 13,
+          "whitespace": 16,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 12,
+          "operator": 9,
+          "chord": 1,
+          "string": 8,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 13,
+          "keyword": 2,
+          "whitespace": 12,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.169118,
+        "typedCharacters": 136
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "operators",
+          "strings",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          3,
+          6,
+          7
+        ],
+        "features": [
+          "array-method-chain",
+          "arrow-function",
+          "dom-api",
+          "function-declaration",
+          "template-literal"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 299
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-023",
+      "language": "javascript",
+      "surface": "web",
+      "contentType": "code.web",
+      "code": "async function loadUserProfile(userId) {\n  const response = await fetch(`/api/users/${userId}`);\n  const data = await response.json();\n  return {\n    name: data?.profile?.name ?? \"Unknown\",\n    email: data?.profile?.email ?? \"\",\n  };\n}",
+      "status": "library",
+      "size": {
+        "lines": 8,
+        "characters": 235,
+        "maxLineLength": 55
+      },
+      "declaredTokenMix": "async, fetch, optional chaining",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 10,
+          "operator": 10,
+          "chord": 12,
+          "string": 27,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 96,
+          "keyword": 39,
+          "whitespace": 41,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 10,
+          "operator": 10,
+          "chord": 6,
+          "string": 7,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 16,
+          "keyword": 7,
+          "whitespace": 25,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.164948,
+        "typedCharacters": 194
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "operators",
+          "strings",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          3,
+          6,
+          7
+        ],
+        "features": [
+          "async-await",
+          "dom-api",
+          "function-declaration",
+          "nullish-coalescing",
+          "optional-chaining",
+          "template-literal"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 307
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-024",
+      "language": "javascript",
+      "surface": "web",
+      "contentType": "code.web",
+      "code": "function setupFormValidation(form) {\n  form.addEventListener(\"submit\", (event) => {\n    event.preventDefault();\n    const email = form.querySelector(\"#email\").value;\n    if (!email.includes(\"@\")) {\n      alert(\"Please enter a valid email address.\");\n      return;\n    }\n    form.submit();\n  });\n}",
+      "status": "library",
+      "size": {
+        "lines": 11,
+        "characters": 296,
+        "maxLineLength": 53
+      },
+      "declaredTokenMix": "event listeners",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 24,
+          "operator": 15,
+          "chord": 2,
+          "string": 56,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 122,
+          "keyword": 21,
+          "whitespace": 56,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 24,
+          "operator": 15,
+          "chord": 1,
+          "string": 4,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 16,
+          "keyword": 4,
+          "whitespace": 20,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.170833,
+        "typedCharacters": 240
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "operators",
+          "strings",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          3,
+          6,
+          7
+        ],
+        "features": [
+          "array-method-chain",
+          "arrow-function",
+          "dom-api",
+          "function-declaration"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 319
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-025",
+      "language": "javascript",
+      "surface": "web",
+      "contentType": "code.web",
+      "code": "function createCounter(initial = 0) {\n  let count = initial;\n  return {\n    increment: () => ++count,\n    decrement: () => --count,\n    reset: () => (count = initial),\n    value: () => count,\n  };\n}",
+      "status": "library",
+      "size": {
+        "lines": 9,
+        "characters": 198,
+        "maxLineLength": 37
+      },
+      "declaredTokenMix": "closures, state",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 16,
+          "operator": 13,
+          "chord": 10,
+          "string": 0,
+          "number": 1,
+          "number-system": 0,
+          "identifier": 82,
+          "keyword": 17,
+          "whitespace": 52,
+          "comment": 0,
+          "path": 7,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 16,
+          "operator": 13,
+          "chord": 5,
+          "string": 0,
+          "number": 1,
+          "number-system": 0,
+          "identifier": 12,
+          "keyword": 3,
+          "whitespace": 30,
+          "comment": 0,
+          "path": 1,
+          "data": 0
+        },
+        "symbolShare": 0.267123,
+        "typedCharacters": 146
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "numbers",
+          "operators",
+          "paths",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          4,
+          5,
+          6,
+          7
+        ],
+        "features": [
+          "arrow-function",
+          "default-parameter",
+          "function-declaration"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 334
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-026",
+      "language": "javascript",
+      "surface": "web",
+      "contentType": "code.web",
+      "code": "function getActiveUserNames(users) {\n  return users\n    .filter((user) => user.isActive)\n    .map((user) => user.name)\n    .sort();\n}",
+      "status": "library",
+      "size": {
+        "lines": 6,
+        "characters": 133,
+        "maxLineLength": 36
+      },
+      "declaredTokenMix": "array filter/map chain",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 14,
+          "operator": 6,
+          "chord": 4,
+          "string": 0,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 69,
+          "keyword": 14,
+          "whitespace": 26,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 14,
+          "operator": 6,
+          "chord": 2,
+          "string": 0,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 12,
+          "keyword": 2,
+          "whitespace": 12,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.224299,
+        "typedCharacters": 107
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          6,
+          7
+        ],
+        "features": [
+          "array-method-chain",
+          "arrow-function",
+          "function-declaration"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 347
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-027",
+      "language": "javascript",
+      "surface": "web",
+      "contentType": "code.web",
+      "code": "async function loadDashboardData(userId) {\n  const [profile, orders, notifications] = await Promise.all([\n    fetch(`/api/users/${userId}`).then((r) => r.json()),\n    fetch(`/api/orders?user=${userId}`).then((r) => r.json()),\n    fetch(`/api/notifications?user=${userId}`).then((r) => r.json()),\n  ]);\n  return { profile, orders, notifications };\n}",
+      "status": "library",
+      "size": {
+        "lines": 8,
+        "characters": 348,
+        "maxLineLength": 69
+      },
+      "declaredTokenMix": "promises, Promise.all",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 36,
+          "operator": 17,
+          "chord": 6,
+          "string": 67,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 148,
+          "keyword": 29,
+          "whitespace": 45,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 36,
+          "operator": 17,
+          "chord": 3,
+          "string": 15,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 28,
+          "keyword": 5,
+          "whitespace": 27,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.194719,
+        "typedCharacters": 303
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "operators",
+          "strings",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          3,
+          6,
+          7
+        ],
+        "features": [
+          "arrow-function",
+          "async-await",
+          "dom-api",
+          "function-declaration",
+          "promise",
+          "template-literal"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 357
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-028",
+      "language": "javascript",
+      "surface": "web",
+      "contentType": "code.web",
+      "code": "function saveSettings(settings) {\n  localStorage.setItem(\"app_settings\", JSON.stringify(settings));\n}\n\nfunction loadSettings() {\n  const raw = localStorage.getItem(\"app_settings\");\n  return raw ? JSON.parse(raw) : {};\n}",
+      "status": "library",
+      "size": {
+        "lines": 8,
+        "characters": 219,
+        "maxLineLength": 65
+      },
+      "declaredTokenMix": "localStorage, JSON",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 18,
+          "operator": 11,
+          "chord": 0,
+          "string": 28,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 109,
+          "keyword": 27,
+          "whitespace": 26,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 18,
+          "operator": 11,
+          "chord": 0,
+          "string": 2,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 15,
+          "keyword": 4,
+          "whitespace": 19,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.150259,
+        "typedCharacters": 193
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "identifiers",
+          "keywords",
+          "operators",
+          "strings",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          3,
+          6,
+          7
+        ],
+        "features": [
+          "dom-api",
+          "function-declaration"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 369
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-029",
+      "language": "javascript",
+      "surface": "web",
+      "contentType": "code.web",
+      "code": "function throttle(fn, limit) {\n  let lastCall = 0;\n  return (...args) => {\n    const now = Date.now();\n    if (now - lastCall >= limit) {\n      lastCall = now;\n      fn(...args);\n    }\n  };\n}",
+      "status": "library",
+      "size": {
+        "lines": 10,
+        "characters": 191,
+        "maxLineLength": 34
+      },
+      "declaredTokenMix": "throttle, timestamps",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 16,
+          "operator": 13,
+          "chord": 8,
+          "string": 0,
+          "number": 1,
+          "number-system": 0,
+          "identifier": 70,
+          "keyword": 24,
+          "whitespace": 59,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 16,
+          "operator": 12,
+          "chord": 3,
+          "string": 0,
+          "number": 1,
+          "number-system": 0,
+          "identifier": 15,
+          "keyword": 5,
+          "whitespace": 29,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.280303,
+        "typedCharacters": 132
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "numbers",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          4,
+          6,
+          7
+        ],
+        "features": [
+          "arrow-function",
+          "function-declaration",
+          "spread-rest"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 381
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-030",
+      "language": "javascript",
+      "surface": "react",
+      "contentType": "code.react",
+      "code": "function Counter() {\n  const [count, setCount] = useState(0);\n  return (\n    <div className=\"counter\">\n      <p>Count: {count}</p>\n      <button onClick={() => setCount(count + 1)}>Increment</button>\n    </div>\n  );\n}",
+      "status": "library",
+      "size": {
+        "lines": 9,
+        "characters": 217,
+        "maxLineLength": 68
+      },
+      "declaredTokenMix": "JSX tags, hooks",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 30,
+          "operator": 11,
+          "chord": 2,
+          "string": 9,
+          "number": 2,
+          "number-system": 0,
+          "identifier": 96,
+          "keyword": 19,
+          "whitespace": 48,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 30,
+          "operator": 11,
+          "chord": 1,
+          "string": 1,
+          "number": 2,
+          "number-system": 0,
+          "identifier": 17,
+          "keyword": 3,
+          "whitespace": 22,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.254438,
+        "typedCharacters": 169
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "numbers",
+          "operators",
+          "strings",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          3,
+          4,
+          6,
+          7
+        ],
+        "features": [
+          "arrow-function",
+          "function-declaration",
+          "jsx",
+          "react-hook"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 397
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-031",
+      "language": "javascript",
+      "surface": "react",
+      "contentType": "code.react",
+      "code": "function UserBadge({ user }) {\n  if (!user) return null;\n  return (\n    <span className={user.isOnline ? \"badge online\" : \"badge offline\"}>\n      {user.name}\n    </span>\n  );\n}",
+      "status": "library",
+      "size": {
+        "lines": 8,
+        "characters": 176,
+        "maxLineLength": 71
+      },
+      "declaredTokenMix": "JSX, conditional rendering",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 18,
+          "operator": 9,
+          "chord": 0,
+          "string": 29,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 54,
+          "keyword": 26,
+          "whitespace": 40,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 18,
+          "operator": 9,
+          "chord": 0,
+          "string": 2,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 10,
+          "keyword": 5,
+          "whitespace": 20,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.198529,
+        "typedCharacters": 136
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "identifiers",
+          "keywords",
+          "operators",
+          "strings",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          3,
+          6,
+          7
+        ],
+        "features": [
+          "function-declaration",
+          "jsx"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 410
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-032",
+      "language": "javascript",
+      "surface": "react",
+      "contentType": "code.react",
+      "code": "function ProfilePage({ userId }) {\n  const [profile, setProfile] = useState(null);\n  useEffect(() => {\n    fetchProfile(userId).then(setProfile);\n  }, [userId]);\n  return profile ? <h1>{profile.name}</h1> : <p>Loading...</p>;\n}",
+      "status": "library",
+      "size": {
+        "lines": 7,
+        "characters": 227,
+        "maxLineLength": 63
+      },
+      "declaredTokenMix": "useEffect, array dependency",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 28,
+          "operator": 10,
+          "chord": 2,
+          "string": 0,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 110,
+          "keyword": 23,
+          "whitespace": 32,
+          "comment": 0,
+          "path": 0,
+          "data": 22
+        },
+        "tokens": {
+          "bracket": 28,
+          "operator": 10,
+          "chord": 1,
+          "string": 0,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 16,
+          "keyword": 4,
+          "whitespace": 20,
+          "comment": 0,
+          "path": 0,
+          "data": 1
+        },
+        "symbolShare": 0.205128,
+        "typedCharacters": 195
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "data",
+          "identifiers",
+          "keywords",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          3,
+          6,
+          7
+        ],
+        "features": [
+          "arrow-function",
+          "function-declaration",
+          "jsx",
+          "react-hook",
+          "regex-literal"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 422
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-033",
+      "language": "javascript",
+      "surface": "react",
+      "contentType": "code.react",
+      "code": "function TodoList({ items, onToggle }) {\n  return (\n    <ul>\n      {items.map((item) => (\n        <li key={item.id} onClick={() => onToggle(item.id)}>\n          {item.done ? \"✓ \" : \"\"}\n          {item.text}\n        </li>\n      ))}\n    </ul>\n  );\n}",
+      "status": "library",
+      "size": {
+        "lines": 12,
+        "characters": 247,
+        "maxLineLength": 60
+      },
+      "declaredTokenMix": "JSX list rendering, keys",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": [
+          {
+            "char": "✓",
+            "class": "string",
+            "index": 174
+          }
+        ]
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 36,
+          "operator": 13,
+          "chord": 4,
+          "string": 6,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 87,
+          "keyword": 14,
+          "whitespace": 87,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 36,
+          "operator": 13,
+          "chord": 2,
+          "string": 2,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 21,
+          "keyword": 2,
+          "whitespace": 27,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.33125,
+        "typedCharacters": 160
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "operators",
+          "strings",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          3,
+          6,
+          7
+        ],
+        "features": [
+          "array-method-chain",
+          "arrow-function",
+          "default-parameter",
+          "function-declaration",
+          "jsx"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 433
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-034",
+      "language": "javascript",
+      "surface": "react",
+      "contentType": "code.react",
+      "code": "function useDebounce(value, delay) {\n  const [debounced, setDebounced] = useState(value);\n  useEffect(() => {\n    const timer = setTimeout(() => setDebounced(value), delay);\n    return () => clearTimeout(timer);\n  }, [value, delay]);\n  return debounced;\n}",
+      "status": "library",
+      "size": {
+        "lines": 8,
+        "characters": 255,
+        "maxLineLength": 63
+      },
+      "declaredTokenMix": "custom hook, refs",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 26,
+          "operator": 12,
+          "chord": 6,
+          "string": 0,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 137,
+          "keyword": 30,
+          "whitespace": 44,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 26,
+          "operator": 12,
+          "chord": 3,
+          "string": 0,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 18,
+          "keyword": 5,
+          "whitespace": 28,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.208531,
+        "typedCharacters": 211
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "operators",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          6,
+          7
+        ],
+        "features": [
+          "arrow-function",
+          "function-declaration",
+          "jsx",
+          "react-hook"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 449
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-JS-035",
+      "language": "javascript",
+      "surface": "react",
+      "contentType": "code.react",
+      "code": "function Button({ children, variant = \"primary\", ...rest }) {\n  return (\n    <button className={`btn btn-${variant}`} {...rest}>\n      {children}\n    </button>\n  );\n}",
+      "status": "library",
+      "size": {
+        "lines": 7,
+        "characters": 166,
+        "maxLineLength": 61
+      },
+      "declaredTokenMix": "props destructuring, spread",
+      "tokenMap": {
+        "tokenizerVersion": "1.0.0",
+        "language": "javascript",
+        "clean": true,
+        "diagnostics": [],
+        "tilingIssues": [],
+        "nonAscii": []
+      },
+      "tokenClassMix": {
+        "chars": {
+          "bracket": 18,
+          "operator": 6,
+          "chord": 6,
+          "string": 22,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 65,
+          "keyword": 14,
+          "whitespace": 35,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "tokens": {
+          "bracket": 18,
+          "operator": 6,
+          "chord": 2,
+          "string": 6,
+          "number": 0,
+          "number-system": 0,
+          "identifier": 10,
+          "keyword": 2,
+          "whitespace": 17,
+          "comment": 0,
+          "path": 0,
+          "data": 0
+        },
+        "symbolShare": 0.229008,
+        "typedCharacters": 131
+      },
+      "tags": {
+        "surfaces": [
+          "brackets",
+          "chords",
+          "identifiers",
+          "keywords",
+          "operators",
+          "strings",
+          "whitespace"
+        ],
+        "tiers": [
+          1,
+          2,
+          3,
+          6,
+          7
+        ],
+        "features": [
+          "function-declaration",
+          "jsx",
+          "spread-rest",
+          "template-literal"
+        ]
+      },
+      "difficulty": {
+        "band": null,
+        "source": null,
+        "reason": "no typability band for code: CNT-02's scorer is not built and implementation guide 6.5 step 8 states it is not valid for code or symbol-heavy text. A band is only ever copied from the content register, never guessed from length or symbol density."
+      },
+      "licence": {
+        "declaration": "original work — ours",
+        "licenseClass": "allowed",
+        "textRequired": false,
+        "source": "",
+        "attribution": null,
+        "registerRef": "docs/content-code-snippets-javascript-original.md",
+        "registerStatus": "draft",
+        "shippable": false
+      },
+      "provenance": {
+        "file": "docs/content-code-snippets-javascript-original.md",
+        "line": 461
+      },
+      "defects": [],
+      "publishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ],
+      "corpusShippable": false,
+      "corpusPublishBlockers": [
+        "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    }
+  ]
+}
