@@ -10,7 +10,7 @@
  *   node docs/coordination/log.mjs claim     --task ENG-07 --scope "packages/schemas/**" --ttl 90m --depends ENG-01
  *   node docs/coordination/log.mjs heartbeat --task ENG-07
  *   node docs/coordination/log.mjs release   --task ENG-07 --outcome partial --notes "blocked on ENG-01"
- *   node docs/coordination/log.mjs propose   --task ENG-07 --row ENG-07 --from "NOT STARTED" --to "IN PROGRESS" --evidence "tests green" --pr "#142"
+ *   node docs/coordination/log.mjs ledger_proposal --task ENG-07 --row ENG-07 --from "NOT STARTED" --to "IN PROGRESS" --evidence "tests green" --pr "#142"
  *   node docs/coordination/log.mjs note      --task ENG-07 --text "read PROTOCOL.md before editing"
  *
  * Agent id resolution, in order: --agent, $COORDINATION_AGENT, the current git
@@ -25,7 +25,32 @@ import { fileURLToPath } from "node:url";
 import { appendEvent, parseShard, serializeEvent, shardFileName, validateEvent } from "../../scripts/coordination.mjs";
 
 const EVENTS_DIR = join(dirname(fileURLToPath(import.meta.url)), "events");
+const TTL_UNITS_MS = { s: 1_000, m: 60_000, h: 3_600_000, d: 86_400_000 };
 const DEFAULT_TTL_MINUTES = 60;
+
+/**
+ * Parse `--ttl` into milliseconds.
+ *
+ * The unit is load-bearing, so it is required and validated rather than
+ * discarded. An earlier version ran `parseInt(value) * 60_000`, which quietly
+ * turned `--ttl 4h` into **4 minutes**: the lease expired while the agent was
+ * still working, its scope freed, and a second agent could claim the same files.
+ * That is the exact overwrite this whole mechanism exists to prevent, so a
+ * malformed duration now throws instead of being reinterpreted.
+ */
+function parseDurationMs(value) {
+  const match = /^(\d+)([smhd])$/.exec(String(value).trim());
+  if (match === null) return Number.NaN;
+  return Number.parseInt(match[1], 10) * TTL_UNITS_MS[match[2]];
+}
+
+function invalidTtlMessage(value) {
+  return (
+    `--ttl must be a whole number with a unit, e.g. 90m, 4h, 1d (got ${JSON.stringify(value)}). ` +
+    "The unit is not optional: a bare number is ambiguous and a wrong unit would " +
+    "expire the lease early and free the scope while you still hold it."
+  );
+}
 
 /**
  * Parse `node log.mjs <type> --flag value ...` into an event body.
@@ -97,8 +122,12 @@ export function buildPayload(type, flags) {
     // No empty claims. If you are not editing anything, you do not need a claim —
     // write a note. A claim with no scope exists only to make the lease table lie.
     if (scopes.length === 0) throw new Error("--scope is required at least once; if you are not editing files, write a note instead");
-    const ttlMs = (flags.ttl === undefined ? DEFAULT_TTL_MINUTES : Number.parseInt(one("ttl"), 10)) * 60_000;
-    if (!Number.isInteger(ttlMs) || ttlMs <= 0) throw new Error("--ttl must be a whole number of minutes, e.g. 90m");
+    if (flags.ttl === undefined) {
+      return { task, scopes, ttlMs: DEFAULT_TTL_MINUTES * 60_000, dependsOn: flags.depends ?? [] };
+    }
+    const rawTtl = one("ttl");
+    const ttlMs = parseDurationMs(rawTtl);
+    if (!Number.isInteger(ttlMs) || ttlMs <= 0) throw new Error(invalidTtlMessage(rawTtl));
     return { task, scopes, ttlMs, dependsOn: flags.depends ?? [] };
   }
   if (type === "heartbeat") return { task };

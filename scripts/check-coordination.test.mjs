@@ -1172,6 +1172,36 @@ describe("docs/coordination/log.mjs — the writer an agent actually runs", () =
     assert.throws(() => parseLogArgs(["claim", "task"]), /expected a --flag/);
     assert.throws(() => parseLogArgs(["claim", "--task"]), /--task needs a value/);
     assert.throws(() => buildPayload("claim", { task: ["ENG-07"] }), /--scope is required/);
+
+    // Regression: --ttl used to be `parseInt(value) * 60_000`, so "4h" silently
+    // became a 4-MINUTE lease. The scope then freed while the agent was still
+    // working and a second agent could claim the same files — the exact
+    // overwrite this mechanism exists to prevent. The unit must be honoured,
+    // and a missing or unknown unit must throw rather than be reinterpreted.
+    for (const [value, ms] of [
+      ["30s", 30_000],
+      ["90m", 90 * 60_000],
+      ["4h", 4 * 3_600_000],
+      ["1d", 86_400_000],
+    ]) {
+      assert.equal(
+        buildPayload("claim", { task: ["T"], scope: ["a/**"], ttl: [value] }).ttlMs,
+        ms,
+        `--ttl ${value} must be ${ms}ms`,
+      );
+    }
+    for (const bad of ["4", "4x", "abc", "0h", "-1h", "1.5h", ""]) {
+      assert.throws(
+        () => buildPayload("claim", { task: ["T"], scope: ["a/**"], ttl: [bad] }),
+        /--ttl must be a whole number with a unit/,
+        `--ttl ${JSON.stringify(bad)} must be rejected, not reinterpreted`,
+      );
+    }
+    // A bare number must not silently inherit the default, either.
+    assert.throws(
+      () => buildPayload("claim", { task: ["T"], scope: ["a/**"], ttl: ["90"] }),
+      /unit/,
+    );
     assert.throws(
       () => buildPayload("release", { task: ["ENG-07"], outcome: ["done", "done"] }),
       /takes one value/,
