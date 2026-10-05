@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    // The corpus pipeline is plain ESM run by `node`, and this package's sources
+    // are the artifact it imports: `scripts/corpus-pipeline.mjs` does
+    // `import { typabilityBand } from "../packages/typability/src/index.ts"`, which
+    // Node 24 serves through type stripping. That only works if the internal
+    // specifiers name real files, so they end in `.ts` here - unlike every other
+    // package in the workspace, which uses `.js` specifiers and is therefore not
+    // loadable by `node` from source.
+    //
+    // `rewriteRelativeImportExtensions` keeps `pnpm build` correct: tsc emits
+    // `./features.js` in dist/, which is what Node needs there.
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true
+  },
+  "include": ["src", "tests", "vitest.config.ts"]
+}
