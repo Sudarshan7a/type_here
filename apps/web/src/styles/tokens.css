@@ -231,6 +231,14 @@
    */
   --dur-caret: 80ms;
   --dur-blink: 1.06s;
+  /*
+   * [GAP] The one motion value the scale above has no step for: the per-item
+   * stagger on a reveal. The motion catalog caps a stagger at 30 ms per item
+   * and 300 ms total, and 30 ms is that cap — so this token exists to name the
+   * number rather than to tune it, and the cap is the value. Logged for the
+   * owner alongside the caret values above.
+   */
+  --dur-stagger: 30ms;
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-spring-ui: cubic-bezier(0.3, 1.4, 0.4, 1);

@@ -66,6 +66,7 @@
 
 | Key | Text | Notes |
 |---|---|---|
+| `results.title` | Results | Heading of the results panel. Visually hidden: the KPI below it is the thing to read, and the heading is here so the landmark and the heading outline are real |
 | `results.headline.netWpm` | {value} WPM | Large, primary number |
 | `results.headline.accuracy` | {value}% accuracy | |
 | `results.headline.classicWpmNote` | Classic WPM: {value} | Secondary, smaller, shown alongside net WPM per the spec's transparency rule |
@@ -100,6 +101,21 @@
 | `results.savePrompt.body` | Create a free account to keep your history, track goals, and pick up where you left off on another device. | No pressure language, states the actual benefit |
 | `results.savePrompt.cta` | Save my progress | |
 | `results.savePrompt.dismiss` | Not now | Never "No thanks" (slightly guilt-adjacent) or a tiny unreadable link — a real, equal-weight button |
+| `results.headline.classicWpm` | Classic WPM: {value} | The all-characters figure with no error subtraction, shown beside net WPM per §4.3's transparency rule |
+| `results.details.title` | Details | Heading for the figures list (§4.3 item 5) |
+| `results.details.notReported` | Not reported for this test | Stand-in for a figure the engine returns as null. A dash would hide the gap; the short-test notice beside it says why the gap is there |
+| `results.unverified.local` | Calculated in this browser from the keystrokes you produced. Nothing was sent anywhere and nothing was saved. | Body under `results.unverified.label`. Deliberately NOT `results.unverified.tooltip`: that line says the result "is still saved as a private practice result", and at MVP nothing is saved. A sentence the screen cannot keep is worse than no sentence |
+| `results.short.title` | Short test | Label for the notice on a run below the engine's own MIN_CONSISTENCY_DURATION_MS. A measurement limit named in words, never as a failure |
+| `results.short.body` | This test ran for {seconds} seconds. Figures that need at least {minimum} seconds of it are left out. | Both slots are seconds, formatted once by the results formatter, and the unit is spelled out rather than left to a reader's guess |
+| `results.flags.title` | Notes on this test | Label when the engine returned integrity flags. Neutral wording: a flag is something to read, not an accusation |
+| `results.flags.body` | The engine recorded {notes} while this test ran. The figures above come from the same keystrokes. | `{notes}` is the flag list in words. A code this table does not name is shown verbatim rather than hidden |
+| `results.flags.untrusted` | input the browser did not mark as trusted | Wording for the engine's `untrusted-events` flag |
+| `results.flags.auto` | characters inserted automatically | Wording for the `auto-events-present` flag (ENG-09) |
+| `results.flags.verifiedInvalid` | input that would disqualify a verified result | Wording for the `verified-invalid-input` flag |
+| `results.flags.announce` | This test has notes. | Appended to the finished-test announcement when flags exist. Still ONE announcement per finished test — the note rides on it rather than becoming a second one |
+| `results.offline.label` | Offline | The tone label on the offline notice. The word the reader needs, and the panel's own non-colour cue for it |
+| `results.offline.note` | You're offline. This result was calculated in this browser and has not been sent anywhere. | Deliberately NOT `state.offline`: that line promises results will sync when the connection returns, and at MVP there is no sync to promise. What actually happened is said instead |
+| `results.pending` | There is no difficulty rating for this passage and no result history to compare against yet. | Names the two §4.3 fields nothing produces yet (the engine returns `difficultyBand: null`; nothing is stored). One sentence, rather than a silent hole where a card should be |
 
 ---
 
@@ -211,6 +227,7 @@
 | `help.shortcuts.intro` | Everything here works without a mouse. | |
 | `help.shortcuts.tab` | Tab, while typing: restart the test. | |
 | `help.shortcuts.escape` | Escape, while typing: leave the typing field. Tab then moves on. | |
+| `help.shortcuts.resultsEscape` | Escape, in the results: close the replay, or return to the passage. | ANA-01. One binding for both: with the replay open it closes it and puts focus back on its button; with the replay closed it returns to the typing field |
 | `help.shortcuts.activate` | Enter or Space: activate the focused button, select, checkbox, or link. | |
 | `help.shortcuts.replay` | Arrow keys: move through the replay, when its slider is focused. Home and End jump to the ends. | |
 | `help.shortcuts.type` | Letters and punctuation: type the passage, while the field is focused. | |
