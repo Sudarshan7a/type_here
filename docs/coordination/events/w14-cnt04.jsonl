@@ -1,0 +1,1 @@
+{"agent":"w14-cnt04","dependsOn":[],"hash":"349c51403869ac17e091d174a58a51ded3492b3c834a064aea7df844fc47e466","prev":"0000000000000000000000000000000000000000000000000000000000000000","scopes":["content/snippets/**","scripts/*snippet*","docs/corpus-snippets*"],"seq":1,"task":"CNT-04","ts":"2026-10-05T17:48:38.581Z","ttlMs":21600000,"type":"claim"}
