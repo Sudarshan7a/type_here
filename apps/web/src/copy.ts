@@ -133,6 +133,7 @@ export const COPY = {
   shortcuts: [
     "Tab, while typing: restart the test.",
     "Escape, while typing: leave the typing field. Tab then moves on.",
+    "Escape, in the results: close the replay, or return to the passage.",
     "Enter or Space: activate the focused button, select, checkbox, or link.",
     "Arrow keys: move through the replay, when its slider is focused. Home and End jump to the ends.",
     "Letters and punctuation: type the passage, while the field is focused.",
@@ -168,12 +169,19 @@ export const COPY = {
   /** action.newPassage */
   newPassage: "New passage",
 
-  /** Heading of the finished panel; visually hidden, for the landmark name. */
+  /** results.title — heading of the finished panel; visually hidden, for the landmark name. */
   resultsTitle: "Results",
 
-  /** The one and only automatic announcement (a11y.announce.testFinished). */
-  announceTestFinished: (wpm: string, accuracy: string): string =>
-    `Test finished. ${wpm} words per minute, ${accuracy} percent accuracy.`,
+  /**
+   * The one and only automatic announcement (a11y.announce.testFinished).
+   *
+   * The trailing `note` is the flagged-run sentence and nothing else. It rides
+   * on this one string rather than becoming a second live region, so a flagged
+   * run is still announced exactly once — and a clean run appends nothing,
+   * rather than announcing the absence of something.
+   */
+  announceTestFinished: (wpm: string, accuracy: string, note?: string): string =>
+    `Test finished. ${wpm} words per minute, ${accuracy} percent accuracy.${note ?? ""}`,
 
   /**
    * The focused headline shows the metric plus its unit, so the number is never
@@ -184,6 +192,93 @@ export const COPY = {
 
   /** results.headline.accuracy */
   headlineAccuracy: (value: number): string => `${value.toFixed(1)}% accuracy`,
+
+  /**
+   * results.headline.classicWpm — §4.3 item 1 asks for classic WPM shown
+   * alongside net WPM, per the transparency rule. Filled with the engine's GROSS
+   * figure: every character produced, with no error subtraction, which is what
+   * "classic WPM" means on a test page. results/format.ts does the formatting,
+   * at the same precision as the headline beside it.
+   */
+  resultsClassicWpm: (value: string): string => `Classic WPM: ${value}`,
+
+  /** results.details.title — the heading for the figures list. */
+  resultsDetailsTitle: "Details",
+
+  /**
+   * results.details.* — the figures list. These take an ALREADY formatted
+   * string, not a number: precision is chosen once in results/format.ts and
+   * applied once, so no row can quietly disagree with another about how many
+   * decimals a figure gets. `tests/results-metrics.test.ts` pins each of these
+   * against the value the engine produced.
+   */
+  resultsDetailsRaw: (value: string): string => `Raw: ${value} WPM`,
+  resultsDetailsConsistency: (value: string): string => `Consistency: ${value}`,
+  resultsDetailsKspc: (value: string): string => `Keystrokes per character: ${value}`,
+  resultsDetailsRollover: (value: string): string => `Rollover: ${value}%`,
+  resultsDetailsBurst: (value: string): string => `Best 5-second burst: ${value} WPM`,
+
+  /**
+   * results.details.notReported — what a figure reads as when the engine has no
+   * value for it. Words, never a dash and never 0: a dash hides the gap, and a 0
+   * is a claim about the user that nothing measured (chapter 4 E9).
+   */
+  resultsDetailsNotReported: "Not reported for this test",
+
+  /** results.unverified.label — the standing state, because nothing is verified yet. */
+  resultsUnverifiedLabel: "Practice result (not verified)",
+
+  /**
+   * results.unverified.local — WHY it is unverified. Deliberately not
+   * `results.unverified.tooltip`, which says the result is saved: nothing is
+   * saved at MVP, and a sentence the screen cannot keep is worse than none.
+   */
+  resultsUnverifiedLocal:
+    "Calculated in this browser from the keystrokes you produced. Nothing was sent anywhere and nothing was saved.",
+
+  /**
+   * results.short.* — a run below the engine's own consistency floor. The notice
+   * names the measurement limit and its size. It is not a verdict on the
+   * attempt, and nothing about it is allowed to read as one.
+   */
+  resultsShortTitle: "Short test",
+  resultsShortBody: (seconds: string, minimum: string): string =>
+    `This test ran for ${seconds} seconds. Figures that need at least ${minimum} seconds of it are left out.`,
+
+  /**
+   * results.flags.* — integrity flags in words. A flag is a note to read, not an
+   * accusation: the wording says what the engine recorded and nothing about who
+   * did what, and it states that the figures come from the same keystrokes, so
+   * the note cannot read as "these numbers are void".
+   */
+  resultsFlagsTitle: "Notes on this test",
+  resultsFlagsBody: (notes: string): string =>
+    `The engine recorded ${notes} while this test ran. The figures above come from the same keystrokes.`,
+  resultsFlagsAnnounce: "This test has notes.",
+  /** The engine's opaque flag codes, named in words. A code this table does not name is shown as-is. */
+  resultsFlagWords: {
+    "untrusted-events": "input the browser did not mark as trusted",
+    "auto-events-present": "characters inserted automatically",
+    "verified-invalid-input": "input that would disqualify a verified result",
+  } as Record<string, string>,
+
+  /**
+   * results.offline.label / results.offline.note — what actually happened,
+   * without the promise the global `state.offline` line makes. There is no sync
+   * to promise at MVP.
+   */
+  resultsOfflineLabel: "Offline",
+  resultsOfflineNote:
+    "You're offline. This result was calculated in this browser and has not been sent anywhere.",
+
+  /**
+   * results.pending — the two §4.3 fields nothing produces yet, named in one
+   * sentence: the engine returns `difficultyBand: null` and nothing is stored,
+   * so there is no history to compare against. Naming the hole is the honest
+   * alternative to leaving a blank where a card should be.
+   */
+  resultsPending:
+    "There is no difficulty rating for this passage and no result history to compare against yet.",
 
   /** footer.howWeCalculate is the permanent home of this; shown small here. */
   engineStamp: (modelVersion: string): string =>

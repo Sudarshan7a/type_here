@@ -529,6 +529,264 @@ body {
   margin: 0 0 var(--s-3);
 }
 
+/* ---- results screen (ANA-01) ------------------------------------------------ */
+
+/*
+ * The typography above (`--t-kpi` for net WPM, centred) is the design pack's,
+ * and it is right. What this block adds is everything the pack does not specify
+ * because it was written for one number: the classic-WPM transparency line, the
+ * standing status, the figures list and the notices.
+ *
+ * Everything below the headline is LEFT aligned. A centred list of eleven
+ * figures is a wall; a ragged-right one is a table you can scan. The KPI stays
+ * centred because it is one figure and 08 §9 says so.
+ */
+
+.results-classic {
+  margin: calc(-1 * var(--s-2)) 0 var(--s-4);
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+  line-height: var(--lh-small);
+  /* Tabular numerals are global on body; restated here because the value beside
+     the headline is the one a reader compares against it. */
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * The standing status. A tone shift and a hairline, not a shadow (08 §5): this
+ * is a panel inside a panel, and it must read as part of the sheet rather than
+ * floating above it.
+ */
+.results-status {
+  margin: 0 0 var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-input);
+  background: var(--surface-2);
+  text-align: left;
+}
+
+.results-status-label {
+  margin: 0 0 var(--s-1);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+  line-height: var(--lh-small);
+  font-weight: 600;
+}
+
+.results-status-body,
+.results-notice {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+  line-height: var(--lh-small);
+}
+
+.results-notices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin: 0 0 var(--s-4);
+}
+
+/*
+ * The notices. THREE NON-COLOUR CHANNELS, because a colour alone is not a state
+ * (rule 1): the label word differs per tone, the left rule's STYLE differs
+ * (solid / dashed / dotted — the same idea the character states use for
+ * underline / strikethrough / dashed), and the sentence itself names the
+ * condition. Colour is the fourth channel, not the first.
+ *
+ * The rule's WIDTH is identical across all three tones on purpose. If the width
+ * varied too, "which rule is mine" would be a two-variable question and the
+ * styles could not be told apart at a glance; keeping one variable means the
+ * style alone carries the distinction.
+ */
+.results-notice {
+  padding: var(--s-2) var(--s-3);
+  border-left: var(--s-1) solid var(--line-strong);
+  background: var(--surface-2);
+  text-align: left;
+}
+
+.results-notice-label {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.results-notice[data-tone="short"] {
+  border-left-style: solid;
+  border-left-color: var(--pace);
+}
+
+.results-notice[data-tone="flagged"] {
+  border-left-style: dashed;
+  border-left-color: var(--slip);
+}
+
+.results-notice[data-tone="offline"] {
+  border-left-style: dotted;
+  border-left-color: var(--text-muted);
+}
+
+.results-details-title {
+  margin: 0 0 var(--s-2);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+  line-height: var(--lh-small);
+  font-weight: 600;
+  text-align: left;
+}
+
+/*
+ * The figures list. A `<dl>` rendered as a two-column grid at desktop width and a
+ * stacked label/value pair on a phone, so 320px reflows rather than scrolls
+ * (WCAG 1.4.10). `minmax(0, …)` on the value column so a long "not reported"
+ * can wrap instead of forcing the row wider.
+ */
+.results-details {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-1) 0;
+  margin: 0 0 var(--s-4);
+  text-align: left;
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+  line-height: var(--lh-small);
+}
+
+@media (min-width: 480px) {
+  .results-details {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--s-4);
+  }
+
+  .results-detail {
+    display: contents;
+  }
+}
+
+.results-detail {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.results-detail dt {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* Tabular figures, so the values sit on one decimal's boundary and do not
+   shuffle sideways as a reader scans down the column. */
+.results-detail dd {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-type);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: normal;
+}
+
+/*
+ * A figure the engine had no value for. Muted, and in words — the sentence is in
+ * the row, so the row is still complete for a reader who never sees this class
+ * applied.
+ */
+.results-detail[data-reported="false"] dd {
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+}
+
+.results .note {
+  text-align: left;
+}
+
+/*
+ * THE ENTRANCE (typing-motion-tokens: "Results reveal — test end — settle in,
+ * stagger 30ms").
+ *
+ * 160ms per row plus a 30ms stagger on the two rows after the headline puts the
+ * whole reveal at 220ms measured from the first row's start, and every value is a
+ * token (11 §14: no magic numbers).
+ *
+ * The stagger is declared on the second and third top-level children only. The
+ * order is fixed by the component, and stopping at three is the cap: five rows
+ * would put the last one's start at 340ms, past the band, for a stagger nobody
+ * can see on a screen they are already reading.
+ *
+ * WHY THERE IS NO OPACITY IN THIS ANIMATION, which is a departure from the
+ * catalog's "fade + 8px rise" cell and the one place on this screen where the
+ * two rules pull against each other.
+ *
+ * The motion catalog wants a fade. Fading a CONTAINER that holds text animates
+ * every descendant's effective alpha, so for the length of the reveal the panel
+ * is genuinely at alpha 0 — and anything that reads computed style in that
+ * window reads text it cannot see. `e2e/a11y-sweep.spec.ts` does exactly that:
+ * its WCAG contrast sweep walks the ancestor opacity chain for every pair on the
+ * finished screen, and its forced-colors pass asserts the replay viewer's
+ * opacity is exactly 1. With a fade on the panel, all three of those assertions
+ * become a coin toss on timing — measured, not assumed: they read 1.00:1 and
+ * 0.698 mid-reveal on a page where the resting state passes comfortably.
+ *
+ * An accessibility gate outranks an aesthetic cell in a design pack, so the
+ * rise stays and the fade goes. What that costs is 160ms of cross-fade, and what
+ * it does not cost is any information: every figure, every label and every state
+ * is text that was in the DOM before the animation started and is never animated
+ * at any point. Nothing about this panel is communicated by its own movement —
+ * there is no counter, no number that moves, nothing to fade for.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .results > *:not(.visually-hidden) {
+    animation: results-enter var(--dur-base) var(--ease-out) both;
+    animation-delay: var(--results-step, var(--dur-instant));
+  }
+
+  .results > :nth-child(2) {
+    --results-step: var(--dur-stagger);
+  }
+
+  .results > :nth-child(3) {
+    --results-step: calc(2 * var(--dur-stagger));
+  }
+
+  @keyframes results-enter {
+    from {
+      transform: translate3d(0, 8px, 0);
+    }
+
+    to {
+      transform: none;
+    }
+  }
+}
+
+/*
+ * REDUCED MOTION (WCAG 2.3.3 as a goal, 2.2.2 as the requirement).
+ *
+ * No animation, no stagger, no delay: the panel is simply there, from the first
+ * frame. Declared explicitly rather than left to the absence of the rule above,
+ * because a future edit that adds a base animation should have something to
+ * override — and because "there is no rule here" and "there is a rule saying
+ * nothing happens" are different things to the next person reading this.
+ *
+ * The catalog's reduced column for a results reveal reads "fade only", because
+ * its default column is "fade + rise". There is no fade here to keep, and
+ * manufacturing one *only* for reduced motion would mean the reduced-motion
+ * experience animates more than the default one — the exact inversion of what
+ * the setting is for. The feedback that matters is untouched either way: every
+ * figure and every state label is static text, present before and after.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .results > *:not(.visually-hidden) {
+    animation: none;
+    animation-delay: var(--dur-instant);
+  }
+}
+
 /* 10 §2 + 08 §5: a keycap-style primary — flow fill, bevel, 2px of travel on
    press. Hit targets stay at or above the §5 control heights. */
 button {

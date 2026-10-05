@@ -28,7 +28,8 @@ import type { CaretStyle, Layout, LogMarker, KeyEvent } from "@realtype/schemas"
 import { COPY } from "./copy";
 import { InputCapture } from "./input-adapter";
 import type { Passage } from "./passages";
-import { ReplayViewer } from "./ReplayViewer";
+import { buildAnnouncement } from "./results/announce";
+import { ResultsPanel } from "./results/ResultsPanel";
 
 /** What the surface is doing, as far as the user is concerned. */
 export type SurfacePhase = "idle" | "running" | "paused" | "finished";
@@ -675,19 +676,23 @@ export function TypingSurface({
         The one and only automatic announcement (a11y.announce.testFinished).
         It exists so a screen-reader user learns the outcome. It must never fire
         per keystroke, and it does not: it is derived from `result`, which is set
-        exactly once, when the test ends.
+        exactly once, when the test ends. The sentence itself is built in
+        ./results/announce.ts so the numbers are formatted in the one place the
+        whole results screen formats them.
       */}
       <p className="visually-hidden" role="status" aria-live="polite" data-testid="announcer">
-        {result === null
-          ? ""
-          : COPY.announceTestFinished(
-              result.summary.netWpm.toFixed(0),
-              result.summary.finalAccuracy.toFixed(0),
-            )}
+        {result === null ? "" : buildAnnouncement(result)}
       </p>
 
+      {/*
+        ANA-01: the results screen. It lives in its own module
+        (./results/ResultsPanel) and mounts exactly once per finished test —
+        `result` is set once, in finish(), and cleared once, on restart. Nothing
+        in it holds state that changes while a test runs, so nothing in it can
+        schedule a render per keystroke.
+      */}
       {result !== null && (
-        <FinishedPanel
+        <ResultsPanel
           result={result}
           onRestart={restart}
           onNewPassage={onNewPassage}
@@ -697,6 +702,7 @@ export function TypingSurface({
           replayOpen={replayOpen}
           onWatchReplay={() => setReplayOpen(true)}
           onCloseReplay={() => setReplayOpen(false)}
+          onReturnToSurface={() => surfaceRef.current?.focus()}
         />
       )}
 
@@ -704,79 +710,6 @@ export function TypingSurface({
         {passage.id}
       </p>
     </div>
-  );
-}
-
-function FinishedPanel({
-  result,
-  onRestart,
-  onNewPassage,
-  target,
-  errorMode,
-  retainedLog,
-  replayOpen,
-  onWatchReplay,
-  onCloseReplay,
-}: {
-  result: EngineResult;
-  onRestart: () => void;
-  onNewPassage: (() => void) | undefined;
-  /** The passage that was typed — the replay folds against the same target. */
-  target: string;
-  errorMode: ErrorMode;
-  /** The retained attempt log, or null when nothing was kept for this test. */
-  retainedLog: { events: readonly KeyEvent[]; markers: readonly LogMarker[] } | null;
-  replayOpen: boolean;
-  onWatchReplay: () => void;
-  onCloseReplay: () => void;
-}) {
-  return (
-    <section className="finished" aria-labelledby="finished-title" data-testid="finished">
-      <h2 id="finished-title" className="visually-hidden">
-        {COPY.resultsTitle}
-      </h2>
-      <p className="headline">
-        <strong className="headline-net-wpm" data-testid="headline-net-wpm">
-          {COPY.headlineNetWpm(result.summary.netWpm)}
-        </strong>
-        <strong className="headline-accuracy" data-testid="headline-accuracy">
-          {COPY.headlineAccuracy(result.summary.finalAccuracy)}
-        </strong>
-      </p>
-      <p className="finished-actions">
-        <button type="button" data-testid="restart" onClick={onRestart}>
-          {COPY.actionRestart}
-        </button>
-        {onNewPassage !== undefined && (
-          <button type="button" data-testid="new-passage" onClick={onNewPassage}>
-            {COPY.newPassage}
-          </button>
-        )}
-        {/*
-          ENG-08: the viewer renders below, inside the finished panel — in
-          normal flow under the surface, never covering it (rule 1). The
-          button shows whenever a log was retained for this test.
-        */}
-        {retainedLog !== null && (
-          <button type="button" data-testid="replay-watch" onClick={onWatchReplay}>
-            {COPY.replayWatch}
-          </button>
-        )}
-      </p>
-      {replayOpen && retainedLog !== null && (
-        <ReplayViewer
-          target={target}
-          events={retainedLog.events}
-          markers={retainedLog.markers}
-          errorMode={errorMode}
-          expectedFinalText={result.finalText}
-          onClose={onCloseReplay}
-        />
-      )}
-      <p className="note" data-testid="engine-stamp">
-        {COPY.engineStamp(result.summary.modelVersion)}
-      </p>
-    </section>
   );
 }
 
