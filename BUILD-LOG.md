@@ -8,7 +8,7 @@ Last completed task: **WAVE 0.12 closeout (PRs #41/#42/#43, three parallel workt
 - **CNT-07** content-corpus licence gate + register update (PR #43): `scripts/check-content-licenses.mjs` scans all corpus files, parses per-file register tables (code snippets, composition, word lists now self-register), 20 unit tests + real-corpus integration. 746 items across 18 files, 53 register rows, all pass. Real-corpus fixes: licence lines added to public-domain batches, `content-register-update-batch3.md` for QUOTE-ORIG-181..240 and QUOTE-PD-051..060, `README.md` excluded.
 All three PRs: CI green, non-vacuous tests, mutants killed, gates pass.
 
-Ledger: MVP 14/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 1/20 | overall 15/216 DONE-VERIFIED (17 IN PROGRESS, 183 NOT STARTED, 1 REJECTED).
+Ledger: MVP 14/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 1/20 | overall 15/216 DONE-VERIFIED (19 IN PROGRESS, 181 NOT STARTED, 1 REJECTED).
 Next task, in the loop order (LOOP-TO-DONE-PROMPT.md WAVE 0):
 1. **WAVE 0.13** — CNT-01/CNT-04 corpus pipeline + load corpus.
 2. **WAVE 0.12 remaining** — PRG-01 token engine (Tree-sitter WASM lazy load).
