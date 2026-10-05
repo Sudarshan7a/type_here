@@ -1,17 +1,30 @@
 # BUILD LOG
 
 ## Current Position
-Phase: Phase 1 (M1 engine) — loop WAVE 0.12 closeout.
-Last completed task: **WAVE 0.12 closeout (PRs #41/#42/#43, three parallel worktrees):**
-- **PRG-05** copy-claims lint rule + corpus gate (PR #41): ESLint rule `copy-claims/no-outcome-promises` wired into `pnpm lint`, 41 rule tests, every banned pattern exercised, 3 allowlist entries pinned, corpus test over string tables & `copy.ts`. Non-vacuous: violating `.tsx` fails lint with exactly one report per violation.
-- **PRG-04** display-only snippet sanitizer + renderer ban (PR #42): `sanitizeSnippet` in `packages/engine/src/sanitize.ts` (control-char strip, event-handler strip, `javascript:`/`data:` URL neutralisation, entity-aware escapes, idempotent). 7/7 mutants killed. Renderer-ban scan asserts no `dangerouslySetInnerHTML` in `apps/web/src`. Exported via engine index.
-- **CNT-07** content-corpus licence gate + register update (PR #43): `scripts/check-content-licenses.mjs` scans all corpus files, parses per-file register tables (code snippets, composition, word lists now self-register), 20 unit tests + real-corpus integration. 746 items across 18 files, 53 register rows, all pass. Real-corpus fixes: licence lines added to public-domain batches, `content-register-update-batch3.md` for QUOTE-ORIG-181..240 and QUOTE-PD-051..060, `README.md` excluded.
-All three PRs: CI green, non-vacuous tests, mutants killed, gates pass.
+Phase: Phase 1 (M1 engine) — loop WAVE 0.13 done.
 
-Ledger: MVP 14/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 1/20 | overall 15/216 DONE-VERIFIED (19 IN PROGRESS, 181 NOT STARTED, 1 REJECTED).
+Last completed task: **WAVE 0.13 closeout + the multi-agent coordination architecture.**
+
+**Coordination infrastructure (PR #44, merged first because everything else depends on it):** sharded write-ahead log at `docs/coordination/events/<agent-id>.jsonl`, leases with TTL as the anti-deadlock mechanism, heartbeat liveness, dependency-cycle detection, scope-conflict detection via sound glob-witness search, and a single-writer rule so agents emit ledger *proposals* instead of clobbering the ledger. 59 tests, 5/5 mutants. Verified live on the real repo: `SCOPE_CONFLICT` names the contested file, `DEPENDENCY_CYCLE` names the loop, and **a cycle self-dissolves when its leases expire** — the deadlock property, demonstrated rather than asserted.
+
+**PRG-01 token engine (PR #45):** 12 token classes from master spec §7.1, languages-as-data profiles (`javascript` covering TS/JSX, `python`, `generic`), pure lexer with a documented regex-vs-division rule, and a dependency-free lazy Tree-sitter seam. **No new dependency** — `check-bundle-size` hard-fails on any `.wasm` in `dist`, so a real grammar needs a fetch path outside the bundler graph; the bundle is byte-identical at 190.7/200 KB. 85 tests, 27/28 mutants. Stays IN PROGRESS: covers TOK-FIXTURE-003/004/005, defers 001/002/006 (attribution) and 007 (naming) to their owning rows.
+
+**CNT-01 corpus pipeline (PR #46):** the corpus is **loaded** — 740 items into a committed, reviewable `content/corpus.json`. Four fail-closed stages: licence per item (never defaulted), dedupe, blocking PII/secret filter with per-id allowlist, closed tag enum checked both directions. Licence parsers are imported from the CNT-07 gate, not forked, and two mutants exist purely to prove they are load-bearing. The anti-vacuity spine (every licensable id must be emitted or rejected-with-reason) immediately caught 16 proverb lines that would have been silently dropped. 61 tests, 10/10 mutants.
+
+**CNT-05 seeded generators (PR #47):** `packages/generators`, no new runtime dependency, hand-written sfc32+SplitMix32 because determinism is a product contract (INT-03 signs a seed; stored drills must reproduce years later). Syntheticness is *provable* per family: uuid pinned to version 8 (v4 asserted to fail), IPv4 to RFC 5737, IPv6 to `2001:db8::/32`, credential prefixes never emitted, and `user/name/email/password/secret/token/key` absent from the naming vocabulary. 101 tests, 8/8 mutants, 99.5% coverage. Independently re-verified by the integrator: 2400 items across 40 seeds × 5 families → 0 safety violations, 0 brackets lying about balance, deterministic.
+
+**Three real defects found and recorded rather than smoothed over:**
+1. **Two duplicate texts in the corpus** — `QUOTE-PD-005`/`QUOTE-PD-009` (the same Franklin line) and byte-identical `CODE-JS-001`/`CODE-JS-002` (`chunkArray`). A human must delete one of each.
+2. **One sensitive finding** — `PROSE-01-013` contains fictional wifi password `Bl4nk3t_47xz`; allowlisted, flagged for human replacement.
+3. **Declared word counts are wrong in 284 of 300 prose items**, systematically high by up to +9. Recorded as data, not corrected, because a hand-estimated word count is not a licence, tag or safety property.
+
+Also fixed: `check:ledger` had been failing since the WAVE 0.12 closeout and was blocking every open PR (stale counts table, two missing evidence labels, and my own wrong hand-count in prose). The gate caught that too.
+
+Ledger: MVP 16/97 | V1 0/74 | V2 0/12 | LATER 0/13 | UNTAGGED 1/20 | overall 17/216 DONE-VERIFIED (18 IN PROGRESS, 180 NOT STARTED, 1 REJECTED).
+
 Next task, in the loop order (LOOP-TO-DONE-PROMPT.md WAVE 0):
-1. **WAVE 0.13** — CNT-01/CNT-04 corpus pipeline + load corpus.
-2. **WAVE 0.12 remaining** — PRG-01 token engine (Tree-sitter WASM lazy load).
+1. **WAVE 0.14** — CNT-04 code snippet library (34 original JS + 58 specs; P01/P02/P03 stay DO NOT SHIP), CNT-02 typability → difficulty band, CNT-03 weakness-targeted selection.
+2. **WAVE 0.15** — PRG-02 language packs (unblocks the deferred colour literals), PRG-03 layout-aware symbol maps, PRG-15 IDE-realism.
 
 ---
 # BUILD LOG
