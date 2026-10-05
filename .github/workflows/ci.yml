@@ -78,6 +78,11 @@ jobs:
           pnpm check:licenses
           node --test scripts/check-licenses.test.mjs
 
+      - name: "Typability bands gate (CNT-02: computed difficulty bands, drift + Stage-A no-multiplication)"
+        run: |
+          pnpm check:typability
+          node --test scripts/check-typability.test.mjs
+
       - name: "Content-licence gate (CNT-07: no GPL/AGPL corpus content, every item licensed)"
         run: |
           pnpm check:content-licenses

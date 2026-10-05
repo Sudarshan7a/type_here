@@ -24,7 +24,8 @@
     "check:ledger": "node scripts/check-ledger.mjs",
     "check:policies": "node scripts/check-policies.mjs",
     "check:coordination": "node scripts/check-coordination.mjs",
-    "e2e": "pnpm --dir e2e run e2e"
+    "e2e": "pnpm --dir e2e run e2e",
+    "check:typability": "node scripts/check-typability.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
