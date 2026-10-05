@@ -1,0 +1,22 @@
+{
+  "name": "@realtype/generators",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "license": "MIT",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@realtype/engine": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@vitest/coverage-v8": "5.0.2",
+    "typescript": "6.0.3",
+    "vitest": "5.0.2"
+  }
+}
