@@ -40,9 +40,9 @@ ADR-005 and only a `RESPONSE` or `STEER` file can enable it. `—` means no flag
 
 | Status | Rows |
 |---|---|
-| DONE-VERIFIED | 12 |
-| IN PROGRESS | 20 |
-| NOT STARTED | 183 |
+| DONE-VERIFIED | 15 |
+| IN PROGRESS | 19 |
+| NOT STARTED | 181 |
 | LAUNCH-GATED | 0 |
 | BLOCKED-EXTERNAL | 0 |
 | DEFERRED-BY-HUMAN | 0 |
@@ -132,7 +132,7 @@ measuring input-to-paint in this surface (NFR-01), and the no-network-during-a-t
 | PRG-02 | Language packs (initial set) | MVP | CNT-04 | NOT STARTED | — | TOK-FIXTURE-004 | — | ADR-007: build the **listed** set — JS/TS/JSX, Python, Java, SQL, HTML/CSS (6), not "3–5" |
 | PRG-03 | Layout-aware symbol maps, Shift/AltGr, OS profiles | MVP | LOC-01 | NOT STARTED | — | T0-GEN-008, T0-GEN-009 | — | AltGr chars currently return `unknown` (human action) |
 | PRG-04 | Safety: display-only, sanitized, never execute | MVP | PRG-01 | DONE-VERIFIED | — | — | LAB PROXY | Sanitizer `sanitizeSnippet` in `packages/engine/src/sanitize.ts` + renderer-ban scan (`dangerouslySetInnerHTML` grep). 7/7 mutants killed. Export via engine index. PR #42 |
-| PRG-05 | Positioning: no ability/hiring claims in copy | MVP | — | DONE-VERIFIED | — | — | — | ESLint rule `copy-claims/no-outcome-promises` + corpus test over string tables & copy.ts. 41 rule tests, every banned pattern exercised, 3 allowlist entries pinned. Non-vacuous: violating .tsx fails `pnpm lint`. PR #41 |
+| PRG-05 | Positioning: no ability/hiring claims in copy | MVP | — | DONE-VERIFIED | — | — | LAB PROXY | ESLint rule `copy-claims/no-outcome-promises` + corpus test over string tables & copy.ts. 41 rule tests, every banned pattern exercised, 3 allowlist entries pinned. Non-vacuous: violating .tsx fails `pnpm lint`. PR #41 |
 | PRG-10 | Symbol Gym: categories, chords, symbol of the day | MVP | PRG-01, PRG-03 | NOT STARTED | — | — | — | |
 | PRG-11 | Bracket Balance: nesting ladder, open→close latency | MVP | PRG-01 | NOT STARTED | — | TOK-FIXTURE-002, LVL-FIXTURE-006 | — | Owns ENG-09's two deferred halves: the first app-side `auto:true` producer (auto-pair overtype per M5-04.5) and the `partial` behavior + schema-enum migration (master-spec says off/on/partial; ENG-09 shipped boolean off/on with design-doc 06 agreeing). |
 | PRG-12 | Strings & Escapes | MVP | PRG-01 | NOT STARTED | — | TOK-FIXTURE-003 | — | |
@@ -177,7 +177,7 @@ measuring input-to-paint in this surface (NFR-01), and the no-network-during-a-t
 | CNT-04 | Code snippet library, permissive licences only | MVP | CNT-01 | IN PROGRESS | — | CODE-JS-P01/P02/P03 (DO NOT SHIP) | LAB PROXY | 34 original JS snippets + 58 specs written. **P01/P02/P03 blocked** |
 | CNT-05 | Seeded generators: numbers, IDs, naming, brackets, strings | MVP | CNT-01 | NOT STARTED | — | T0-GEN-001..010 | — | deterministic per seed; **no real data** |
 | CNT-06 | Attribution page + takedown process | MVP | CNT-01 | NOT STARTED | — | — | — | |
-| CNT-07 | Do NOT import Monkeytype (GPL-3.0) word lists/quotes | MVP policy | — | DONE-VERIFIED | — | — | — | Content-corpus licence gate `scripts/check-content-licenses.mjs` scans all corpus files, parses per-file register tables, 20 unit tests + real-corpus integration. 746 items, 53 register rows, all pass. PR #43 |
+| CNT-07 | Do NOT import Monkeytype (GPL-3.0) word lists/quotes | MVP policy | — | DONE-VERIFIED | — | — | LAB PROXY | Content-corpus licence gate `scripts/check-content-licenses.mjs` scans all corpus files, parses per-file register tables, 20 unit tests + real-corpus integration. 746 items, 53 register rows, all pass. PR #43 |
 | CNT-08 | Real-world business text (original or synthetic) | V1 | CNT-01 | NOT STARTED | — | — | — | PII/secret scan required |
 | CNT-09 | User-submitted content + moderation queue | V1 | CNT-01, ADM-02 | NOT STARTED | — | — | — | private custom text stays local |
 | CNT-10 | Freshness: track seen items, daily passage | V1 | CNT-01 | NOT STARTED | — | — | — | |
