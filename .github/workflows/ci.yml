@@ -82,3 +82,11 @@ jobs:
         run: |
           pnpm check:content-licenses
           node --test scripts/check-content-licenses.test.mjs
+
+      - name: "Corpus pipeline gate (CNT-01: licence per item, dedupe, PII/secret filter, tags)"
+        # Deliberately does NOT run build:corpus. The gate rebuilds from docs/ and
+        # fails on drift, so regenerating here would hide exactly the staleness
+        # this step exists to catch.
+        run: |
+          pnpm check:corpus
+          node --test scripts/corpus-pipeline.test.mjs scripts/check-corpus.test.mjs

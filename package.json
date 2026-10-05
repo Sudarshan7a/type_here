@@ -18,6 +18,8 @@
     "audit:prod": "pnpm audit --prod",
     "check:licenses": "node scripts/check-licenses.mjs",
     "check:content-licenses": "node scripts/check-content-licenses.mjs",
+    "build:corpus": "node scripts/build-corpus.mjs",
+    "check:corpus": "node scripts/check-corpus.mjs",
     "check:bundle": "node scripts/check-bundle-size.mjs",
     "check:ledger": "node scripts/check-ledger.mjs",
     "check:policies": "node scripts/check-policies.mjs",
