@@ -55,6 +55,11 @@ jobs:
           pnpm check:policies
           node --test scripts/check-policies.test.mjs
 
+      - name: "Coordination gate (scope conflicts, dependency cycles, log integrity)"
+        run: |
+          pnpm check:coordination
+          node --test scripts/check-coordination.test.mjs
+
       - name: Dev-stack start-up gate (F1, F2, F3, F9)
         run: |
           pnpm check:devstack
