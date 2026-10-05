@@ -254,6 +254,11 @@ const GATE_MUTANTS = [
     find: "fail(`DIFFICULTY-BAND-WITHOUT-SOURCE :: ${id} :: band must come from the register`);",
     replace: "void 0;",
     fixture: (a) => {
+      // Both fields, because the source check only runs in the non-null-band
+      // branch. CNT-02 correctly leaves every code record's band null (its
+      // model is not valid for code), so setting only `source` here would
+      // never reach the rule and the mutant would prove nothing.
+      a.records[2].difficulty.band = "typical";
       a.records[2].difficulty.source = "heuristic";
     },
     realRejects: "DIFFICULTY-BAND-WITHOUT-SOURCE",
