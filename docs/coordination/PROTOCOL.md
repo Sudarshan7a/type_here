@@ -55,7 +55,7 @@ a line instead, the gate will reject your own work.
 Ledger rows are **proposals**, not edits:
 
 ```bash
-node docs/coordination/log.mjs propose \
+node docs/coordination/log.mjs ledger_proposal \
   --task ENG-07 \
   --row ENG-07 --from "NOT STARTED" --to "IN PROGRESS" \
   --evidence "packages/schemas tests green, 92% lines" \
