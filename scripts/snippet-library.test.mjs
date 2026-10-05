@@ -481,6 +481,10 @@ test("findDuplicateGroups reports nothing for genuinely different snippets", () 
 test("a band with no register source is rejected", () => {
   const artifact = fresh();
   const record = recordOf(artifact, "CODE-JS-003");
+  // The source rule only applies once a band exists, and CNT-02 correctly
+  // leaves every code record's band null. Give it a valid band first, then
+  // the bad source, so the rule under test is actually reached.
+  record.difficulty.band = "typical";
   record.difficulty.source = "heuristic";
   assert.ok(
     codes(findSnippetLibraryOffenders(artifact)).includes("DIFFICULTY-BAND-WITHOUT-SOURCE"),
@@ -500,14 +504,18 @@ test("a null band with no reason is rejected (a band is null WITH a reason, neve
   assert.ok(codes(findSnippetLibraryOffenders(artifact)).includes("BAND-WITHOUT-REASON"));
 });
 
-test("the one unscored record is CODE-JS-001 and it carries the stated reason", () => {
+test("every unscored record carries the stated reason (CNT-02 bands no code, so this is all of them)", () => {
+  // This used to assert "exactly one unscored record", which was a fact about
+  // the corpus at the time rather than a property of the gate. CNT-02 then
+  // banded nothing - correctly, since its model is not valid for code - so the
+  // count moved to every record. The invariant worth pinning is the reason,
+  // not the count.
   const unscored = ARTIFACT.records.filter((r) => r.difficulty.band === null);
-  assert.deepEqual(
-    unscored.map((r) => r.id),
-    ["CODE-JS-001"],
-  );
-  assert.equal(unscored[0].difficulty.reason, NO_BAND_REASON);
-  assert.ok(NO_BAND_REASON.includes("6.5"));
+  assert.ok(unscored.length > 0, "expected at least one unscored code record");
+  for (const record of unscored) {
+    assert.equal(record.difficulty.reason, NO_BAND_REASON, `${record.id} lost its reason`);
+    assert.ok(record.publishBlockers.includes("no-difficulty-band"));
+  }
 });
 
 test("the build never invents a band: a corpus item with no declared difficulty stays null", () => {
