@@ -327,4 +327,215 @@ export const COPY = {
 
   /** results.replay.unavailable — shown when no in-memory log was retained. */
   replayUnavailable: "No replay is kept for this test.",
+
+  /**
+   * onboarding.* — OPS-01, the first-run panel.
+   *
+   * Every string here is bound to a row in section 5 of
+   * docs/content-ui-copy-string-tables.md, and `tests/onboarding-copy.test.ts`
+   * re-reads that document and fails on any drift.
+   *
+   * TWO RULES SHAPE EVERY WORD IN THIS BLOCK.
+   *
+   * 1. NO PROMISES (AGENTS.md rule 9, PRG-05). The goal options state what the
+   *    visitor said they want, never what they will get: no magnitude, no
+   *    deadline, no delivery verb. `tools/eslint-plugin-copy-claims.mjs` checks
+   *    every string below on every `pnpm lint`, and `tests/onboarding-claims.test.ts`
+   *    proves the check by injecting an outcome-phrased sentence and showing it
+   *    fails.
+   * 2. NO GATE, NO SHAME. Nothing here is required, nothing is asked about
+   *    streaks or daily quotas (that question belongs to RET-M-08, M5, and would
+   *    have nothing honest to point at), and the provisional line is stated every
+   *    time the plan is shown — collapsed row included — so it can never be read
+   *    as a measurement.
+   */
+  onboarding: {
+    /** onboarding.panel.title */
+    title: "A few things, if you want them",
+
+    /**
+     * onboarding.panel.intro. The sentence that does the product work: it says
+     * the field is usable now, which is what makes "skippable" true rather than
+     * a promise.
+     */
+    intro: "None of this is required. You can start typing now, and change any of it later.",
+
+    /** onboarding.panel.submit — names the output (a plan), never a result. */
+    submit: "Make my starting plan",
+
+    /**
+     * action.skip — the global "optional step" label, bound here so the panel does
+     * not invent its own wording for the control that makes it skippable. It is
+     * deliberately an equal, full-size button with its own label: not an "X", not
+     * a small link, and not placed after a "next" step so that skipping reads as
+     * the harder route.
+     */
+    skip: "Skip for now",
+
+    /** onboarding.goal.prompt */
+    goalPrompt: "What would you like to work toward?",
+
+    /**
+     * onboarding.goal.{everyday,mistakes,symbols,writing,unsure}.
+     *
+     * Deliberately NOT the older `onboarding.goal.preset*` wording from the
+     * string table. Those rows are the WAVE-4 drafts; these are the strings that
+     * pass PRG-05 with no table-key exemption at all, so the lint rule has to
+     * accept them on their own merits rather than on a key-scoped allowlist
+     * entry. `unsure` is a first-class answer, not a skip button: the plan is
+     * emitted either way.
+     */
+    goalOptions: {
+      everyday: "Everyday typing, more smoothly",
+      mistakes: "Fewer mistakes",
+      symbols: "Symbols and numbers",
+      writing: "Longer writing sessions",
+      unsure: "Not sure yet",
+    } as const,
+
+    /** onboarding.level.prompt — a self-report question, never a result. */
+    levelPrompt: "Where does touch typing stand for you today?",
+
+    /**
+     * onboarding.level.{new,partway,returning,comfortable,unsure}.
+     *
+     * `returning` exists because the retention playbook §9.5 names adult
+     * re-learners as their own segment: someone who typed for years and stopped
+     * must not be pushed to call themselves a beginner, and `unsure` exists
+     * because declining to answer has to be an answer the plan can be built from.
+     */
+    levelOptions: {
+      new: "I'm new to it",
+      partway: "I'm partway there",
+      returning: "I'm coming back to it",
+      comfortable: "I type without looking",
+      unsure: "I'd rather not say",
+    } as const,
+
+    /** onboarding.languages.prompt */
+    languagesPrompt: "Which languages do you type?",
+
+    /**
+     * onboarding.languages.note. Factual: what the answer does (records an
+     * interest) and what it does not (change any passage today).
+     */
+    languagesNote:
+      "Passages are English for now, so nothing on screen changes. This is recorded for the programmer track.",
+
+    /** onboarding.layout.label */
+    layoutLabel: "Keyboard layout",
+
+    /**
+     * onboarding.layout.guess / onboarding.layout.confirmed.
+     *
+     * The panel does not ask for the layout — LOC-01 already decided it and the
+     * override is always visible in Settings beside the typing field. It STATES
+     * the decision, names the guess as a guess when it is one, and points at the
+     * control that changes it. Two sentences for two states, because "guessed"
+     * and "you chose this" are different facts and flattening them would make the
+     * panel quietly overstate what the app knows.
+     */
+    layoutGuess: (name: string): string =>
+      `We've set the keyboard to ${name}, guessed from your browser language. Change it in Settings whenever you like.`,
+    layoutConfirmed: (name: string): string =>
+      `Keyboard set to ${name}. You can change it in Settings.`,
+
+    /** onboarding.plan.title */
+    planTitle: "Your starting plan",
+
+    /**
+     * onboarding.plan.provisional. The honesty line, shown in the panel AND
+     * beside the collapsed row: a one-line summary that dropped this sentence
+     * would read as a measurement, which it is not.
+     */
+    planProvisional:
+      "This is a starting point, not a measurement. Your first test is what measures.",
+
+    /** onboarding.plan.row.{focus,content,level,layout,languages} */
+    planRows: {
+      focus: "Focus",
+      content: "What you'll type",
+      level: "Starting level",
+      layout: "Keyboard",
+      languages: "Languages",
+    } as const,
+
+    /**
+     * onboarding.plan.focus.* — the one line that varies by goal.
+     *
+     * `symbols` is the load-bearing one: the goal is recorded, and the sentence
+     * says in words that no symbol or code passage is selectable yet. A goal the
+     * app cannot act on has to be visible in the output, not quietly dropped.
+     */
+    planFocus: {
+      everyday: "Prose, read at your own pace",
+      mistakes: "Prose, with each mistake marked as it happens",
+      symbols: "Symbols and numbers, once code passages exist. Not available yet.",
+      writing: "Longer prose passages",
+      unsure: "A short prose test, then whatever your test points at",
+    } as const,
+
+    /**
+     * onboarding.plan.value.prose — {band} is one of CNT-02's three labels, and
+     * the labels are the whole contract: master-spec §6.2 Stage A publishes a
+     * band and no score, so there is nothing else this row could honestly say.
+     */
+    planProseValue: (band: string): string => `English prose at ${band} difficulty`,
+
+    /**
+     * onboarding.plan.value.bandNote. Said on the panel rather than left for the
+     * reader to discover: CNT-02 deliberately scores prose and quotes only, and
+     * a plan that mentioned a band without this would read as if it covered code.
+     */
+    planBandNote: "Difficulty bands cover prose and quotes. Code snippets carry no band yet.",
+
+    /** onboarding.plan.band.{easy,typical,hard} — CNT-02's closed enum, in words. */
+    planBandNames: {
+      easy: "Easy",
+      typical: "Typical",
+      hard: "Hard",
+    } as const,
+
+    /** onboarding.plan.value.{levelSelfReported,languagesSelfReported} */
+    planSelfReported: (answer: string): string => `You said: ${answer}`,
+
+    /** onboarding.plan.value.levelNone */
+    planLevelNone: "Not said, and not needed",
+
+    /** onboarding.plan.value.languagesNone */
+    planLanguagesNone: "None chosen",
+
+    /** onboarding.plan.value.layout — {source} names where the value came from. */
+    planLayoutValue: (name: string, source: string): string => `${name} — ${source}`,
+
+    /**
+     * The two layout sources, as words. These are the same two states LOC-01
+     * already distinguishes (`readStoredLayout() !== null`), so the panel cannot
+     * describe a layout the app has not actually chosen.
+     */
+    planLayoutSource: {
+      guessed: "guessed from your browser language",
+      confirmed: "set by you",
+    } as const,
+
+    /**
+     * onboarding.plan.languagesNote. States what exists (grammar maps in the
+     * engine, for JavaScript/TypeScript and Python) and what does not (passages
+     * in any of them), because "recorded" is otherwise the kind of word that
+     * implies a queue the reader is now waiting on.
+     */
+    planLanguagesNote:
+      "Your languages are recorded. Passages in them arrive with the programmer track: JavaScript and Python have grammar maps already, the others do not.",
+
+    /**
+     * onboarding.plan.pending. The pending list in words. The requirement IDs
+     * behind it live in the typed plan (`plan.ts`), never in the copy — a user is
+     * not helped by "MOD-05".
+     */
+    planPending:
+      "Still to come: a measured baseline, the placement test, and the level track. Your first test starts filling these in.",
+
+    /** onboarding.plan.change */
+    planChange: "Change this",
+  } as const,
 } as const;
