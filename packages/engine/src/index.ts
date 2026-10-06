@@ -218,6 +218,37 @@ export {
   type SustainedFloorResult,
 } from "./plausibility.js";
 
+export {
+  CSS_PACK,
+  FALLBACK_PACK,
+  HTML_PACK,
+  JAVA_PACK,
+  JAVASCRIPT_PACK,
+  LANGUAGE_PACKS,
+  PACK_ALIASES,
+  PACK_EXTENSIONS,
+  PACK_IDS,
+  PYTHON_PACK,
+  SQL_PACK,
+  describeResolution,
+  extensionFor,
+  knownPackIds,
+  packFingerprint,
+  resolveLanguageProfile,
+  resolvePack,
+  tokenizePacked,
+  unconsumedExtensions,
+  validatePack,
+  type LanguagePack,
+  type MarkupScanProfile,
+  type PackExtension,
+  type PackExtensionField,
+  type PackId,
+  type PackResolution,
+  type PackResolutionReason,
+  type StringPrefixProfile,
+} from "./profiles/index.js";
+
 /**
  * ENG-OBS — the log → observations adapter LRN-02 named as its one blocking
  * integration gap: a captured `InputLog` becomes the `KeySample[]` /
