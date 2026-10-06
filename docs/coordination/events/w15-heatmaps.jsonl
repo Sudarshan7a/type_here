@@ -1,0 +1,1 @@
+{"agent":"w15-heatmaps","dependsOn":[],"hash":"1019b2a7a4cc1fd8e776c55da2197c81afc7fab6b1f3833d1344410cf04f9a74","prev":"0000000000000000000000000000000000000000000000000000000000000000","scopes":["apps/web/src/heatmaps/**","apps/web/tests/heatmaps*","e2e/heatmaps*"],"seq":1,"task":"ANA-02","ts":"2026-10-06T03:43:13.882Z","ttlMs":21600000,"type":"claim"}

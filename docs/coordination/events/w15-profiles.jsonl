@@ -1,0 +1,1 @@
+{"agent":"w15-profiles","dependsOn":[],"hash":"3d99b53907cb75b86ac5a6eacc52a2493608855443acec0e7e9282bb1c9244c6","prev":"0000000000000000000000000000000000000000000000000000000000000000","scopes":["packages/engine/src/profiles/*","packages/engine/tests/profiles*","docs/profiles*"],"seq":1,"task":"PRG-02","ts":"2026-10-06T03:43:13.797Z","ttlMs":21600000,"type":"claim"}
