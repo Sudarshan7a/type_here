@@ -28,6 +28,21 @@ export const PASSAGES: Passage[] = [
 ];
 
 /**
+ * A human-readable label for the passage picker. The id (`PROSE-01-004`) is
+ * what the log records and what the option value carries; the label is what a
+ * reader scans. First words up to 34 characters, cut at the last space, with
+ * an ellipsis — deterministic and pure, so the picker cannot disagree with
+ * itself between renders.
+ */
+export function passageLabel(passage: Passage): string {
+  const text = passage.text.trim();
+  if (text.length <= 34) return text;
+  const cut = text.slice(0, 34);
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${(lastSpace > 12 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
+}
+
+/**
  * textHash must be a 64-char lowercase hex string (the InputLog contract).
  * The recorder used an FNV-1a placeholder for the same offline reason: the
  * real sha-256 comes from the content pipeline, which does not exist yet.

@@ -8,6 +8,20 @@
  */
 
 export const COPY = {
+  /** brand.tagline — the one-line product statement beside the wordmark. */
+  brandTagline: "A typing trainer that shows its work.",
+
+  /**
+   * toolbar.group.{test,display,typing} — the three settings groups. Single
+   * plain nouns: they name what lives inside, never what it will do for the
+   * reader, so there is nothing here the claims ban could touch.
+   */
+  toolbarGroups: {
+    test: "Test",
+    display: "Display",
+    typing: "Typing",
+  } as const,
+
   /** home.hint.firstVisit — the unfocused prompt (STEER-2 criterion 4). */
   focusPrompt: "Click here to start typing.",
 

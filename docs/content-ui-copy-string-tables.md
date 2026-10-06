@@ -11,6 +11,7 @@
 | Key | Text | Notes |
 |---|---|---|
 | `app.name` | RealType | Working title — swap when D1 (name) is finalized |
+| `brand.tagline` | A typing trainer that shows its work. | Beside the wordmark in the header. States transparency, promises no outcome |
 | `nav.practice` | Practice | |
 | `nav.learn` | Learn | |
 | `nav.code` | Code | |
@@ -52,6 +53,9 @@
 | `home.hint.firstVisit` | Start typing whenever you're ready. | Shown once, first visit only, fades after first keystroke |
 | `home.hint.unfocused` | Click here to start typing. | The persistent unfocused prompt. Distinct from `home.hint.firstVisit`, which is a once-only hint: this one stays until the surface has focus |
 | `home.hint.restart` | Press Tab to restart | Small, unobtrusive hint near the mode bar |
+| `toolbar.group.test` | Test | Caption for the passage and caret controls |
+| `toolbar.group.display` | Display | Caption for the theme, interface font and focus controls |
+| `toolbar.group.typing` | Typing | Caption for the layout and auto-insertion controls |
 | `home.live.netWpm` | Net WPM | Label beside the live figure while typing |
 | `home.live.accuracy` | Keystroke accuracy | Label beside the live figure while typing. Names the measure: this is keystroke accuracy (correct keystrokes ÷ printable keystrokes), not the final accuracy the results headline shows (correct characters in the produced text ÷ its length) |
 | `home.state.paused` | Paused — click here to continue when you're ready. | Practice mode pauses on focus loss; no timer is shown running |

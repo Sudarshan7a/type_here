@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { COPY } from "../src/copy";
-import { PASSAGES, placeholderHash } from "../src/passages";
+import { PASSAGES, passageLabel, placeholderHash } from "../src/passages";
 
 /**
  * The passage data and the copy bindings are pure enough to assert in node. The
@@ -24,6 +24,20 @@ describe("passage data", () => {
     expect(hash).toMatch(/^[a-f0-9]{64}$/);
     expect(placeholderHash("hello")).toBe(placeholderHash("hello"));
     expect(placeholderHash("hello")).not.toBe(placeholderHash("hellp"));
+  });
+
+  it("labels passages with their own opening words, deterministically", () => {
+    // The picker shows words, not ids: the id stays on the option value (and
+    // in the log), so renaming a label can never misattribute a run.
+    for (const p of PASSAGES) {
+      const label = passageLabel(p);
+      expect(label.length).toBeGreaterThan(0);
+      expect(label.length).toBeLessThanOrEqual(35);
+      expect(passageLabel(p)).toBe(label);
+      expect(p.text.startsWith(label.replace(/…$/, ""))).toBe(true);
+    }
+    // Short text is shown whole, with no ellipsis.
+    expect(passageLabel({ id: "X", text: "Short line." })).toBe("Short line.");
   });
 });
 

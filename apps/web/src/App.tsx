@@ -14,7 +14,7 @@ import { COPY } from "./copy";
 
 import { OnboardingPanel } from "./onboarding/OnboardingPanel";
 import { TypingSurface } from "./TypingSurface";
-import { PASSAGES, type Passage } from "./passages";
+import { PASSAGES, passageLabel, type Passage } from "./passages";
 
 /** localStorage key for the layout override (LOC-01, M2-06 §2). */
 export const LAYOUT_STORAGE_KEY = "realtype.layout";
@@ -337,136 +337,158 @@ export function App() {
         Skip to the typing field
       </a>
 
+      {/*
+        The product header: brand only — wordmark, mark and tagline, nothing
+        focusable. It deliberately holds no navigation (there are no routes
+        yet, and links to nowhere would be decoration pretending to be
+        structure) and no controls: the focus-mode keyboard path (skip link,
+        then toggle) is pinned by e2e/appearance.spec.ts down to the tab
+        count, so adding a focus stop before the toggle would break it, and
+        the AC6 live-DOM scan fails any element that paints over the field —
+        hence no sticky or fixed positioning anywhere here either.
+      */}
+      <header className="topbar">
+        <div className="brand">
+          <span className="brand-mark" aria-hidden="true" />
+          <h1 className="app-title" data-testid="app-title">
+            RealType
+          </h1>
+          <span className="brand-tag">{COPY.brandTagline}</span>
+        </div>
+      </header>
+
       <main>
-        <h1 className="app-title" data-testid="app-title">
-          RealType
-        </h1>
-
-        {/*
-          OPS-01: the first-run panel. Mounted on every visit and rendered only
-          when the visitor has neither answered nor dismissed it — an answered or
-          dismissed panel collapses to the plan summary or to nothing at all.
-
-          Placement is load-bearing: it is the first thing inside `main`, so the
-          dismiss control is one Tab after the skip link, and it is IN FLOW above
-          the settings row, so the typing field stays fully usable while the panel
-          is open and unanswered. It receives `layout` and `layoutConfirmed` and
-          nothing else: the panel states the layout LOC-01 already decided rather
-          than owning a second copy of it.
-        */}
         <OnboardingPanel layout={layout} layoutConfirmed={layoutConfirmed} />
 
         <div className="controls">
-          <label htmlFor="passage">Passage</label>
-          <select
-            id="passage"
-            value={passage.id}
-            data-testid="passage-select"
-            onChange={(event) => {
-              const next = PASSAGES.find((p) => p.id === event.target.value);
-              if (next !== undefined) setPassage(next);
-            }}
-          >
-            {PASSAGES.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.id}
-              </option>
-            ))}
-          </select>
+          <div className="toolbar-group" role="group" aria-labelledby="toolbar-test">
+            <span className="toolbar-caption" id="toolbar-test">
+              {COPY.toolbarGroups.test}
+            </span>
+            <label htmlFor="passage">Passage</label>
+            <select
+              id="passage"
+              value={passage.id}
+              data-testid="passage-select"
+              onChange={(event) => {
+                const next = PASSAGES.find((p) => p.id === event.target.value);
+                if (next !== undefined) setPassage(next);
+              }}
+            >
+              {PASSAGES.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {passageLabel(p)}
+                </option>
+              ))}
+            </select>
 
-          <label htmlFor="caret-style">{COPY.caretStyleLabel}</label>
-          <select
-            id="caret-style"
-            value={caretStyle}
-            data-testid="caret-style-select"
-            onChange={(event) => setCaretStyle(event.target.value as CaretStyle)}
-          >
-            {(Object.keys(COPY.caretStyleOptions) as CaretStyle[]).map((style) => (
-              <option key={style} value={style}>
-                {COPY.caretStyleOptions[style]}
-              </option>
-            ))}
-          </select>
+            <label htmlFor="caret-style">{COPY.caretStyleLabel}</label>
+            <select
+              id="caret-style"
+              value={caretStyle}
+              data-testid="caret-style-select"
+              onChange={(event) => setCaretStyle(event.target.value as CaretStyle)}
+            >
+              {(Object.keys(COPY.caretStyleOptions) as CaretStyle[]).map((style) => (
+                <option key={style} value={style}>
+                  {COPY.caretStyleOptions[style]}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <label htmlFor="layout">{COPY.layoutLabel}</label>
-          <select
-            id="layout"
-            value={layout}
-            data-testid="layout-select"
-            onChange={(event) => {
-              const next = parseStoredLayout(event.target.value);
-              if (next !== null) changeLayout(next);
-            }}
-          >
-            {SUPPORTED_LAYOUTS.map((name) => (
-              <option key={name} value={name}>
-                {COPY.layoutOptions[name]}
-              </option>
-            ))}
-          </select>
+          <div className="toolbar-group" role="group" aria-labelledby="toolbar-display">
+            <span className="toolbar-caption" id="toolbar-display">
+              {COPY.toolbarGroups.display}
+            </span>
+            <label htmlFor="theme">{COPY.themeLabel}</label>
+            <select
+              id="theme"
+              value={theme}
+              data-testid="theme-select"
+              onChange={(event) => {
+                const next = parseStoredTheme(event.target.value);
+                if (next !== null) changeTheme(next);
+              }}
+            >
+              {SUPPORTED_THEMES.map((name) => (
+                <option key={name} value={name}>
+                  {COPY.themeOptions[name]}
+                </option>
+              ))}
+            </select>
 
-          <label htmlFor="auto-indent">
-            <input
-              id="auto-indent"
-              type="checkbox"
-              data-testid="auto-indent-toggle"
-              checked={autoIndent}
-              onChange={(event) => changeAutoIndent(event.target.checked)}
-            />
-            {COPY.autoIndentLabel}
-          </label>
+            <label htmlFor="ui-font">{COPY.uiFontLabel}</label>
+            <select
+              id="ui-font"
+              value={uiFont}
+              data-testid="ui-font-select"
+              aria-describedby="ui-font-note"
+              onChange={(event) => {
+                const next = parseStoredUiFont(event.target.value);
+                if (next !== null) changeUiFont(next);
+              }}
+            >
+              {SUPPORTED_UI_FONTS.map((name) => (
+                <option key={name} value={name}>
+                  {COPY.uiFontOptions[name]}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <label htmlFor="auto-pair">
-            <input
-              id="auto-pair"
-              type="checkbox"
-              data-testid="auto-pair-toggle"
-              checked={autoPair}
-              onChange={(event) => changeAutoPair(event.target.checked)}
-            />
-            {COPY.autoPairLabel}
-          </label>
+          <div className="toolbar-group" role="group" aria-labelledby="toolbar-typing">
+            <span className="toolbar-caption" id="toolbar-typing">
+              {COPY.toolbarGroups.typing}
+            </span>
+            <label htmlFor="layout">{COPY.layoutLabel}</label>
+            <select
+              id="layout"
+              value={layout}
+              data-testid="layout-select"
+              onChange={(event) => {
+                const next = parseStoredLayout(event.target.value);
+                if (next !== null) changeLayout(next);
+              }}
+            >
+              {SUPPORTED_LAYOUTS.map((name) => (
+                <option key={name} value={name}>
+                  {COPY.layoutOptions[name]}
+                </option>
+              ))}
+            </select>
 
-          <label htmlFor="theme">{COPY.themeLabel}</label>
-          <select
-            id="theme"
-            value={theme}
-            data-testid="theme-select"
-            onChange={(event) => {
-              const next = parseStoredTheme(event.target.value);
-              if (next !== null) changeTheme(next);
-            }}
-          >
-            {SUPPORTED_THEMES.map((name) => (
-              <option key={name} value={name}>
-                {COPY.themeOptions[name]}
-              </option>
-            ))}
-          </select>
+            <label htmlFor="auto-indent">
+              <input
+                id="auto-indent"
+                type="checkbox"
+                data-testid="auto-indent-toggle"
+                checked={autoIndent}
+                onChange={(event) => changeAutoIndent(event.target.checked)}
+              />
+              {COPY.autoIndentLabel}
+            </label>
 
-          <label htmlFor="ui-font">{COPY.uiFontLabel}</label>
-          <select
-            id="ui-font"
-            value={uiFont}
-            data-testid="ui-font-select"
-            aria-describedby="ui-font-note"
-            onChange={(event) => {
-              const next = parseStoredUiFont(event.target.value);
-              if (next !== null) changeUiFont(next);
-            }}
-          >
-            {SUPPORTED_UI_FONTS.map((name) => (
-              <option key={name} value={name}>
-                {COPY.uiFontOptions[name]}
-              </option>
-            ))}
-          </select>
+            <label htmlFor="auto-pair">
+              <input
+                id="auto-pair"
+                type="checkbox"
+                data-testid="auto-pair-toggle"
+                checked={autoPair}
+                onChange={(event) => changeAutoPair(event.target.checked)}
+              />
+              {COPY.autoPairLabel}
+            </label>
+          </div>
         </div>
 
         {/*
           The focus toggle lives OUTSIDE `.controls` in its own row: focus mode
           hides `.controls`, and the way back out must never be among the things
-          hidden. A plain labelled checkbox, keyboard-reachable in both modes.
+          hidden. A plain labelled checkbox, keyboard-reachable in both modes —
+          and it stays exactly where it has always been in the tab order (after
+          the settings row), because e2e/appearance.spec.ts pins the focus-mode
+          keyboard path down to the tab count.
         */}
         <div className="focus-control">
           <label htmlFor="focus-mode">
@@ -545,10 +567,18 @@ export function App() {
         />
       </main>
 
-      <p className="banner" role="note">
-        Practice surface. Every score comes from the RealType engine in this repository — nothing is
-        sent anywhere and nothing is saved.
-      </p>
+      {/*
+        The page footer. It carries the practice-surface note and nothing else:
+        a footer with links would promise pages that do not exist yet, and a
+        footer that stays visible in focus mode would contradict the mode's own
+        contract (settings and notes hidden, field and feedback usable).
+      */}
+      <footer className="site-footer">
+        <p className="banner" role="note">
+          Practice surface. Every score comes from the RealType engine in this repository — nothing
+          is sent anywhere and nothing is saved.
+        </p>
+      </footer>
     </div>
   );
 }

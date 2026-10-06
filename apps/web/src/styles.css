@@ -99,14 +99,85 @@ body {
   transform: none;
 }
 
+/* ---- product header ------------------------------------------------------- */
+
+/*
+ * The product bar: brand on the left, the focus toggle on the right. It is a
+ * static in-flow header — never sticky or fixed, because the AC6 live-DOM
+ * scan fails any element that paints over the field, and it holds no links
+ * because there are no routes yet and links to nowhere would be decoration
+ * pretending to be structure. The only focusable thing here is the focus
+ * toggle, so the focus-mode keyboard path (skip link, then toggle) is
+ * unchanged.
+ */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3) var(--s-4);
+  flex-wrap: wrap;
+  padding: var(--s-2) 0 var(--s-4);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--s-6);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+/* The mark: a rounded square carrying a caret bar. CSS only, decorative
+   (aria-hidden in the markup), so it needs no asset and no alt text. */
+.brand-mark {
+  position: relative;
+  flex: none;
+  width: var(--s-6);
+  height: var(--s-6);
+  border-radius: var(--r-key);
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+}
+
+.brand-mark::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 15%;
+  bottom: 15%;
+  width: 2px;
+  transform: translateX(-50%);
+  border-radius: 2px;
+  background: var(--pace);
+}
+
 .app-title {
   font-family: var(--font-display);
   font-size: var(--t-h3);
   line-height: var(--lh-h3);
   letter-spacing: var(--track-display);
   font-weight: 600;
-  margin: 0 0 var(--s-6);
+  margin: 0;
   color: var(--text);
+  white-space: nowrap;
+}
+
+.brand-tag {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+  line-height: var(--lh-small);
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  /* The tagline is the first thing to give at narrow widths: the wordmark
+     stays, the sentence wraps away. */
+  .brand-tag {
+    display: none;
+  }
 }
 
 /* ---- the typing stage ----------------------------------------------------- */
@@ -830,6 +901,21 @@ button:active {
   transform: translateY(2px);
 }
 
+button:hover {
+  border-color: var(--text-muted);
+}
+
+button[data-variant="primary"]:hover {
+  border-color: var(--on-flow);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 /*
  * Reduced motion: buttons go instant. The press feedback stays (the 2px
  * travel above is a state change, not an animation), but nothing eases
@@ -846,11 +932,34 @@ select {
   font-family: var(--font-ui);
   font-size: var(--t-body);
   min-height: var(--h-control-md);
-  padding: 0 var(--s-3);
+  padding: 0 var(--s-8) 0 var(--s-3);
   border: 1px solid var(--line-strong);
   border-radius: var(--r-input);
-  background: var(--surface-2);
+  background-color: var(--surface-2);
   color: var(--text);
+  /* A native select keeps its keyboard and screen-reader behaviour; only the
+     indicator is drawn, from two gradients, so there is no image asset and no
+     data URI for the bundle gate to count. */
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - var(--s-5)) center,
+    calc(100% - var(--s-4)) center;
+  background-size: var(--s-1) var(--s-1);
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+select:hover {
+  border-color: var(--text-muted);
+  background-color: var(--surface-1);
+}
+
+select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .controls {
@@ -864,10 +973,47 @@ select {
    */
   flex-wrap: wrap;
   gap: var(--s-3);
-  align-items: center;
+  align-items: stretch;
   margin-bottom: var(--s-4);
   font-size: var(--t-small);
   color: var(--text-muted);
+}
+
+/*
+ * The settings toolbar: three labelled groups in cards rather than one flat
+ * row of controls. Each group is a `role="group"` named by its visible
+ * caption, so the structure reads the same to sight and to assistive
+ * technology. Cards use tone + hairline like every other panel (09 §5).
+ */
+.toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-3);
+  align-items: center;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-input);
+  background: var(--surface-1);
+  min-width: 0;
+}
+
+.toolbar-caption {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--t-caption);
+  line-height: var(--lh-caption);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--h-control-md);
+  white-space: nowrap;
 }
 
 /* The controls may wrap onto their own line, so they must not be the widest
@@ -880,10 +1026,25 @@ select {
 
 .banner {
   max-width: var(--w-type);
-  margin: var(--s-10) auto 0;
+  margin: 0 auto;
   color: var(--text-muted);
   font-size: var(--t-caption);
   line-height: var(--lh-caption);
+  text-align: center;
+}
+
+/* ---- page footer ---------------------------------------------------------- */
+
+/*
+ * The footer is the banner's frame: a hairline above it and room to breathe,
+ * so the page ends on a deliberate line rather than trailing off. It carries
+ * the practice-surface note and nothing else — links would promise pages that
+ * do not exist yet. Focus mode hides it with the rest of the chrome.
+ */
+.site-footer {
+  border-top: 1px solid var(--line);
+  margin-top: var(--s-10);
+  padding: var(--s-4) 0 var(--s-2);
 }
 
 /* ---- replay viewer (ENG-08) -------------------------------------------------- */
@@ -948,7 +1109,7 @@ select {
  *    not chrome, so they stay visible and the replay stays fully usable.
  */
 .app[data-focus-mode="on"] .controls,
-.app[data-focus-mode="on"] .banner,
+.app[data-focus-mode="on"] .site-footer,
 .app[data-focus-mode="on"] .passage-id,
 .app[data-focus-mode="on"] > main > .note {
   display: none;
@@ -972,6 +1133,16 @@ select {
   border: 0;
 }
 
+/*
+ * The rest of the brand goes with the title: the mark and the tagline are
+ * chrome, and in focus mode the header is the toggle and nothing else. The
+ * toggle itself is untouched — it is the way back out.
+ */
+.app[data-focus-mode="on"] .brand-mark,
+.app[data-focus-mode="on"] .brand-tag {
+  display: none;
+}
+
 .app[data-focus-mode="on"] .prompt-slot,
 .app[data-focus-mode="on"] .live-bar {
   opacity: var(--focus-dim);
@@ -979,7 +1150,7 @@ select {
 
 /*
  * The focus toggle lives OUTSIDE `.controls` in its own row, precisely so the
- * rule above never hides it: it is the way back out, and a way out that
+ * hiding rule above never hides it: it is the way back out, and a way out that
  * disappears when used is not a way out. A keyboard user reaches it with two
  * Tabs from the top (skip link, then this), pinned in e2e/appearance.spec.ts.
  */
@@ -1002,6 +1173,8 @@ select {
 .focus-control input[type="checkbox"] {
   min-width: var(--s-6);
   min-height: var(--s-6);
+  accent-color: var(--flow);
+  cursor: pointer;
 }
 
 /* WCAG 2.2 2.5.8: the shortcuts disclosure row is an interactive target too. */
@@ -1062,5 +1235,24 @@ details[data-testid="shortcuts"] summary {
   }
   :focus-visible {
     outline-color: Highlight;
+  }
+  /*
+   * The brand mark is decorative CSS (a square with a caret bar); under forced
+   * colours its author fills are dropped, so it falls back to a bordered box
+   * with a system-highlight bar. The custom select chevron is gradient-drawn
+   * and would vanish the same way, so selects go back to their native
+   * indicator here rather than rendering borderless.
+   */
+  .brand-mark {
+    border-color: CanvasText;
+    background: transparent;
+  }
+  .brand-mark::after {
+    background: Highlight;
+  }
+  select {
+    appearance: auto;
+    background-image: none;
+    padding-right: var(--s-3);
   }
 }
