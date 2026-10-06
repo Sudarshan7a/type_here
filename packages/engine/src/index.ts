@@ -249,6 +249,19 @@ export {
   type StringPrefixProfile,
 } from "./profiles/index.js";
 
+/**
+ * ENG-OBS — the log → observations adapter LRN-02 named as its one blocking
+ * integration gap: a captured `InputLog` becomes the `KeySample[]` /
+ * `BigramSample[]` the proficiency model scores, with §5.3.12's pairing rules
+ * (both presses accepted, adjacent in the target, within the IKI gap) applied
+ * once and in one place. Pure and deterministic, so the API recompute is
+ * byte-identical to the client. Every field is a number, a boolean or a
+ * `SingleKey`, so the typed text is structurally unrepresentable in the
+ * output (§5.3.12.5) and no `ENGINE_MODEL_VERSION` bump is owed — no formula
+ * changed.
+ */
+export { observationsFromLog, type ObservationStats, type Observations } from "./observations.js";
+
 import type { InputLog, TypingText } from "@realtype/schemas";
 
 import { computeFromEvents, type EngineResult } from "./metrics.js";
