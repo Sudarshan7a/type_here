@@ -86,8 +86,15 @@ import { TOKEN_CLASSES } from "./token-class.js";
  * Version of the classification rules above. Stored with every token map
  * (D-M5-2: "store the language and grammar version used") so a stored map can be
  * re-tokenized when the rules change.
+ *
+ * 1.1.0 — a closer longer than one character is now matched as a whole. Before
+ * this, `tryString` compared a single character against the entire closer, so
+ * Java text blocks (`"""`) and Python docstrings (`'''`) never terminated and
+ * swallowed the remainder of the snippet. Only languages declaring a
+ * multi-character closer are affected; every single-character closer
+ * classifies identically, so no existing stored map changes.
  */
-export const TOKENIZER_VERSION = "1.0.0";
+export const TOKENIZER_VERSION = "1.1.0";
 
 export type TokenMapDiagnosticCode =
   /** A string literal hit end of line or end of text without its delimiter. */
@@ -471,8 +478,12 @@ class Lexer {
           i += 2;
           continue;
         }
-        if (ch === spec.close) {
-          i += 1;
+        // The closer may be more than one character (Java text blocks and
+        // Python docstrings both close on `"""` / `'''`). Comparing a single
+        // character against the whole closer never matched, so those literals
+        // ran to end of text and swallowed the rest of the snippet.
+        if (this.src.startsWith(spec.close, i)) {
+          i += spec.close.length;
           closed = true;
           break;
         }

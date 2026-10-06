@@ -427,7 +427,7 @@
       },
       "declaredTokenMix": null,
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -542,7 +542,7 @@
       },
       "declaredTokenMix": "operators, comparison-heavy",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -643,7 +643,7 @@
       },
       "declaredTokenMix": "chords, arrow functions, ternary",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -746,7 +746,7 @@
       },
       "declaredTokenMix": "object literals, strings",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -864,7 +864,7 @@
       },
       "declaredTokenMix": "regex, string methods",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -969,7 +969,7 @@
       },
       "declaredTokenMix": "array methods, arrow functions",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -1075,7 +1075,7 @@
       },
       "declaredTokenMix": "async/await, error handling",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -1187,7 +1187,7 @@
       },
       "declaredTokenMix": "destructuring, defaults",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -1291,7 +1291,7 @@
       },
       "declaredTokenMix": "numbers, bitwise",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -1395,7 +1395,7 @@
       },
       "declaredTokenMix": "class syntax",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -1501,7 +1501,7 @@
       },
       "declaredTokenMix": "recursion, comparison",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -1605,7 +1605,7 @@
       },
       "declaredTokenMix": "recursion, array spread",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -1712,7 +1712,7 @@
       },
       "declaredTokenMix": "linked structures",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -1813,7 +1813,7 @@
       },
       "declaredTokenMix": "Map, class methods",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -1916,7 +1916,7 @@
       },
       "declaredTokenMix": "recursion, brackets",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -2020,7 +2020,7 @@
       },
       "declaredTokenMix": "graph traversal, Set",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -2124,7 +2124,7 @@
       },
       "declaredTokenMix": "two-pointer",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -2228,7 +2228,7 @@
       },
       "declaredTokenMix": "sliding window, numbers",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -2333,7 +2333,7 @@
       },
       "declaredTokenMix": "stack, brackets",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -2440,7 +2440,7 @@
       },
       "declaredTokenMix": "dynamic programming, arrays",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -2544,7 +2544,7 @@
       },
       "declaredTokenMix": "DOM, template literals",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -2652,7 +2652,7 @@
       },
       "declaredTokenMix": "async, fetch, optional chaining",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -2761,7 +2761,7 @@
       },
       "declaredTokenMix": "event listeners",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -2868,7 +2868,7 @@
       },
       "declaredTokenMix": "closures, state",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -2976,7 +2976,7 @@
       },
       "declaredTokenMix": "array filter/map chain",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -3080,7 +3080,7 @@
       },
       "declaredTokenMix": "promises, Promise.all",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -3189,7 +3189,7 @@
       },
       "declaredTokenMix": "localStorage, JSON",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -3293,7 +3293,7 @@
       },
       "declaredTokenMix": "throttle, timestamps",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -3399,7 +3399,7 @@
       },
       "declaredTokenMix": "JSX tags, hooks",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -3508,7 +3508,7 @@
       },
       "declaredTokenMix": "JSX, conditional rendering",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -3612,7 +3612,7 @@
       },
       "declaredTokenMix": "useEffect, array dependency",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -3720,7 +3720,7 @@
       },
       "declaredTokenMix": "JSX list rendering, keys",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -3834,7 +3834,7 @@
       },
       "declaredTokenMix": "custom hook, refs",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
@@ -3939,7 +3939,7 @@
       },
       "declaredTokenMix": "props destructuring, spread",
       "tokenMap": {
-        "tokenizerVersion": "1.0.0",
+        "tokenizerVersion": "1.1.0",
         "language": "javascript",
         "clean": true,
         "diagnostics": [],
