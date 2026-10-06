@@ -26,6 +26,15 @@
  */
 
 @import "./styles/tokens.css";
+/*
+ * OPS-01: the first-run panel's own stylesheet, imported here rather than from
+ * its component so the cascade order is stated in one place. `main.tsx` imports
+ * `./App` BEFORE `./styles.css`, so a component-level import would land BEFORE
+ * these rules and lose every equal-specificity tie — the panel's `.note` spacing
+ * against the global one, for instance. Second @import, immediately after the
+ * tokens: tokens first, then the app's own rules.
+ */
+@import "./onboarding/onboarding.css";
 
 * {
   box-sizing: border-box;

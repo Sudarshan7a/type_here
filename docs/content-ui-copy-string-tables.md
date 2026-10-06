@@ -147,6 +147,52 @@
 | Key | Text | Notes |
 |---|---|---|
 | `onboarding.welcome.title` | Let's see where you're starting from. | Precedes the first test; framed as discovery, not a judgment |
+| `onboarding.panel.title` | A few things, if you want them | OPS-01. Heading of the first-run panel. An offer, not a gate: the panel sits above the typing field, never over it, and the field is usable before anything here is answered |
+| `onboarding.panel.intro` | None of this is required. You can start typing now, and change any of it later. | Says the plain thing rather than implying a commitment |
+| `onboarding.panel.submit` | Make my starting plan | Primary action. Names the output (a plan), not a result |
+| `onboarding.goal.everyday` | Everyday typing, more smoothly | An aspiration the user reported, not a promise the product makes. No magnitude, no deadline |
+| `onboarding.goal.mistakes` | Fewer mistakes | As above |
+| `onboarding.goal.symbols` | Symbols and numbers | As above. Carries the honest limit: no symbol or code passage is selectable at MVP, so the plan says so in words rather than implying one |
+| `onboarding.goal.writing` | Longer writing sessions | As above |
+| `onboarding.goal.unsure` | Not sure yet | A first-class answer, not a skip: the plan still comes out |
+| `onboarding.level.prompt` | Where does touch typing stand for you today? | Self-report, never a placement result. Deliberately includes "coming back to it" so an adult re-learner is not asked to call themselves a beginner |
+| `onboarding.level.new` | I'm new to it | |
+| `onboarding.level.partway` | I'm partway there | |
+| `onboarding.level.returning` | I'm coming back to it | |
+| `onboarding.level.comfortable` | I type without looking | |
+| `onboarding.level.unsure` | I'd rather not say | Answering this is never required, and "I'd rather not say" is a complete answer |
+| `onboarding.languages.prompt` | Which languages do you type? | Optional multi-select |
+| `onboarding.languages.note` | Passages are English for now, so nothing on screen changes. This is recorded for the programmer track. | Factual: what the answer does and does not do today. No outcome promised |
+| `onboarding.layout.label` | Keyboard layout | The panel does not re-ask this: it states what LOC-01 already decided and points at the always-visible override |
+| `onboarding.layout.guess` | We've set the keyboard to {layout}, guessed from your browser language. Change it in Settings whenever you like. | {layout} is the display name. Names the guess as a guess and never contradicts it |
+| `onboarding.layout.confirmed` | Keyboard set to {layout}. You can change it in Settings. | The visitor has already chosen; no guessing language |
+| `onboarding.plan.title` | Your starting plan | Heading of the emitted plan. "Starting" and "plan", never a target or a forecast |
+| `onboarding.plan.provisional` | This is a starting point, not a measurement. Your first test is what measures. | The honesty line. Stated once, in the panel, and repeated in the collapsed row's accessible name |
+| `onboarding.plan.row.focus` | Focus | |
+| `onboarding.plan.row.content` | What you'll type | |
+| `onboarding.plan.row.level` | Starting level | |
+| `onboarding.plan.row.layout` | Keyboard | |
+| `onboarding.plan.row.languages` | Languages | |
+| `onboarding.plan.focus.everyday` | Prose, read at your own pace | "Your own pace" is a description of the surface, which has no timer, not a promise about results |
+| `onboarding.plan.focus.mistakes` | Prose, with each mistake marked as it happens | What the free error mode does |
+| `onboarding.plan.focus.symbols` | Symbols and numbers, once code passages exist. Not available yet. | The honest half of the answer: the goal is recorded and the capability is named as missing rather than implied |
+| `onboarding.plan.focus.writing` | Longer prose passages | |
+| `onboarding.plan.focus.unsure` | A short prose test, then whatever your test points at | |
+| `onboarding.plan.value.prose` | English prose at {band} difficulty | {band} is one of CNT-02's three labels. Code snippets carry no band and never will until the model covers them, so this row never promises one |
+| `onboarding.plan.value.bandNote` | Difficulty bands cover prose and quotes. Code snippets carry no band yet. | Said on the panel rather than left for the reader to discover |
+| `onboarding.plan.band.easy` | Easy | CNT-02's closed enum in words. The plan may only ever name one of these three |
+| `onboarding.plan.band.typical` | Typical | CNT-02's closed enum in words |
+| `onboarding.plan.band.hard` | Hard | CNT-02's closed enum in words |
+| `onboarding.plan.value.levelSelfReported` | You said: {answer} | Never presented as a measurement, and never as a placement result |
+| `onboarding.plan.value.languagesSelfReported` | You said: {answer} | |
+| `onboarding.plan.value.levelNone` | Not said, and not needed | A complete plan without a level answer. Reads as a choice the visitor made, never as a gap or a prompt to return |
+| `onboarding.plan.value.languagesNone` | None chosen | A complete plan, not a hole |
+| `onboarding.plan.value.layout` | {layout} — {source} | {source} is "guessed from your browser language" or "set by you" |
+| `onboarding.plan.value.layoutSource.guessed` | guessed from your browser language | The two layout sources LOC-01 already distinguishes, in words. A guess and a choice are different facts and flattening them would make the plan overstate what the app knows |
+| `onboarding.plan.value.layoutSource.confirmed` | set by you | |
+| `onboarding.plan.languagesNote` | Your languages are recorded. Passages in them arrive with the programmer track: JavaScript and Python have grammar maps already, the others do not. | States what exists today (grammar maps in the engine) and what does not (passages). CNT-02 scores prose and quotes only |
+| `onboarding.plan.pending` | Still to come: a measured baseline, the placement test, and the level track. Your first test starts filling these in. | The pending list, in words, on the panel. Named requirement IDs live in the typed plan, not in the copy |
+| `onboarding.plan.change` | Change this | Reopens the panel. Focus returns here when it closes again |
 | `onboarding.postDrill.delta.improved` | Nice — {item} is {percent}% faster than it was a minute ago. | |
 | `onboarding.postDrill.delta.steady` | Still steady on {item}. That's fine — some things take a few more rounds. | Used when change is within the noise band; never framed as failure |
 | `onboarding.goal.prompt` | What would you like to work toward? | |
@@ -166,6 +212,18 @@
 | `onboarding.gamificationChoice.full` | I like the extra motivation — streaks, goals, all of it | Maps to "Full" gamification level |
 | `onboarding.gamificationChoice.light` | Just the basics — track my progress, skip the pressure | Maps to "Light" (default) |
 | `onboarding.gamificationChoice.off` | Just show me my results, nothing else | Maps to "Off" |
+
+**What OPS-01 ships and what it deliberately leaves alone.** The `onboarding.panel.*`,
+`onboarding.goal.*` (everyday/mistakes/symbols/writing/unsure), `onboarding.level.*`,
+`onboarding.languages.*`, `onboarding.layout.*` and `onboarding.plan.*` rows above ship at MVP as
+the first-run panel; they supersede the older `onboarding.goal.preset*` family, which is left in
+the table as the WAVE-4 wording and is not rendered. The panel's dismiss control is the global
+`action.skip` from section 1 — an equal, full-size button with its own label, never an "X", never a
+small link, and never placed after a "next" step so that skipping reads as the harder route.
+`onboarding.plan.prompt` / `onboarding.plan.option*`
+(the if-then plan) and `onboarding.gamificationChoice.*` are **not** asked by OPS-01: they belong to
+RET-M-08 (M5), and a question about streaks has nothing honest to point at until the streak system
+exists. `onboarding.postDrill.*` belongs to the post-drill delta slice.
 
 ---
 

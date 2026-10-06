@@ -12,6 +12,7 @@ import { LayoutSchema, type CaretStyle, type Layout } from "@realtype/schemas";
 
 import { COPY } from "./copy";
 
+import { OnboardingPanel } from "./onboarding/OnboardingPanel";
 import { TypingSurface } from "./TypingSurface";
 import { PASSAGES, type Passage } from "./passages";
 
@@ -340,6 +341,20 @@ export function App() {
         <h1 className="app-title" data-testid="app-title">
           RealType
         </h1>
+
+        {/*
+          OPS-01: the first-run panel. Mounted on every visit and rendered only
+          when the visitor has neither answered nor dismissed it — an answered or
+          dismissed panel collapses to the plan summary or to nothing at all.
+
+          Placement is load-bearing: it is the first thing inside `main`, so the
+          dismiss control is one Tab after the skip link, and it is IN FLOW above
+          the settings row, so the typing field stays fully usable while the panel
+          is open and unanswered. It receives `layout` and `layoutConfirmed` and
+          nothing else: the panel states the layout LOC-01 already decided rather
+          than owning a second copy of it.
+        */}
+        <OnboardingPanel layout={layout} layoutConfirmed={layoutConfirmed} />
 
         <div className="controls">
           <label htmlFor="passage">Passage</label>

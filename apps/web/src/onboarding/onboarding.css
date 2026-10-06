@@ -1,0 +1,305 @@
+/**
+ * The onboarding panel's styles (OPS-01).
+ *
+ * Every value is a token from styles/tokens.css — no literal colour, no literal
+ * size, no literal duration. `tests/design-tokens.test.ts` scans this file on
+ * every run for raw colours, and `tests/onboarding-motion.test.ts` scans it for
+ * motion that breaks the catalog.
+ *
+ * THREE THINGS THIS STYLESHEET DELIBERATELY DOES NOT DO
+ *
+ * 1. It positions nothing. No `fixed`, no `sticky`, no negative offsets, no
+ *    z-index above the base layer, no `inset` shorthand. The panel is in flow,
+ *    above the settings row, and the AC6 live-DOM scan in e2e/appearance.spec.ts
+ *    walks every element on a page mid-test looking for exactly those four
+ *    things. In-flow is also the honest version of "nothing covers the typing
+ *    field" (AGENTS.md rule 1).
+ * 2. It declares no ARIA modal or top-layer attributes. (Their names are not
+ *    written out here either: the CUS-01 source gate forbids those constructs
+ *    anywhere under `src/` and reads block comments too, so naming one in a
+ *    comment would fail the build that exists to stop it being used. The gate is
+ *    `pnpm check:policies`; the live check is the AC6 scan in
+ *    e2e/appearance.spec.ts, and this file's own is in the onboarding spec.)
+ * 3. It does not animate anything while a test is running. The one entrance
+ *    below runs once, when the panel first appears, on the panel's own mount —
+ *    which happens on page load or on an explicit click, never inside the key
+ *    path (AGENTS.md rule 2).
+ *
+ * WHY THE PANEL SETS THE MONO FONT ON ITSELF
+ *
+ * Same reason as `.finished` in styles.css, and for the same reason: `ch` is the
+ * advance width of "0" in whatever font the element resolves it in, and the
+ * measure is specified in `ch` (09 §4, `--w-type: 68ch`). Resolving that against
+ * the UI face would make the panel a different width from the typing field and
+ * the results panel it sits between. So the panel carries the typing font and
+ * size to resolve the measure, and every child below resets to the UI face — which
+ * is what those children should have been in anyway.
+ */
+
+.onboarding {
+  /* 08 §5: a panel is tone plus a hairline, never a drop shadow. */
+  width: 100%;
+  max-width: var(--w-type);
+  margin: 0 0 var(--s-6);
+  padding: var(--s-6) var(--s-5) var(--s-5);
+  background: var(--surface-1);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-card);
+  font-family: var(--font-type);
+  font-size: var(--t-type);
+  text-align: left;
+}
+
+/*
+ * The panel itself is focusable only so focus can be MOVED into it (tabIndex={-1}
+ * in the component). A focusable region that is not a control must still show a
+ * ring when it is focused programmatically, or the move is invisible.
+ */
+.onboarding:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.onboarding-title {
+  margin: 0 0 var(--s-2);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--t-h3);
+  line-height: var(--lh-h3);
+  letter-spacing: var(--track-display);
+  font-weight: 600;
+}
+
+.onboarding-intro {
+  margin: 0 0 var(--s-4);
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+  line-height: var(--lh-small);
+}
+
+/* The dismiss control sits above the form, on its own line, with real space. */
+.onboarding-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  align-items: center;
+  margin: 0 0 var(--s-4);
+}
+
+.onboarding-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  margin: 0;
+}
+
+/*
+ * A fieldset's UA default is a 2px groove border and internal padding, which on a
+ * form that is already inside a bordered panel draws a box inside a box. Reset it,
+ * and `min-inline-size: 0` because a fieldset will not shrink below its content
+ * in a flex column without it — which is how a long legend becomes a horizontal
+ * scrollbar at 320px (WCAG 1.4.10).
+ */
+.onboarding-group {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.onboarding-group legend {
+  padding: 0;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+  line-height: var(--lh-small);
+  font-weight: 600;
+}
+
+/* Wraps at any width: two options on one line at desktop, one at 320px. */
+.onboarding-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+  margin-top: var(--s-2);
+}
+
+/*
+ * An option is the hit area, not the box: the label wraps the input and its text,
+ * so clicking the words selects the option — and WCAG 2.2 2.5.8 wants ≥24×24,
+ * which the label's min-height provides even where the native control does not.
+ */
+.onboarding-option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  /* --h-control-sm (32px), not the 24px floor: a label's box is computed from its
+     line box, and a 24px floor lands a fraction under it in Chromium's layout
+     units (measured at 23.99997), which fails a 24px target check for a reason
+     that has nothing to do with the target being too small. */
+  min-height: var(--h-control-sm);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+  line-height: var(--lh-small);
+  cursor: pointer;
+}
+
+/* Radios and checkboxes do not reach 24px on their own; size them up. */
+.onboarding-option input[type="radio"],
+.onboarding-option input[type="checkbox"] {
+  min-width: var(--s-6);
+  min-height: var(--s-6);
+  margin: 0;
+  accent-color: var(--flow);
+}
+
+/*
+ * THE LAYOUT SENTENCE. A definition-list pair rather than a control: it states
+ * what the app decided (LOC-01) and points at the override. `min-inline-size: 0`
+ * so the sentence wraps instead of pushing the panel wider at 320px.
+ */
+.onboarding-layout {
+  min-inline-size: 0;
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+  line-height: var(--lh-small);
+}
+
+.onboarding-layout-label {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/*
+ * THE EMITTED PLAN. The same two-column-then-stacked shape as `.results-details`,
+ * for the same reason: a five-row list is a table you can scan, and 320px has to
+ * reflow rather than scroll. `minmax(0, 1fr)` on the label column so a long value
+ * wraps instead of forcing the row wider.
+ */
+.onboarding-plan {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-2) 0;
+  margin: 0 0 var(--s-4);
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+  line-height: var(--lh-small);
+}
+
+@media (min-width: 480px) {
+  .onboarding-plan {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--s-4);
+  }
+
+  .onboarding-plan-row {
+    display: contents;
+  }
+}
+
+.onboarding-plan-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.onboarding-plan-row dt {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.onboarding-plan-row dd {
+  margin: 0;
+  color: var(--text);
+  text-align: right;
+  white-space: normal;
+}
+
+/*
+ * The notes under the plan keep the caption scale rather than the panel's typing
+ * scale, and they are spaced so the three honesty sentences read as a block
+ * under the table instead of as three loose lines.
+ */
+.onboarding-summary .note {
+  margin: 0 0 var(--s-2);
+  font-family: var(--font-ui);
+  font-size: var(--t-caption);
+  line-height: var(--lh-caption);
+}
+
+.onboarding-summary .onboarding-actions {
+  margin: var(--s-4) 0 0;
+}
+
+/*
+ * THE ENTRANCE (typing-motion-tokens: "Results reveal → fade + 8px rise"; here the
+ * rise alone). One animation, on the panel's own mount, 160ms of `--dur-base` on
+ * `--ease-out`. No stagger: the panel is one object, not a list, and a stagger
+ * would make the visitor wait for the panel they are trying to read.
+ *
+ * WHY THERE IS NO OPACITY IN IT, the same departure the results panel documents:
+ * fading a CONTAINER that holds text animates every descendant's effective alpha,
+ * so for the length of the animation the text is genuinely at alpha 0. The
+ * a11y-sweep and appearance specs read computed colour on the idle page and blend
+ * the ancestor opacity chain — and the onboarding panel is on that page. With a
+ * fade, a sweep that runs inside the 160ms window reads an unreadable colour for
+ * every pair it touches. An accessibility gate outranks an aesthetic cell, so the
+ * rise stays and the fade goes. Nothing is lost but 160ms of cross-fade: every
+ * word in the panel is in the DOM before the animation starts and is never
+ * animated itself.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .onboarding {
+    animation: onboarding-enter var(--dur-base) var(--ease-out) both;
+  }
+
+  @keyframes onboarding-enter {
+    from {
+      transform: translate3d(0, 8px, 0);
+    }
+
+    to {
+      transform: none;
+    }
+  }
+}
+
+/*
+ * REDUCED MOTION (WCAG 2.3.3 as the goal, 2.2.2 as the requirement). Nothing
+ * animates and nothing is delayed: the panel is simply there from the first frame.
+ * Declared explicitly rather than left to the absence of the rule above, because
+ * "there is no rule here" and "there is a rule saying nothing happens" are
+ * different things to the next person reading this file.
+ *
+ * The catalog's reduced column for a reveal reads "fade only" because its default
+ * column is "fade + rise". There is no fade here to keep, and manufacturing one
+ * ONLY for reduced motion would mean the reduced-motion experience animates more
+ * than the default one — the exact inversion of what the setting is for. The
+ * feedback that matters is untouched either way: every label, value and note is
+ * static text, present before and after.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .onboarding {
+    animation: none;
+    animation-delay: var(--dur-instant);
+  }
+}
+
+/*
+ * FOCUS MODE (CUS-02). The panel is chrome, so focus mode hides it like the title
+ * and the settings row. It is a form and not test feedback, and focus mode's
+ * contract is that the passage, the results and the replay stay fully usable —
+ * which they do, and which this panel has never been part of.
+ *
+ * `display` cannot transition, so there is no motion here to suppress: this is
+ * reduced-motion-safe by construction rather than by a media query that could go
+ * missing. A visitor cannot reach this state on a first run anyway — focus mode is
+ * off until it is armed, and arming it persists.
+ */
+.app[data-focus-mode="on"] .onboarding {
+  display: none;
+}
