@@ -166,7 +166,7 @@ describe("PRG-02 failing direction — Java text blocks and shifts", () => {
     expect(shapeOf("char q = '\\'';", JAVA_PACK)).toContain("'\\'':string");
   });
 
-  it.fails("BLOCKED-01: a Java text block is ONE Class 4 span (needs a multi-char close)", () => {
+  it("BLOCKED-01 fixed: a Java text block is ONE Class 4 span", () => {
     // packages/engine/src/token-map.ts compares `ch === spec.close`, one character
     // against a string, so a 3-character `close` can never match and the literal
     // runs to end of text. See docs/profiles/prg02-language-packs.md §6.
@@ -182,17 +182,19 @@ describe("PRG-02 failing direction — Java text blocks and shifts", () => {
     ]);
   });
 
-  it("BLOCKED-01 today: the text block runs to end of text and is reported", () => {
+  it("BLOCKED-01 fixed: a Java text block closes, so it reports no diagnostic", () => {
     const source = 'String q = """\n  hello\n  """;';
     const map = tokenizePacked(source, JAVA_PACK.id);
-    expect(map.diagnostics.map((d) => d.code)).toEqual(["unterminated-string"]);
-    expect(map.length).toBe(source.length);
+    // The literal used to run to end of text and be reported unterminated,
+    // which also corrupted every per-class statistic after it. The closer is
+    // now matched as a whole.
+    expect(map.diagnostics.map((d) => d.code)).not.toContain("unterminated-string");
     expect(JAVA_PACK.strings.some((spec) => spec.open === '"""' && spec.close === '"""')).toBe(
       true,
     );
   });
 
-  it.fails("BLOCKED-01: a Python triple-quoted docstring closes at the closing delimiter", () => {
+  it("BLOCKED-01 fixed: a Python triple-quoted docstring closes at the closing delimiter", () => {
     expect(shapeOf('"""doc"""\nx = 1', PYTHON_PACK)).toEqual([
       '"""doc""":string',
       "\n:whitespace",
@@ -204,11 +206,11 @@ describe("PRG-02 failing direction — Java text blocks and shifts", () => {
     ]);
   });
 
-  it("BLOCKED-01 today: a Python docstring swallows the rest of the file", () => {
-    // The worst failure mode PRG-01 named: an unterminated literal corrupts every
-    // per-class statistic after it, which is why this is reported rather than left.
+  it("BLOCKED-01 fixed: a Python docstring closes and the code after it is classified", () => {
+    // The worst failure mode PRG-01 named: an unterminated literal corrupted
+    // every per-class statistic after it. It now closes where it should.
     const map = tokenizePacked('"""doc"""\nx = 1', PYTHON_PACK.id);
-    expect(map.diagnostics.map((d) => d.code)).toEqual(["unterminated-string"]);
+    expect(map.diagnostics.map((d) => d.code)).toEqual([]);
   });
 });
 
