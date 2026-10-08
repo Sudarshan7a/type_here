@@ -43,7 +43,7 @@ import { expect, test } from "@playwright/test";
  * read was just early. AC1 documents the same constraint.
  */
 const PASSAGE =
-  "Dinner's ready whenever you are. I made extra rice in case your brother stops by later tonight.";
+  "Dinner's ready whenever you are. I made extra rice in case your brother stops by later tonight. There's also that soup from Sunday in the freezer if you're still hungry after. Just heat it on the stove and add a little pepper. I'll be in the garden until it gets dark, so come find me when you're done.";
 
 /** The owner's number, and the tolerance a real font is allowed around it. */
 const CARET_EM = 1.1;

@@ -13,7 +13,7 @@ import { expect, test } from "@playwright/test";
 
 /** The first passage, from apps/web/src/passages.ts (PROSE-01-004). */
 const PASSAGE =
-  "Dinner's ready whenever you are. I made extra rice in case your brother stops by later tonight.";
+  "Dinner's ready whenever you are. I made extra rice in case your brother stops by later tonight. There's also that soup from Sunday in the freezer if you're still hungry after. Just heat it on the stove and add a little pepper. I'll be in the garden until it gets dark, so come find me when you're done.";
 
 /** Type a string one character at a time, so each keydown is a real event. */
 async function typeText(page: import("@playwright/test").Page, text: string, delay = 4) {

@@ -17,7 +17,7 @@ test("ENG-10: apostrophes and capitals arrive verbatim", async ({ page }) => {
   await page.getByTestId("surface").click();
   // PROSE-01-004 carries a straight apostrophe (Dinner's) and capitals.
   await page.keyboard.type(
-    "Dinner's ready whenever you are. I made extra rice in case your brother stops by later tonight.",
+    "Dinner's ready whenever you are. I made extra rice in case your brother stops by later tonight. There's also that soup from Sunday in the freezer if you're still hungry after. Just heat it on the stove and add a little pepper. I'll be in the garden until it gets dark, so come find me when you're done.",
     { delay: 2 },
   );
   await expect(page.getByTestId("finished")).toBeVisible({ timeout: 15_000 });

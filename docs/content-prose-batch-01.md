@@ -6,17 +6,17 @@
 
 ---
 
-`PROSE-01-001` · Easy · 24 words
-Can you pick up milk on your way home? We're also out of bread and there's barely any coffee left in the jar.
+`PROSE-01-001` · Easy · 65 words
+Can you pick up milk on your way home? We're also out of bread and there's barely any coffee left in the jar. If they have the good sourdough, grab two loaves instead of one. I'd like to make grilled cheese for the kids tomorrow, and the last loaf went stale before we finished it. Whatever you do, don't forget the coffee filters this time.
 
-`PROSE-01-002` · Easy · 22 words
-The weather turned cold overnight, so I dug out my winter coat this morning and found a five-dollar bill in the pocket.
+`PROSE-01-002` · Easy · 66 words
+The weather turned cold overnight, so I dug out my winter coat this morning and found a five-dollar bill in the pocket. Looks like past me left a small gift for future me. I put it toward coffee on the way to work, which felt like the right use for found money. The gloves were in the other pocket, both of them, which honestly never happens.
 
 `PROSE-01-003` · Typical · 31 words
 My neighbor's dog got loose again around 7:30 this evening. We spent twenty minutes chasing it through three backyards before it finally came home on its own.
 
-`PROSE-01-004` · Easy · 19 words
-Dinner's ready whenever you are. I made extra rice in case your brother stops by later tonight.
+`PROSE-01-004` · Easy · 58 words
+Dinner's ready whenever you are. I made extra rice in case your brother stops by later tonight. There's also that soup from Sunday in the freezer if you're still hungry after. Just heat it on the stove and add a little pepper. I'll be in the garden until it gets dark, so come find me when you're done.
 
 `PROSE-01-005` · Typical · 34 words
 I finally fixed the leaky faucet in the upstairs bathroom, though it took two trips to the hardware store and about $18 in parts I probably didn't all need.
@@ -27,8 +27,8 @@ Let's meet at the coffee shop on 4th Street around 10 a.m. I'll grab a table nea
 `PROSE-01-007` · Typical · 27 words
 The recipe called for two cups of flour, but I only had one and a half, so I used oat flour for the rest and hoped for the best.
 
-`PROSE-01-008` · Easy · 18 words
-Happy birthday! I hope your day is full of good food, better company, and at least one nap.
+`PROSE-01-008` · Easy · 55 words
+Happy birthday! I hope your day is full of good food, better company, and at least one nap. We kept the cake simple this year, the one with the strawberries you like. Candles after dark, on the porch, where it's cool. Make a wish before you blow them out, and save me the biggest slice.
 
 `PROSE-01-009` · Typical · 29 words
 We drove almost 300 miles on Saturday to see my grandmother, stopped twice for gas, and still made it back before midnight, which felt like a small miracle.

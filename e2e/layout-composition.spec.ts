@@ -13,7 +13,7 @@ import { expect, test, type Page } from "@playwright/test";
  */
 
 const PASSAGE =
-  "Dinner's ready whenever you are. I made extra rice in case your brother stops by later tonight.";
+  "Dinner's ready whenever you are. I made extra rice in case your brother stops by later tonight. There's also that soup from Sunday in the freezer if you're still hungry after. Just heat it on the stove and add a little pepper. I'll be in the garden until it gets dark, so come find me when you're done.";
 
 async function typeText(page: Page, text: string, delay = 4) {
   await page.keyboard.type(text, { delay });

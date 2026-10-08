@@ -5,6 +5,7 @@ import { App } from "../src/App";
 import { TypingSurface } from "../src/TypingSurface";
 import { COPY } from "../src/copy";
 import { PASSAGES } from "../src/passages";
+import { getCorpusPassages } from "../src/corpus";
 
 /**
  * Server-rendered structure of the typing surface.
@@ -235,7 +236,9 @@ describe("App shell", () => {
   });
 
   it("offers every passage in the content set", () => {
-    for (const p of PASSAGES) {
+    // App defaults to "easy" difficulty
+    const easyPassages = getCorpusPassages("easy");
+    for (const p of easyPassages) {
       expect(html).toContain(`value="${p.id}"`);
     }
   });

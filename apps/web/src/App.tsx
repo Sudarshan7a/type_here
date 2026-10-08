@@ -14,7 +14,8 @@ import { COPY } from "./copy";
 
 import { OnboardingPanel } from "./onboarding/OnboardingPanel";
 import { TypingSurface } from "./TypingSurface";
-import { PASSAGES, passageLabel, type Passage } from "./passages";
+import { passageLabel, type Passage } from "./passages";
+import { getCorpusPassages, getAvailableDifficulties, type Difficulty } from "./corpus";
 
 /** localStorage key for the layout override (LOC-01, M2-06 §2). */
 export const LAYOUT_STORAGE_KEY = "realtype.layout";
@@ -189,7 +190,9 @@ export function parseStoredUiFont(raw: unknown): UiFont | null {
 export const FOCUS_MODE_STORAGE_KEY = "realtype.focusMode";
 
 export function App() {
-  const [passage, setPassage] = useState<Passage>(PASSAGES[0]!);
+  const [difficulty, setDifficulty] = useState<Difficulty>("easy");
+  const passages = getCorpusPassages(difficulty);
+  const [passage, setPassage] = useState<Passage>(passages[0]!);
   // Free mode is the only error mode exposed for now; the contract carries five
   // (CONTRACT_VERSION 1.3.0) and the settings UI is a later slice. A hard-coded
   // constant is honest about that; a mode bar with one working option is not.
@@ -320,11 +323,11 @@ export function App() {
 
   const newPassage = useCallback(() => {
     setPassage((current) => {
-      const index = PASSAGES.findIndex((p) => p.id === current.id);
-      const next = PASSAGES[(index + 1) % PASSAGES.length];
-      return next ?? PASSAGES[0]!;
+      const index = passages.findIndex((p) => p.id === current.id);
+      const next = passages[(index + 1) % passages.length];
+      return next ?? passages[0]!;
     });
-  }, []);
+  }, [passages]);
 
   return (
     <div className="app" data-focus-mode={focusMode ? "on" : "off"}>
@@ -365,17 +368,35 @@ export function App() {
             <span className="toolbar-caption" id="toolbar-test">
               {COPY.toolbarGroups.test}
             </span>
+            <label htmlFor="difficulty">Difficulty</label>
+            <select
+              id="difficulty"
+              value={difficulty}
+              data-testid="difficulty-select"
+              onChange={(event) => {
+                const next = event.target.value as Difficulty;
+                setDifficulty(next);
+                const first = getCorpusPassages(next)[0];
+                if (first) setPassage(first);
+              }}
+            >
+              {getAvailableDifficulties().map((d) => (
+                <option key={d} value={d}>
+                  {d.charAt(0).toUpperCase() + d.slice(1)}
+                </option>
+              ))}
+            </select>
             <label htmlFor="passage">Passage</label>
             <select
               id="passage"
               value={passage.id}
               data-testid="passage-select"
               onChange={(event) => {
-                const next = PASSAGES.find((p) => p.id === event.target.value);
+                const next = passages.find((p) => p.id === event.target.value);
                 if (next !== undefined) setPassage(next);
               }}
             >
-              {PASSAGES.map((p) => (
+              {passages.map((p) => (
                 <option key={p.id} value={p.id}>
                   {passageLabel(p)}
                 </option>

@@ -26,6 +26,9 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
+    // Set VITE_ALLOWED_HOSTS to a comma-separated list to allow extra hosts
+    // (e.g. a tunnel hostname). Unset keeps the default check unchanged.
+    allowedHosts: process.env.VITE_ALLOWED_HOSTS?.split(","),
   },
   preview: {
     port: 4173,

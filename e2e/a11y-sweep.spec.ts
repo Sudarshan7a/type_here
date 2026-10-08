@@ -25,11 +25,11 @@ import { expect, test, type Page } from "@playwright/test";
 
 /** PROSE-01-004, from apps/web/src/passages.ts. */
 const PASSAGE =
-  "Dinner's ready whenever you are. I made extra rice in case your brother stops by later tonight.";
+  "Dinner's ready whenever you are. I made extra rice in case your brother stops by later tonight. There's also that soup from Sunday in the freezer if you're still hungry after. Just heat it on the stove and add a little pepper. I'll be in the garden until it gets dark, so come find me when you're done.";
 
 /** Same text with one substitution at index 4, so the run finishes with a real error. */
 const TYPO_PASSAGE =
-  "DinnXr's ready whenever you are. I made extra rice in case your brother stops by later tonight.";
+  "DinnXr's ready whenever you are. I made extra rice in case your brother stops by later tonight. There's also that soup from Sunday in the freezer if you're still hungry after. Just heat it on the stove and add a little pepper. I'll be in the garden until it gets dark, so come find me when you're done.";
 
 type Theme = "daylight" | "night-ink";
 

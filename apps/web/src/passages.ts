@@ -11,19 +11,19 @@ export interface Passage {
 export const PASSAGES: Passage[] = [
   {
     id: "PROSE-01-004",
-    text: "Dinner's ready whenever you are. I made extra rice in case your brother stops by later tonight.",
+    text: "Dinner's ready whenever you are. I made extra rice in case your brother stops by later tonight. There's also that soup from Sunday in the freezer if you're still hungry after. Just heat it on the stove and add a little pepper. I'll be in the garden until it gets dark, so come find me when you're done.",
   },
   {
     id: "PROSE-01-001",
-    text: "Can you pick up milk on your way home? We're also out of bread and there's barely any coffee left in the jar.",
+    text: "Can you pick up milk on your way home? We're also out of bread and there's barely any coffee left in the jar. If they have the good sourdough, grab two loaves instead of one. I'd like to make grilled cheese for the kids tomorrow, and the last loaf went stale before we finished it. Whatever you do, don't forget the coffee filters this time.",
   },
   {
     id: "PROSE-01-008",
-    text: "Happy birthday! I hope your day is full of good food, better company, and at least one nap.",
+    text: "Happy birthday! I hope your day is full of good food, better company, and at least one nap. We kept the cake simple this year, the one with the strawberries you like. Candles after dark, on the porch, where it's cool. Make a wish before you blow them out, and save me the biggest slice.",
   },
   {
     id: "PROSE-01-002",
-    text: "The weather turned cold overnight, so I dug out my winter coat this morning and found a five-dollar bill in the pocket.",
+    text: "The weather turned cold overnight, so I dug out my winter coat this morning and found a five-dollar bill in the pocket. Looks like past me left a small gift for future me. I put it toward coffee on the way to work, which felt like the right use for found money. The gloves were in the other pocket, both of them, which honestly never happens.",
   },
 ];
 
