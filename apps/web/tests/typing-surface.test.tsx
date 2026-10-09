@@ -70,14 +70,17 @@ describe("TypingSurface markup", () => {
       expect(
         text,
         `word box ${i} must be non-space characters followed by at most one trailing ` +
-          `space, never an interior one: ${JSON.stringify(text)}`,
-      ).toMatch(/^\S*(?:\u00A0)?$/);
+          `separator, never an interior one: ${JSON.stringify(text)}`,
+        // A word box owns its trailing separator — a space, or the newline of a
+        // code line (MOD-03). Both make a line break possible only BETWEEN
+        // boxes, which is what keeps a word from being shredded at any width.
+      ).toMatch(/^\S*(?:\u00A0|\n)?$/);
       expect(
         isLast ? text : text.slice(0, -1),
-        `word box ${i} ${isLast ? "must not" : "must only"} end with a space`,
-      ).not.toMatch(/\s$/);
+        `word box ${i} ${isLast ? "must not" : "must only"} end with a separator`,
+      ).not.toMatch(/[\s\u00A0]$/);
       if (!isLast) {
-        expect(text, `word box ${i} must own the space that follows it`).toMatch(/\u00A0$/);
+        expect(text, `word box ${i} must own the separator that follows it`).toMatch(/[\u00A0\n]$/);
       }
     }
 

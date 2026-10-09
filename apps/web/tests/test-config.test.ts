@@ -18,8 +18,9 @@ import {
   type Difficulty,
 } from "../src/corpus";
 import { NUMBER_DRILLS, buildNumberDrill } from "../src/drills";
+import { getCorpusSnippets, getSnippetLanguages } from "../src/corpus";
+import { LANGUAGE_LABELS, logModeFor, MAX_CUSTOM_CHARS } from "../src/App";
 import { COPY } from "../src/copy";
-import { logModeFor, MAX_CUSTOM_CHARS } from "../src/App";
 
 describe("corpus selection (MOD-01)", () => {
   it("offers prose at every difficulty, ordered deterministically", () => {
@@ -292,5 +293,63 @@ describe("numbers and symbols drills (MOD-04)", () => {
     }
     expect(COPY.testSetup.drillOptions.digits).toBe("Digit rows");
     expect(COPY.testSetup.drillOptions.symbols).toBe("Symbol rows");
+  });
+});
+
+describe("code mode (MOD-03)", () => {
+  it("offers only snippets the licence register clears", () => {
+    // Same gate as prose: `shippable` is the licence gate's own flag, and the
+    // app invents no review of its own.
+    const snippets = getCorpusSnippets();
+    expect(snippets.length).toBeGreaterThan(5);
+    for (const s of snippets) {
+      expect(s.id).toMatch(/^CODE-/);
+      expect(s.text.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  it("offers real structured snippets, not syntax puzzles", () => {
+    // A snippet a developer recognises has lines, indentation and structure.
+    const snippets = getCorpusSnippets();
+    const multiLine = snippets.filter((s) => s.text.includes("\n"));
+    expect(multiLine.length, "snippets must be multi-line").toBeGreaterThan(4);
+    const indented = snippets.filter((s) => /^ {2,}/m.test(s.text));
+    expect(indented.length, "snippets must be indented").toBeGreaterThan(4);
+    // And a real body: a function or a block, not a keyword list.
+    expect(snippets.some((s) => /\{[\s\S]*\}/.test(s.text))).toBe(true);
+    expect(snippets.some((s) => /:\s*\n/.test(s.text) || /def /.test(s.text))).toBe(true);
+  });
+
+  it("names only languages the engine can classify", () => {
+    // The master spec names five languages. The engine's language profiles
+    // carry JavaScript/TypeScript and Python today, so those are the two the
+    // app offers — a language label the token map cannot read is a label the
+    // gate would refuse, and a UI that offers one is a UI that lies.
+    const languages = getSnippetLanguages();
+    expect(languages).toEqual(["javascript", "python"]);
+    for (const lang of languages) {
+      expect(Object.keys(LANGUAGE_LABELS)).toContain(lang);
+    }
+  });
+
+  it("never executes a snippet: there is no HTML path to sanitise", () => {
+    // AGENTS.md rule 5. The surface paints one character element per character
+    // and never sets innerHTML, so a snippet containing markup is text on
+    // screen rather than a node the browser would parse. These are records of
+    // what the source content itself forbids.
+    const snippets = getCorpusSnippets();
+    for (const s of snippets) {
+      expect(s.text).not.toMatch(/\beval\s*\(/);
+      expect(s.text).not.toMatch(/new\s+Function\s*\(/);
+      expect(s.text).not.toMatch(/import\s*\(/);
+      expect(s.text).not.toMatch(/child_process|\bexecSync\b|\bspawn\s*\(/);
+      expect(s.text).not.toMatch(/document\.write|<script/i);
+    }
+  });
+
+  it("says in the UI that snippets do not run", () => {
+    // The claim has to be visible where the code is, not buried in a doc.
+    expect(COPY.testSetup.codeNote.toLowerCase()).toContain("display-only");
+    expect(COPY.testSetup.codeNote.toLowerCase()).toContain("nothing you see here runs");
   });
 });

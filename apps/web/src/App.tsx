@@ -19,6 +19,7 @@ import { DEFAULT_NUMBER_DRILL, NUMBER_DRILLS, buildNumberDrill, type NumberDrill
 import {
   getCorpusPassages,
   getCorpusQuotes,
+  getCorpusSnippets,
   getAvailableDifficulties,
   bandFor,
   truncateToWords,
@@ -198,7 +199,7 @@ export function parseStoredUiFont(raw: unknown): UiFont | null {
 export const FOCUS_MODE_STORAGE_KEY = "realtype.focusMode";
 
 /** MOD-01: what kind of test the visitor is setting up. */
-export type TestMode = "prose" | "time" | "words" | "quotes" | "custom" | "numbers";
+export type TestMode = "prose" | "time" | "words" | "quotes" | "custom" | "numbers" | "code";
 
 /** MOD-01: the contract's timed lengths. */
 export const TIME_LIMITS = [15, 30, 60, 120] as const;
@@ -244,6 +245,23 @@ const DEFAULT_DIFFICULTY: Difficulty = "typical";
  */
 const DEFAULT_PROSE_ID = "PROSE-01-004";
 
+/**
+ * MOD-03's languages, read from what the corpus can actually classify (the
+ * engine's own language profiles). The master spec names five; the engine
+ * currently carries JavaScript/TypeScript and Python, so this list is two — and
+ * it is derived, not hand-written, so it cannot name a language the token map
+ * cannot read.
+ */
+const SNIPPET_LANGUAGES = getCorpusSnippets()
+  .map((s) => s.language)
+  .filter((l, i, all) => all.indexOf(l) === i);
+
+/** Human names for the engine's language profile ids (MOD-03). */
+export const LANGUAGE_LABELS: Readonly<Record<string, string>> = {
+  javascript: "JavaScript / TypeScript",
+  python: "Python",
+};
+
 export function App() {
   const [difficulty, setDifficulty] = useState<Difficulty>(DEFAULT_DIFFICULTY);
   const [testMode, setTestMode] = useState<TestMode>("prose");
@@ -254,6 +272,13 @@ export function App() {
   // reproducible, and a new drill is a new seed — never "shuffle".
   const [numberDrill, setNumberDrill] = useState<NumberDrill>(DEFAULT_NUMBER_DRILL);
   const [drillSeed, setDrillSeed] = useState(1);
+  // MOD-03: the language and snippet index. The language list comes from the
+  // engine's language profiles, so it cannot name one the token map cannot
+  // read — a label the gate would refuse is a label the UI never shows.
+  const [codeLanguage, setCodeLanguage] = useState<string>(SNIPPET_LANGUAGES[0] ?? "javascript");
+  const [snippetIndex, setSnippetIndex] = useState(0);
+
+  const snippets = useMemo(() => getCorpusSnippets(codeLanguage), [codeLanguage]);
   /**
    * Which prose passage is loaded (prose / timed / word-count modes).
    *
@@ -303,6 +328,12 @@ export function App() {
           id: `NUMBERS-${numberDrill}-${drillSeed}`,
           text: buildNumberDrill(drillSeed, numberDrill),
         };
+      case "code": {
+        // MOD-03: a structured snippet. Its content id is the corpus record's,
+        // so a recorded run says which snippet it was rather than "some code".
+        const snippet = snippets[snippetIndex % Math.max(1, snippets.length)] ?? snippets[0];
+        return snippet === undefined ? fallback : { id: snippet.id, text: snippet.text };
+      }
       case "custom":
       default:
         return customText.trim().length > 0 ? { id: "CUSTOM", text: customText } : fallback;
@@ -316,6 +347,8 @@ export function App() {
     quoteIndex,
     numberDrill,
     drillSeed,
+    snippets,
+    snippetIndex,
     customText,
     fallback,
   ]);
@@ -564,6 +597,11 @@ export function App() {
                 </p>
               </>
             )}
+            {testMode === "code" && (
+              <p className="note" data-testid="code-note">
+                {COPY.testSetup.codeNote}
+              </p>
+            )}
             <p className="note" data-testid="test-mode-note">
               {COPY.testSetup.modeNotes[testMode]}
             </p>
@@ -609,6 +647,39 @@ export function App() {
                 >
                   {COPY.testSetup.drillAction}
                 </button>
+              </>
+            )}
+            {testMode === "code" && (
+              <>
+                <label htmlFor="code-language">Language</label>
+                <select
+                  id="code-language"
+                  value={codeLanguage}
+                  data-testid="code-language-select"
+                  onChange={(event) => {
+                    setCodeLanguage(event.target.value);
+                    setSnippetIndex(0);
+                  }}
+                >
+                  {SNIPPET_LANGUAGES.map((lang) => (
+                    <option key={lang} value={lang}>
+                      {LANGUAGE_LABELS[lang] ?? lang}
+                    </option>
+                  ))}
+                </select>
+                <label htmlFor="snippet">Snippet</label>
+                <select
+                  id="snippet"
+                  value={snippetIndex}
+                  data-testid="snippet-select"
+                  onChange={(event) => setSnippetIndex(Number(event.target.value))}
+                >
+                  {snippets.map((snippet, index) => (
+                    <option key={snippet.id} value={index}>
+                      {snippet.id}
+                    </option>
+                  ))}
+                </select>
               </>
             )}
             {testMode === "quotes" && (

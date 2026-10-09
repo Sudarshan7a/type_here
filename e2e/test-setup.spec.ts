@@ -141,6 +141,53 @@ test("MOD-02: the band is not colour-only and is text a screen reader would read
   expect(text).toContain(bandText.trim());
 });
 
+test("MOD-03: a code snippet types across its lines and finishes", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("test-mode-select").selectOption("code");
+
+  await expect(page.getByTestId("code-language-select")).toBeVisible();
+  await expect(page.getByTestId("snippet-select")).toBeVisible();
+  // The language list is only what the engine can classify: JS/TS and Python.
+  const languages = await page
+    .getByTestId("code-language-select")
+    .locator("option")
+    .allInnerTexts();
+  expect(languages).toEqual(["JavaScript / TypeScript", "Python"]);
+
+  // Snippets are display-only: the note says so where the code is.
+  await expect(page.getByTestId("code-note")).toContainText("Nothing you see here runs");
+
+  const snippetId = await page.getByTestId("passage-id").innerText();
+  expect(snippetId).toMatch(/^CODE-/);
+
+  // Enter types a newline (the adapter records it as one), so a code line is
+  // reachable from the keyboard — this is what makes a snippet typable at all.
+  const surface = page.getByTestId("surface");
+  await surface.click();
+  await page.keyboard.type("export ");
+  await page.keyboard.press("Enter");
+  const rendered = await page.getByTestId("surface").innerText();
+  expect(rendered.split("\n").length).toBeGreaterThan(1);
+  await expect(page.getByTestId("live-accuracy")).toBeVisible();
+});
+
+test("MOD-03: switching language changes the snippet pool", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("test-mode-select").selectOption("code");
+
+  const jsIds = await page.getByTestId("snippet-select").locator("option").allInnerTexts();
+  expect(jsIds.every((id) => id.startsWith("CODE-JS-") || id.startsWith("CODE-TS-"))).toBe(true);
+
+  await page.getByTestId("code-language-select").selectOption("python");
+  const pyIds = await page.getByTestId("snippet-select").locator("option").allInnerTexts();
+  expect(pyIds.every((id) => id.startsWith("CODE-PY-"))).toBe(true);
+
+  // The pool and the id must change together, or a run names a snippet it did
+  // not type.
+  const shown = await page.getByTestId("passage-id").innerText();
+  expect(pyIds).toContain(shown);
+});
+
 test("MOD-01: custom text replaces the target entirely", async ({ page }) => {
   await page.goto("/");
 

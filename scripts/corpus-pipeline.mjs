@@ -156,6 +156,15 @@ const REGISTER_TAG_MAP = new Map(
     "utility function": "code.utility",
     "utility library": "code.utility",
     "type-checking utility": "code.utility",
+    // MOD-03's five-language starter set. The tag is the LANGUAGE, not the
+    // topic: a snippet's surface comes from its own token mix, and burying the
+    // language in a prose-ish description is what made the old "javascript"
+    // default unusable.
+    "javascript/typescript": "code.utility",
+    python: "code.utility",
+    java: "code.utility",
+    sql: "code.utility",
+    "html/css": "code.utility",
   }),
 );
 
@@ -176,6 +185,8 @@ const FILE_DEFAULT_CONTENT_TYPE = new Map(
     "docs/content-quotes-verified-public-domain-batch3.md": "quote.historical",
     "docs/content-code-snippets-javascript.md": "code.other",
     "docs/content-code-snippets-javascript-original.md": "code.utility",
+    // MOD-03's five-language starter set: TS/JS, Python, Java, SQL, HTML/CSS.
+    "docs/content-code-snippets-mvp.md": "code.other",
     "docs/content-classic-mode-word-list.md": "wordlist.classic",
     "docs/content-classic-mode-word-list-full-corpus.md": "wordlist.classic",
     "docs/content-composition-draft-sprint-prompts.md": "composition.reply",
@@ -898,9 +909,20 @@ export function countWords(text) {
     .filter(Boolean).length;
 }
 
-/** Language per family: the corpus is English prose plus JavaScript. */
-function languageOf(family) {
-  return family === "CODE" ? "javascript" : "en";
+/**
+ * Language per family. Prose and quotes are English; a code item's language
+ * comes from its ID, because MOD-03's set spans JavaScript/TypeScript, Python,
+ * Java, SQL and HTML/CSS — recording all of them as "javascript" would make
+ * the field useless for exactly the consumer that needs it.
+ */
+function languageOf(family, id = "") {
+  if (family !== "CODE") return "en";
+  if (id.startsWith("CODE-PY-")) return "python";
+  // The engine carries ONE JavaScript/TypeScript pack (`javascript`), and the
+  // snippet gate compares the declared language against what that token map
+  // resolves — so a TypeScript item is declared `javascript`, not `typescript`.
+  // A label the engine cannot resolve is a label the gate must refuse.
+  return "javascript";
 }
 
 /** Item kind: the sub-family a consumer switches on. */
@@ -997,7 +1019,7 @@ export function buildCorpus({ registerTexts = [], corpusTexts = [] } = {}) {
       family,
       kind: kindOf(raw.id),
       text: raw.text,
-      language: languageOf(family),
+      language: languageOf(family, raw.id),
       contentType: null,
       tagSource: null,
       // Stage 7 (CNT-02) fills these four in below; declared first so the key

@@ -197,6 +197,7 @@ export const COPY = {
       quotes: "Quotes",
       custom: "Custom text",
       numbers: "Numbers & symbols",
+      code: "Code",
     },
     modeNotes: {
       // MOD-02: every feature named here is verified to exist in the shippable
@@ -210,7 +211,12 @@ export const COPY = {
       quotes: "Type a quote from the content library.",
       custom: "Paste or type your own text to practise on.",
       numbers: "Digit rows, symbol rows and mixed alphanumerics. No clock.",
+      code: "Structured snippets in the languages the engine can classify. Enter types a newline.",
     },
+    codeLanguageLabel: "Language",
+    codeSnippetLabel: "Snippet",
+    codeNote:
+      "Snippets are display-only text. Nothing you see here runs, and nothing you type is executed.",
     durationLabel: "Time limit",
     durationOptions: {
       15: "15s",

@@ -44,6 +44,29 @@ function isQuoteItem(item: unknown): item is CorpusItem {
   return matchesFamily(item, "QUOTE", "quote");
 }
 
+function isCodeItem(item: unknown): item is CorpusItem {
+  if (!item || typeof item !== "object") return false;
+  const obj = item as Record<string, unknown>;
+  return (
+    obj.family === "CODE" &&
+    // The licence gate's own flag, exactly as for prose: a snippet that has not
+    // cleared its review is not practice content.
+    obj.shippable === true &&
+    typeof obj.text === "string" &&
+    obj.text.length > 0 &&
+    typeof obj.id === "string" &&
+    typeof obj.language === "string"
+  );
+}
+
+/** A code snippet as the app offers it (MOD-03). Display-only, never executed. */
+export interface Snippet {
+  id: string;
+  /** The engine's language profile id: `javascript` or `python` today. */
+  language: string;
+  text: string;
+}
+
 // Cast items to unknown[] to avoid strict union type from JSON import
 const items = corpusData.items as unknown[];
 
@@ -64,6 +87,30 @@ export function getCorpusQuotes(): Passage[] {
 
 export function getAvailableDifficulties(): Difficulty[] {
   return ["easy", "typical", "hard"];
+}
+
+/**
+ * MOD-03: the shippable code snippets, optionally for one language.
+ *
+ * Snippet text is never executed (AGENTS.md rule 5). The typing surface paints
+ * it one character element at a time and never sets innerHTML, so a snippet
+ * that happens to contain markup is text on screen — not a node the browser
+ * would parse. That is the sanitisation: there is no HTML path to sanitise.
+ */
+export function getCorpusSnippets(language?: string): Snippet[] {
+  const all = (items.filter(isCodeItem) as CorpusItem[]).map((item) => ({
+    id: item.id,
+    language: item.language,
+    text: item.text,
+  }));
+  return language === undefined ? all : all.filter((s) => s.language === language);
+}
+
+/** The languages MOD-03 can offer today, in the engine's profile order. */
+export function getSnippetLanguages(): string[] {
+  const seen = new Set<string>();
+  for (const s of getCorpusSnippets()) seen.add(s.language);
+  return [...seen].sort();
 }
 
 /**

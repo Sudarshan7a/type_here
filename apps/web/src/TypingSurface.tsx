@@ -107,25 +107,39 @@ interface CharSlot {
 type WordToken = { kind: "word"; index: number; chars: string[] };
 
 /**
- * Split the passage into words, each carrying the space that follows it, keeping
- * every character's index in the original string so `charRefs` stays indexed by
- * buffer position.
+ * Split the passage into words, each carrying the separator that follows it,
+ * keeping every character's index in the original string so `charRefs` stays
+ * indexed by buffer position.
  *
- * A trailing space stays a CHARACTER with its own state and its own rect — it is
- * only absorbed into the preceding word's box. That is what makes STEER-2 bug (d)
- * impossible rather than merely unlikely: see the note where `tokens` is built.
+ * A separator (a space, or the newline of a code line) stays a CHARACTER with
+ * its own state and its own rect — it is only absorbed into the preceding
+ * word's box. That is what makes STEER-2 bug (d) impossible rather than merely
+ * unlikely: see the note where `tokens` is built.
+ *
+ * A RUN of separators gets its own box rather than being skipped. That is not
+ * cosmetic: an indented code line opens with a newline followed by spaces, and
+ * a skipped character would be a character with no element — no state, no
+ * rect, and a caret that jumps over it. (Skipping without advancing was also,
+ * in the first draft of this, an infinite loop that hung the whole page.)
  */
 function groupIntoWords(chars: readonly string[]): WordToken[] {
+  const isSeparator = (c: string | undefined) => c === " " || c === "\n";
   const tokens: WordToken[] = [];
   let index = 0;
   while (index < chars.length) {
     const start = index;
-    while (index < chars.length && chars[index] !== " ") index += 1;
-    if (index === start) continue; // A leading space has no word to belong to.
+    if (isSeparator(chars[start])) {
+      while (index < chars.length && isSeparator(chars[index])) index += 1;
+      tokens.push({ kind: "word", index: start, chars: chars.slice(start, index) });
+      continue;
+    }
+    while (index < chars.length && !isSeparator(chars[index])) index += 1;
     const word = chars.slice(start, index);
-    if (index < chars.length) word.push(" "); // The space belongs to this word.
+    if (index < chars.length) {
+      word.push(chars[index]!); // The separator belongs to this word.
+      index += 1;
+    }
     tokens.push({ kind: "word", index: start, chars: word });
-    index += 1;
   }
   return tokens;
 }

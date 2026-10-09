@@ -1,16 +1,16 @@
 {
   "version": "1.1.0",
   "stats": {
-    "emitted": 740,
+    "emitted": 746,
     "rejected": 5,
     "duplicateGroups": 2,
     "duplicateItemsDropped": 2,
-    "shippable": 352,
+    "shippable": 358,
     "withDifficultyBand": 704,
-    "withDeclaredDifficulty": 333,
+    "withDeclaredDifficulty": 339,
     "sensitiveAllowlisted": 1,
     "byFamily": {
-      "CODE": 34,
+      "CODE": 40,
       "COMP": 105,
       "PROSE": 300,
       "QUOTE": 299,
@@ -19,7 +19,7 @@
     "byContentType": {
       "code.algorithm": 10,
       "code.react": 6,
-      "code.utility": 10,
+      "code.utility": 16,
       "code.web": 8,
       "composition.describe": 15,
       "composition.explain": 20,
@@ -44,11 +44,11 @@
       "easy": 238,
       "hard": 227,
       "typical": 239,
-      "unspecified": 36
+      "unspecified": 42
     },
     "byBandReason": {
       "banded": 704,
-      "out-of-scope-code": 34,
+      "out-of-scope-code": 40,
       "out-of-scope-word-pool": 2
     },
     "byTagSource": {
@@ -56,7 +56,7 @@
       "file-default": 82,
       "heading": 93,
       "id-prefix": 105,
-      "register": 310
+      "register": 316
     }
   },
   "contentTypes": [
@@ -223,23 +223,23 @@
       }
     ],
     "coverage": {
-      "items": 740,
+      "items": 746,
       "banded": 704,
-      "unbanded": 36,
+      "unbanded": 42,
       "byBand": {
         "easy": 238,
         "typical": 239,
         "hard": 227
       },
       "byReason": {
-        "out-of-scope-code": 34,
+        "out-of-scope-code": 40,
         "out-of-scope-word-pool": 2
       },
       "byFamily": {
         "CODE": {
-          "items": 34,
+          "items": 40,
           "banded": 0,
-          "unbanded": 34,
+          "unbanded": 40,
           "easy": 0,
           "typical": 0,
           "hard": 0
@@ -18702,6 +18702,192 @@
       "tokenMix": "props destructuring, spread",
       "publishBlockers": [
         "status-not-shippable: draft",
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-PY-001",
+      "family": "CODE",
+      "kind": "code-snippet",
+      "text": "def clamp(value, low, high):\n    if value < low:\n        return low\n    if value > high:\n        return high\n    return value",
+      "language": "python",
+      "contentType": "code.utility",
+      "tagSource": "register",
+      "difficulty": null,
+      "difficultySource": "unbanded",
+      "declaredDifficulty": "easy",
+      "declaredBandAgrees": null,
+      "bandReason": "out-of-scope-code",
+      "wordCount": 18,
+      "declaredWords": null,
+      "license": "original work — ours",
+      "licenseClass": "allowed",
+      "source": "original work — ours",
+      "attribution": null,
+      "registerRef": "docs/content-license-register.md",
+      "registerStatus": "reviewed",
+      "shippable": true,
+      "provenance": {
+        "file": "docs/content-code-snippets-mvp.md",
+        "line": 69
+      },
+      "tokenMix": "keywords, identifiers, numbers",
+      "publishBlockers": [
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-PY-002",
+      "family": "CODE",
+      "kind": "code-snippet",
+      "text": "def read_rows(path):\n    rows = []\n    with open(path, \"r\", encoding=\"utf-8\") as handle:\n        for line in handle:\n            text = line.strip()\n            if text and not text.startswith(\"#\"):\n                rows.append(text.split(\",\"))\n    return rows",
+      "language": "python",
+      "contentType": "code.utility",
+      "tagSource": "register",
+      "difficulty": null,
+      "difficultySource": "unbanded",
+      "declaredDifficulty": "typical",
+      "declaredBandAgrees": null,
+      "bandReason": "out-of-scope-code",
+      "wordCount": 26,
+      "declaredWords": null,
+      "license": "original work — ours",
+      "licenseClass": "allowed",
+      "source": "original work — ours",
+      "attribution": null,
+      "registerRef": "docs/content-license-register.md",
+      "registerStatus": "reviewed",
+      "shippable": true,
+      "provenance": {
+        "file": "docs/content-code-snippets-mvp.md",
+        "line": 79
+      },
+      "tokenMix": "keywords, identifiers, strings, brackets",
+      "publishBlockers": [
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-PY-003",
+      "family": "CODE",
+      "kind": "code-snippet",
+      "text": "class Budget:\n    def __init__(self, total):\n        self.total = total\n        self.spent = 0\n\n    def charge(self, amount):\n        if self.spent + amount > self.total:\n            raise ValueError(\"over budget\")\n        self.spent += amount\n        return self.total - self.spent",
+      "language": "python",
+      "contentType": "code.utility",
+      "tagSource": "register",
+      "difficulty": null,
+      "difficultySource": "unbanded",
+      "declaredDifficulty": "typical",
+      "declaredBandAgrees": null,
+      "bandReason": "out-of-scope-code",
+      "wordCount": 30,
+      "declaredWords": null,
+      "license": "original work — ours",
+      "licenseClass": "allowed",
+      "source": "original work — ours",
+      "attribution": null,
+      "registerRef": "docs/content-license-register.md",
+      "registerStatus": "reviewed",
+      "shippable": true,
+      "provenance": {
+        "file": "docs/content-code-snippets-mvp.md",
+        "line": 91
+      },
+      "tokenMix": "keywords, identifiers, numbers, brackets",
+      "publishBlockers": [
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-TS-001",
+      "family": "CODE",
+      "kind": "code-snippet",
+      "text": "export function clamp(value: number, min: number, max: number): number {\n  if (value < min) return min;\n  if (value > max) return max;\n  return value;\n}",
+      "language": "javascript",
+      "contentType": "code.utility",
+      "tagSource": "register",
+      "difficulty": null,
+      "difficultySource": "unbanded",
+      "declaredDifficulty": "easy",
+      "declaredBandAgrees": null,
+      "bandReason": "out-of-scope-code",
+      "wordCount": 25,
+      "declaredWords": null,
+      "license": "original work — ours",
+      "licenseClass": "allowed",
+      "source": "original work — ours",
+      "attribution": null,
+      "registerRef": "docs/content-license-register.md",
+      "registerStatus": "reviewed",
+      "shippable": true,
+      "provenance": {
+        "file": "docs/content-code-snippets-mvp.md",
+        "line": 25
+      },
+      "tokenMix": "keywords, identifiers, brackets, operators",
+      "publishBlockers": [
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-TS-002",
+      "family": "CODE",
+      "kind": "code-snippet",
+      "text": "type Result<T> = { ok: true; value: T } | { ok: false; error: string };\n\nexport async function load<T>(url: string): Promise<Result<T>> {\n  try {\n    const response = await fetch(url, { headers: { accept: \"application/json\" } });\n    if (!response.ok) return { ok: false, error: `status ${response.status}` };\n    return { ok: true, value: (await response.json()) as T };\n  } catch (cause) {\n    return { ok: false, error: String(cause) };\n  }\n}",
+      "language": "javascript",
+      "contentType": "code.utility",
+      "tagSource": "register",
+      "difficulty": null,
+      "difficultySource": "unbanded",
+      "declaredDifficulty": "typical",
+      "declaredBandAgrees": null,
+      "bandReason": "out-of-scope-code",
+      "wordCount": 70,
+      "declaredWords": null,
+      "license": "original work — ours",
+      "licenseClass": "allowed",
+      "source": "original work — ours",
+      "attribution": null,
+      "registerRef": "docs/content-license-register.md",
+      "registerStatus": "reviewed",
+      "shippable": true,
+      "provenance": {
+        "file": "docs/content-code-snippets-mvp.md",
+        "line": 34
+      },
+      "tokenMix": "keywords, types, strings, operators",
+      "publishBlockers": [
+        "no-difficulty-band"
+      ]
+    },
+    {
+      "id": "CODE-TS-003",
+      "family": "CODE",
+      "kind": "code-snippet",
+      "text": "export class Counter {\n  private total = 0;\n\n  increment(by = 1): number {\n    this.total += by;\n    return this.total;\n  }\n\n  get value(): number {\n    return this.total;\n  }\n}",
+      "language": "javascript",
+      "contentType": "code.utility",
+      "tagSource": "register",
+      "difficulty": null,
+      "difficultySource": "unbanded",
+      "declaredDifficulty": "typical",
+      "declaredBandAgrees": null,
+      "bandReason": "out-of-scope-code",
+      "wordCount": 27,
+      "declaredWords": null,
+      "license": "original work — ours",
+      "licenseClass": "allowed",
+      "source": "original work — ours",
+      "attribution": null,
+      "registerRef": "docs/content-license-register.md",
+      "registerStatus": "reviewed",
+      "shippable": true,
+      "provenance": {
+        "file": "docs/content-code-snippets-mvp.md",
+        "line": 49
+      },
+      "tokenMix": "keywords, identifiers, brackets, strings",
+      "publishBlockers": [
         "no-difficulty-band"
       ]
     },

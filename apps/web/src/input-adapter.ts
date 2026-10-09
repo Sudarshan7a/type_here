@@ -220,7 +220,11 @@ export class InputCapture {
     const at = event.timeStamp > 0 ? event.timeStamp : performance.now();
     this.captured.push({
       code: event.code,
-      key: event.key,
+      // MOD-03: Enter types a newline. The engine inserts `event.key` into the
+      // buffer verbatim (text-model), so the character recorded here is the
+      // character the target contains — recording the literal "Enter" would
+      // make a code line untypable rather than merely awkward.
+      key: event.key === "Enter" ? "\n" : event.key,
       type,
       t: this.relative(at),
       mods: {
