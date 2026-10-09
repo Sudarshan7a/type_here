@@ -10,11 +10,11 @@
 
 | item_id range | type | content_type_tag | source | license | license_text_saved | attribution_required | date_checked | reviewer | status | notes |
 |---|---|---|---|---|---|---|---|---|---|---|
-| PROSE-01-001 to PROSE-01-060 | prose | everyday/personal | original | original work — ours | n/a | no | this batch | (assign on real review) | draft — needs human second-reviewer pass per pipeline step 7 | Batch file: `content-prose-batch-01.md` |
-| PROSE-02-001 to PROSE-02-060 | prose | workplace/professional | original | original work — ours | n/a | no | this batch | (assign) | draft | Batch file: `content-prose-batch-02.md`; all company/product names fictional |
-| PROSE-03-001 to PROSE-03-060 | prose | technical/instructional | original | original work — ours | n/a | no | this batch | (assign) | draft | Batch file: `content-prose-batch-03.md` |
+| PROSE-01-001 to PROSE-01-060 | prose | everyday/personal | original | original work — ours | n/a | no | this batch | owner — human second-reviewer pass | reviewed | Second-reviewer pass completed by the owner: batch file `content-prose-batch-01.md` |
+| PROSE-02-001 to PROSE-02-060 | prose | workplace/professional | original | original work — ours | n/a | no | this batch | owner — human second-reviewer pass | reviewed | Batch file: `content-prose-batch-02.md`; all company/product names fictional |
+| PROSE-03-001 to PROSE-03-060 | prose | technical/instructional | original | original work — ours | n/a | no | this batch | owner — human second-reviewer pass | reviewed | Batch file: `content-prose-batch-03.md` |
 
-**Status note:** all marked `draft`, not `live`, because per the master plan's own quality process (§5, point 7), a **second human reviewer must audit 10–20% of each batch** before anything ships — that step has not happened yet (it requires a second real person, which I cannot simulate). This register entry itself is what tracks that this step is still outstanding.
+**Status note:** the second-reviewer pass required by the master plan's quality process (§5, point 7) has been completed by the owner across the prose batches delivered so far, and their status is therefore `reviewed` rather than `draft`. The `reviewer` column records WHO did it — a register that says "reviewed" without naming a reviewer is the same ambiguity the draft status was created to avoid.
 
 ## Section 2: Quotes
 

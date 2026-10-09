@@ -19,8 +19,8 @@
 
 | item_id range | type | source | license | status |
 |---|---|---|---|---|
-| PROSE-04-001 to 060 | prose | original (relationships/social domain) | original work — ours | draft |
-| PROSE-05-001 to 060 | prose | original (news/explanatory + travel domains) | original work — ours | draft |
+| PROSE-04-001 to 060 | prose | original (relationships/social domain) | original work — ours | reviewed — owner second-reviewer pass |
+| PROSE-05-001 to 060 | prose | original (news/explanatory + travel domains) | original work — ours | reviewed — owner second-reviewer pass |
 | QUOTE-ORIG-091 to 180 | quote-original | original | original work — ours | draft |
 | QUOTE-PD-041 to 050 | quote-public-domain | Marcus Aurelius, Meditations, trans. George Long, 1862 | public domain (verified) | reviewed |
 

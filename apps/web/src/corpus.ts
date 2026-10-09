@@ -12,6 +12,8 @@ interface CorpusItem {
   contentType: string;
   difficulty: string;
   wordCount: number;
+  /** Set by the corpus pipeline from the license register's status column. */
+  shippable?: boolean;
 }
 
 function matchesFamily(item: unknown, family: string, kindPrefix: string): item is CorpusItem {
@@ -21,6 +23,10 @@ function matchesFamily(item: unknown, family: string, kindPrefix: string): item 
     obj.family === family &&
     typeof obj.kind === "string" &&
     obj.kind.startsWith(kindPrefix) &&
+    // The licence gate's own flag: an item that has not passed its review is
+    // not practice content, however good it looks. The app therefore offers
+    // only what the register clears, and never invents a review of its own.
+    obj.shippable === true &&
     obj.language === "en" &&
     typeof obj.text === "string" &&
     obj.text.length > 0 &&
