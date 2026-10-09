@@ -188,14 +188,22 @@ export const COPY = {
   testSetup: {
     modeLabel: "Test length",
     modeOptions: {
-      prose: "Full passage",
+      // MOD-02: the default home mode. Real-world prose is the whole library —
+      // mixed case, punctuation, digits, names and URLs across five domains
+      // — with the engine's own difficulty band shown beside each passage.
+      prose: "Real-world prose",
       time: "Timed",
       words: "Word count",
       quotes: "Quotes",
       custom: "Custom text",
     },
     modeNotes: {
-      prose: "Type the whole passage. No clock.",
+      // MOD-02: every feature named here is verified to exist in the shippable
+      // prose pool by tests/test-config.test.ts. The library carries NO
+      // passages with a URL (0 of 300), so the note does not claim one — a
+      // copy claim the content cannot back is exactly what the claims ban
+      // exists to stop.
+      prose: "Real-world prose: mixed case, punctuation, digits, names and symbols. No clock.",
       time: "Type as much as you can before the clock runs out.",
       words: "Type the first N words of a passage.",
       quotes: "Type a quote from the content library.",

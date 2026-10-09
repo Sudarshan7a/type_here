@@ -110,6 +110,37 @@ test("MOD-01: quote mode types a quote and Next quote loads a different one", as
   expect(second).not.toBe(first);
 });
 
+test("MOD-02: real-world prose is the default and shows its computed band", async ({ page }) => {
+  await page.goto("/");
+
+  // The default home mode is real-world prose, and it says so.
+  await expect(page.getByTestId("test-mode-select")).toHaveValue("prose");
+  await expect(page.getByTestId("test-mode-note")).toContainText("Real-world prose");
+  await expect(page.getByTestId("test-mode-note")).toContainText("No clock");
+
+  // The engine's own difficulty band is shown BESIDE the content id, as words:
+  // a band that needs colour vision to read is not a band a screen-reader user
+  // would get (rule 7, non-colour cues).
+  const passageId = page.getByTestId("passage-id");
+  await expect(passageId).toContainText("PROSE-");
+  await expect(page.getByTestId("passage-band")).toHaveText(/easy|typical|hard/);
+});
+
+test("MOD-02: the band is not colour-only and is text a screen reader would read", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const band = page.getByTestId("passage-band");
+  await expect(band).toBeVisible();
+
+  // The band lives in the document text (the id paragraph), not in a styled
+  // swatch: the same string is available to assistive tech.
+  const text = await page.getByTestId("passage-id").innerText();
+  const bandText = await band.innerText();
+  expect(bandText.trim()).toMatch(/^(easy|typical|hard)$/);
+  expect(text).toContain(bandText.trim());
+});
+
 test("MOD-01: custom text replaces the target entirely", async ({ page }) => {
   await page.goto("/");
 

@@ -19,6 +19,7 @@ import {
   getCorpusPassages,
   getCorpusQuotes,
   getAvailableDifficulties,
+  bandFor,
   truncateToWords,
   type Difficulty,
 } from "./corpus";
@@ -771,6 +772,11 @@ export function App() {
           // differ in when the test ends, never in how a keystroke is scored,
           // so this touches no metric and no `modelVersion`.
           logMode={logModeFor(testMode)}
+          // MOD-02: the engine's own computed band (CNT-02) for the loaded
+          // corpus item, shown as words beside the content id. Custom text and
+          // generated drills have no band, so they show none rather than a
+          // guessed one.
+          difficultyBand={testMode === "custom" ? undefined : (bandFor(passage.id) ?? undefined)}
           onNewPassage={newPassage}
         />
       </main>

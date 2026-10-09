@@ -64,12 +64,12 @@
 | `home.difficultyBadge.hard` | Hard | |
 | `home.focusMode.entering` | *(no text — chrome fades silently, no announcement)* | Deliberate: focus mode should feel invisible, not narrated |
 | `home.length.modeLabel` | Test length | MOD-01: names the mode selector; the modes differ in when a test ends, never in how a keystroke is scored |
-| `home.length.mode.prose` | Full passage | No clock; the default. The no-timer practice option |
+| `home.length.mode.prose` | Real-world prose | No clock; the default. MOD-02: the real-world pool — mixed case, punctuation, digits, names and URLs, with the engine's own difficulty band shown per passage |
 | `home.length.mode.time` | Timed | MOD-01 |
 | `home.length.mode.words` | Word count | MOD-01 |
 | `home.length.mode.quotes` | Quotes | MOD-01; quotes come from the content library |
 | `home.length.mode.custom` | Custom text | MOD-01; the user's own text, display-only and never stored |
-| `home.length.note.prose` | Type the whole passage. No clock. | |
+| `home.length.note.prose` | Real-world prose: mixed case, punctuation, digits, names and URLs. No clock. | |
 | `home.length.note.time` | Type as much as you can before the clock runs out. | |
 | `home.length.note.words` | Type the first N words of a passage. | |
 | `home.length.note.quotes` | Type a quote from the content library. | |

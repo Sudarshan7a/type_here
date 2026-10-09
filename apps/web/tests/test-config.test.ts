@@ -11,6 +11,9 @@ import { describe, expect, it } from "vitest";
 import {
   getCorpusPassages,
   getCorpusQuotes,
+  bandFor,
+  contentTypeFor,
+  PROSE_DOMAINS,
   truncateToWords,
   type Difficulty,
 } from "../src/corpus";
@@ -127,5 +130,97 @@ describe("test-setup copy (MOD-01)", () => {
     // the default mode and its own note says so.
     expect(COPY.testSetup.modeOptions.prose).toBeTruthy();
     expect(COPY.testSetup.modeNotes.prose.toLowerCase()).toContain("no clock");
+  });
+});
+
+describe("real-world prose (MOD-02)", () => {
+  it("names the real-world features its copy promises", () => {
+    // The ledger for MOD-02 is "mixed case, punctuation, digits, names, URLs".
+    // URLs are NOT claimed, because the shippable prose pool contains none —
+    // a copy claim the content cannot back is what the claims ban is for.
+    const note = COPY.testSetup.modeNotes.prose.toLowerCase();
+    for (const feature of ["mixed case", "punctuation", "digits", "names", "symbols"]) {
+      expect(note, `prose note must name ${feature}`).toContain(feature);
+    }
+    expect(note).not.toContain("url");
+  });
+
+  it("offers prose that really carries every feature it names", () => {
+    // If the copy names mixed case, digits, names, punctuation and symbols,
+    // shippable passages must contain each. Measured against the real corpus,
+    // not a fixture.
+    const passages = getCorpusPassages();
+    expect(passages.length).toBeGreaterThan(100);
+
+    // Mixed case: capitals somewhere other than the sentence start.
+    expect(
+      passages.some((p) => /[a-z] [A-Z]/.test(p.text)),
+      "mixed case",
+    ).toBe(true);
+    // Punctuation: commas, full stops, apostrophes, question marks.
+    expect(
+      passages.some((p) => /[.,?!;:]/.test(p.text)),
+      "punctuation",
+    ).toBe(true);
+    expect(
+      passages.some((p) => /['\u2019]/.test(p.text)),
+      "apostrophes",
+    ).toBe(true);
+    // Digits: 90 of the 300 carry them (prices, times, amounts).
+    expect(
+      passages.some((p) => /\d/.test(p.text)),
+      "digits",
+    ).toBe(true);
+    // Names: a mid-sentence proper noun (a street, a weekday, a fictional name).
+    expect(
+      passages.some((p) => /[a-z] [A-Z][a-z]+/.test(p.text)),
+      "names",
+    ).toBe(true);
+    // Symbols: at least one passage carries a non-alphanumeric symbol.
+    expect(
+      passages.some((p) => /[&@#%*+=/_$]/.test(p.text)),
+      "symbols",
+    ).toBe(true);
+
+    // And the honest negative: no URL is claimed, because none exists.
+    expect(passages.some((p) => /(www\.|https?:\/\/|\.com\b|\.org\b|\.net\b)/i.test(p.text))).toBe(
+      false,
+    );
+  });
+
+  it("reports a computed band for corpus prose and none for custom text", () => {
+    // The band is the ENGINE's (CNT-02): shown beside the id as words, so it
+    // needs no colour vision to read (rule 7).
+    const first = getCorpusPassages()[0]!;
+    const band = bandFor(first.id);
+    expect(["easy", "typical", "hard"]).toContain(band);
+    expect(bandFor("CUSTOM")).toBeNull();
+    expect(bandFor("PROSE-99-999")).toBeNull();
+  });
+
+  it("spans every prose domain the library carries", () => {
+    // MOD-02's pool is the whole real-world library, not one register of
+    // language — so a visitor is not silently confined to one domain.
+    const domains = new Set(
+      getCorpusPassages()
+        .map((p) => contentTypeFor(p.id))
+        .filter((t) => t !== null),
+    );
+    for (const domain of PROSE_DOMAINS) {
+      expect(domains.has(domain), `prose pool must include ${domain}`).toBe(true);
+    }
+  });
+
+  it("offers only content the licence register clears", () => {
+    // CNT-06: `shippable` is the gate's own flag. The app offers nothing that
+    // has not passed its review, and invents no review of its own.
+    for (const p of getCorpusPassages()) {
+      expect(p.id).toMatch(/^PROSE-/);
+    }
+    const quotes = getCorpusQuotes();
+    expect(quotes.length).toBeGreaterThan(0);
+    for (const q of quotes) {
+      expect(q.id).toMatch(/^QUOTE-/);
+    }
   });
 });

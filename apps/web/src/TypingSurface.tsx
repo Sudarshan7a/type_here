@@ -80,6 +80,17 @@ export interface TypingSurfaceProps {
    * for what kind of test this was, exactly like the declared layout.
    */
   logMode?: Mode;
+  /**
+   * MOD-02: the loaded passage's COMPUTED difficulty band (CNT-02), shown
+   * beside its content id as words.
+   *
+   * It is a prop rather than a lookup, because the band is the engine's
+   * decision and the App is the only thing that knows which corpus item is
+   * loaded — a view that recomputed it could disagree with the results screen
+   * (AGENTS.md rule 3). Omitted for text the corpus does not describe (custom
+   * text), where the honest answer is that there is no band to show.
+   */
+  difficultyBand?: string;
   /** Notified once per finished test, for the parent's history or telemetry. */
   onFinish?: (result: EngineResult) => void;
   /** Offered on the finished panel. Omitted when the host has nowhere to go. */
@@ -128,6 +139,7 @@ export function TypingSurface({
   autoPair,
   timeLimitSec = 0,
   logMode = "classic",
+  difficultyBand,
   onFinish,
   onNewPassage,
 }: TypingSurfaceProps) {
@@ -819,8 +831,22 @@ export function TypingSurface({
         />
       )}
 
+      {/*
+        MOD-02: the passage's identity below the text — its content id and the
+        COMPUTED difficulty band (CNT-02), as words. Never a colour swatch
+        alone: the band is a fact a visitor may want to compare against their
+        own results, so it has to be readable without colour vision (rule 7).
+      */}
       <p className="passage-id" data-testid="passage-id">
         {passage.id}
+        {difficultyBand !== null && difficultyBand !== undefined && (
+          <>
+            {" · "}
+            <span className="passage-band" data-testid="passage-band">
+              {difficultyBand}
+            </span>
+          </>
+        )}
       </p>
     </div>
   );

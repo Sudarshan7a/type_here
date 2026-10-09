@@ -67,6 +67,49 @@ export function getAvailableDifficulties(): Difficulty[] {
 }
 
 /**
+ * The COMPUTED difficulty band (CNT-02) of one item, or null when the corpus
+ * has no such item. The band is the engine's, never the source document's
+ * declared tag: a passage can be declared Easy and still be computed Typical,
+ * and the picker and the results screen show what the engine reports so they
+ * cannot disagree with each other.
+ */
+export function bandFor(id: string): Difficulty | null {
+  const item = items.find((i): i is CorpusItem =>
+    isProseItem(i) || isQuoteItem(i) ? (i as CorpusItem).id === id : false,
+  );
+  if (item === undefined) return null;
+  return item.difficulty === "easy" || item.difficulty === "typical" || item.difficulty === "hard"
+    ? item.difficulty
+    : null;
+}
+
+/**
+ * The content-type tag of one prose item (`prose.everyday`, workplace,
+ * technical, relationships, news/explanatory), or null. MOD-02's real-world
+ * pool spans every domain the library carries, so a visitor is not silently
+ * confined to one register of language.
+ */
+export function contentTypeFor(id: string): string | null {
+  const item = items.find((i): i is CorpusItem => isProseItem(i) && i.id === id);
+  return item?.contentType ?? null;
+}
+
+/**
+ * The prose domains the library carries, in corpus order. MOD-02's real-world
+ * pool spans all of them, so a visitor is not confined to one register of
+ * language. These are the corpus's own `contentType` values — written from the
+ * data, not from the register's prose description of them.
+ */
+export const PROSE_DOMAINS = [
+  "prose.everyday",
+  "prose.workplace",
+  "prose.technical",
+  "prose.relationships",
+  "prose.news-explanatory",
+  "prose.travel",
+] as const;
+
+/**
  * Truncate a passage to the first `count` whitespace-separated words.
  * Deterministic and pure: the same passage and count always produce the
  * same target text, so a run is reproducible.
