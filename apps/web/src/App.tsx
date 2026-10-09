@@ -15,6 +15,7 @@ import { COPY } from "./copy";
 import { OnboardingPanel } from "./onboarding/OnboardingPanel";
 import { TypingSurface } from "./TypingSurface";
 import { passageLabel, type Passage } from "./passages";
+import { DEFAULT_NUMBER_DRILL, NUMBER_DRILLS, buildNumberDrill, type NumberDrill } from "./drills";
 import {
   getCorpusPassages,
   getCorpusQuotes,
@@ -197,7 +198,7 @@ export function parseStoredUiFont(raw: unknown): UiFont | null {
 export const FOCUS_MODE_STORAGE_KEY = "realtype.focusMode";
 
 /** MOD-01: what kind of test the visitor is setting up. */
-export type TestMode = "prose" | "time" | "words" | "quotes" | "custom";
+export type TestMode = "prose" | "time" | "words" | "quotes" | "custom" | "numbers";
 
 /** MOD-01: the contract's timed lengths. */
 export const TIME_LIMITS = [15, 30, 60, 120] as const;
@@ -249,6 +250,10 @@ export function App() {
   const [timeLimit, setTimeLimit] = useState<TimeLimit>(60);
   const [wordCount, setWordCount] = useState<WordCount>(30);
   const [customText, setCustomText] = useState("");
+  // MOD-04: the drill kind and its seed. The seed is what makes a drill
+  // reproducible, and a new drill is a new seed — never "shuffle".
+  const [numberDrill, setNumberDrill] = useState<NumberDrill>(DEFAULT_NUMBER_DRILL);
+  const [drillSeed, setDrillSeed] = useState(1);
   /**
    * Which prose passage is loaded (prose / timed / word-count modes).
    *
@@ -290,11 +295,30 @@ export function App() {
       }
       case "quotes":
         return quotes[quoteIndex % Math.max(1, quotes.length)] ?? prosePassages[0] ?? fallback;
+      case "numbers":
+        // MOD-04: a synthetic, seeded drill. The id carries the drill kind and
+        // its seed so a recorded run names exactly which drill it was, the way
+        // a corpus passage carries its content id.
+        return {
+          id: `NUMBERS-${numberDrill}-${drillSeed}`,
+          text: buildNumberDrill(drillSeed, numberDrill),
+        };
       case "custom":
       default:
         return customText.trim().length > 0 ? { id: "CUSTOM", text: customText } : fallback;
     }
-  }, [testMode, prosePassages, proseIndex, wordCount, quotes, quoteIndex, customText, fallback]);
+  }, [
+    testMode,
+    prosePassages,
+    proseIndex,
+    wordCount,
+    quotes,
+    quoteIndex,
+    numberDrill,
+    drillSeed,
+    customText,
+    fallback,
+  ]);
   // Free mode is the only error mode exposed for now; the contract carries five
   // (CONTRACT_VERSION 1.3.0) and the settings UI is a later slice. A hard-coded
   // constant is honest about that; a mode bar with one working option is not.
@@ -559,6 +583,34 @@ export function App() {
                 </option>
               ))}
             </select>
+            {testMode === "numbers" && (
+              <>
+                <label htmlFor="drill-kind">Drill</label>
+                <select
+                  id="drill-kind"
+                  value={numberDrill}
+                  data-testid="drill-kind-select"
+                  onChange={(event) => setNumberDrill(event.target.value as NumberDrill)}
+                >
+                  {NUMBER_DRILLS.map((kind) => (
+                    <option key={kind} value={kind}>
+                      {COPY.testSetup.drillOptions[kind]}
+                    </option>
+                  ))}
+                </select>
+                {/*
+                  One new seed per click, so "New drill" is a fact about the
+                  drill rather than a shuffle that cannot be reproduced.
+                */}
+                <button
+                  type="button"
+                  data-testid="new-drill"
+                  onClick={() => setDrillSeed((s) => s + 1)}
+                >
+                  {COPY.testSetup.drillAction}
+                </button>
+              </>
+            )}
             {testMode === "quotes" && (
               <>
                 <button

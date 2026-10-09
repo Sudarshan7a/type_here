@@ -196,6 +196,7 @@ export const COPY = {
       words: "Word count",
       quotes: "Quotes",
       custom: "Custom text",
+      numbers: "Numbers & symbols",
     },
     modeNotes: {
       // MOD-02: every feature named here is verified to exist in the shippable
@@ -208,6 +209,7 @@ export const COPY = {
       words: "Type the first N words of a passage.",
       quotes: "Type a quote from the content library.",
       custom: "Paste or type your own text to practise on.",
+      numbers: "Digit rows, symbol rows and mixed alphanumerics. No clock.",
     },
     durationLabel: "Time limit",
     durationOptions: {
@@ -225,6 +227,17 @@ export const COPY = {
     quoteAction: "Next quote",
     customLabel: "Your text",
     customLimitNote: "Up to 2000 characters. Nothing you type here is stored or sent anywhere.",
+    // MOD-04: numbers and symbols. Each names what the drill IS — a row of
+    // digits, a row of symbols — never what it will do for the reader.
+    drillLabel: "Drill",
+    drillOptions: {
+      digits: "Digit rows",
+      decimals: "Decimals and separators",
+      symbols: "Symbol rows",
+      mixed: "Mixed alphanumerics",
+    },
+    drillAction: "New drill",
+    drillNote: "Synthetic material, generated from a seed — the same drill is always reproducible.",
   },
 
   /** Shown while the test is paused by focus loss (chapter 4 E4). */

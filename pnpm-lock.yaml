@@ -63,6 +63,9 @@ importers:
       '@realtype/engine':
         specifier: workspace:*
         version: link:../../packages/engine
+      '@realtype/generators':
+        specifier: workspace:*
+        version: link:../../packages/generators
       '@realtype/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas

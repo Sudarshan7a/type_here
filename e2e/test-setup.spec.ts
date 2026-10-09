@@ -160,3 +160,52 @@ test("MOD-01: custom text replaces the target entirely", async ({ page }) => {
   await page.reload();
   await expect(page.getByTestId("test-mode-select")).toHaveValue("prose");
 });
+
+test("MOD-04: numbers and symbols drills type real rows and New drill changes them", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByTestId("test-mode-select").selectOption("numbers");
+
+  await expect(page.getByTestId("drill-kind-select")).toHaveValue("digits");
+  const digits = await page.getByTestId("surface").innerText();
+  // A digit row is digits and spaces: nothing else is allowed in.
+  expect(digits.replace(/\u00A0/g, " ").trim()).toMatch(/^\d+( \d+)*$/);
+  await expect(page.getByTestId("passage-id")).toContainText("NUMBERS-digits-");
+
+  // A symbol row is symbols and spaces.
+  await page.getByTestId("drill-kind-select").selectOption("symbols");
+  const symbols = await page.getByTestId("surface").innerText();
+  expect(symbols.replace(/\u00A0/g, " ").trim()).toMatch(/^[^A-Za-z0-9\s]+( [^A-Za-z0-9\s]+)*$/);
+  // Home-row first, so the row is one a human can actually practise.
+  expect(
+    symbols
+      .replace(/\u00A0/g, " ")
+      .trim()
+      .startsWith("!@#$%^&*()"),
+  ).toBe(true);
+
+  // "New drill" loads DIFFERENT material - it must never hand back the same
+  // row (action.newPassage's whole contract).
+  await page.getByTestId("drill-kind-select").selectOption("digits");
+  const before = await page.getByTestId("surface").innerText();
+  await page.getByTestId("new-drill").click();
+  await expect(page.getByTestId("surface")).not.toHaveText(before);
+});
+
+test("MOD-04: a drill is reproducible from its seed", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("test-mode-select").selectOption("numbers");
+
+  // The drill id carries its seed, so a recorded run names exactly which drill
+  // it was - the same guarantee a corpus passage gives its content id.
+  await expect(page.getByTestId("passage-id")).toContainText("NUMBERS-digits-1");
+  await page.getByTestId("new-drill").click();
+  await expect(page.getByTestId("passage-id")).toContainText("NUMBERS-digits-2");
+
+  // And re-selecting the same drill restores its own text: the seed, not a
+  // shuffle, decides the drill.
+  await page.reload();
+  await page.getByTestId("test-mode-select").selectOption("numbers");
+  await expect(page.getByTestId("passage-id")).toContainText("NUMBERS-digits-1");
+});

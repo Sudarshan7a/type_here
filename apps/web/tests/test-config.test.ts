@@ -17,6 +17,7 @@ import {
   truncateToWords,
   type Difficulty,
 } from "../src/corpus";
+import { NUMBER_DRILLS, buildNumberDrill } from "../src/drills";
 import { COPY } from "../src/copy";
 import { logModeFor, MAX_CUSTOM_CHARS } from "../src/App";
 
@@ -222,5 +223,74 @@ describe("real-world prose (MOD-02)", () => {
     for (const q of quotes) {
       expect(q.id).toMatch(/^QUOTE-/);
     }
+  });
+});
+
+describe("numbers and symbols drills (MOD-04)", () => {
+  it("builds each drill kind from real characters", () => {
+    for (const drill of NUMBER_DRILLS) {
+      const text = buildNumberDrill(7, drill);
+      expect(text.length, `${drill} must produce something to type`).toBeGreaterThan(10);
+      // The target is exactly what the drill promises, and nothing else — a
+      // drill that quietly contains letters in a digits row is a lie.
+      switch (drill) {
+        case "digits":
+          expect(text).toMatch(/^\d+( \d+)*$/);
+          break;
+        case "decimals":
+          // Signs, points, separators and group underscores only — no hex
+          // binaries or alphanumerics sneaking into a numbers row.
+          expect(text).toMatch(/^[-+]?[\d.,e_]+( [-+]?[\d.,e_]+)*$/i);
+          break;
+        case "symbols":
+          expect(text).toMatch(/^[^A-Za-z0-9\s]+( [^A-Za-z0-9\s]+)*$/);
+          break;
+        case "mixed":
+          expect(text).toMatch(/[0-9]/);
+          expect(text).toMatch(/[A-Za-z]/);
+          break;
+      }
+    }
+  });
+
+  it("is deterministic: the same seed reproduces the same drill", () => {
+    // The generator's own contract, honoured end to end by this builder: a
+    // recorded run can be replayed against the same target.
+    for (const drill of NUMBER_DRILLS) {
+      expect(buildNumberDrill(42, drill)).toBe(buildNumberDrill(42, drill));
+    }
+    // "New drill" is a new seed, so a different drill must not be the same
+    // text — except for the symbol rows, which are a fixed, ordered ladder.
+    for (const drill of NUMBER_DRILLS) {
+      const a = buildNumberDrill(1, drill);
+      const b = buildNumberDrill(2, drill);
+      expect(a === b).toBe(drill === "symbols");
+    }
+  });
+
+  it("orders symbol rows home-row first", () => {
+    // A symbol row that starts at `~` is a row nobody can practise: the order
+    // is part of the drill, not decoration.
+    const first = buildNumberDrill(1, "symbols").split(" ")[0]!;
+    expect(first.startsWith("!@#$%^&*()")).toBe(true);
+  });
+
+  it("generates no real data of any kind", () => {
+    // The generators' safety predicates are the package's own; the drill must
+    // inherit them rather than invent a weaker check.
+    for (const drill of NUMBER_DRILLS) {
+      const text = buildNumberDrill(3, drill);
+      expect(text).not.toMatch(/\+?\d{3}[-. ]?\d{3}[-. ]?\d{4}/); // nothing phone-shaped
+      expect(text).not.toMatch(/\b\d{1,3}\.\d{4,}\b/); // nothing coordinate-shaped
+    }
+  });
+
+  it("names a drill as digits or symbols, never as an outcome", () => {
+    const banned = /\b(faster|improve|boost|master|perfect)\b/i;
+    for (const label of Object.values(COPY.testSetup.drillOptions)) {
+      expect(banned.test(label), `claims-banned wording in: ${label}`).toBe(false);
+    }
+    expect(COPY.testSetup.drillOptions.digits).toBe("Digit rows");
+    expect(COPY.testSetup.drillOptions.symbols).toBe("Symbol rows");
   });
 });
