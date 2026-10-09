@@ -6,16 +6,22 @@
  * clock — belongs to packages/engine, and the surface is the only thing that
  * talks to it.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ErrorMode } from "@realtype/engine";
-import { LayoutSchema, type CaretStyle, type Layout } from "@realtype/schemas";
+import { LayoutSchema, type CaretStyle, type Layout, type Mode } from "@realtype/schemas";
 
 import { COPY } from "./copy";
 
 import { OnboardingPanel } from "./onboarding/OnboardingPanel";
 import { TypingSurface } from "./TypingSurface";
 import { passageLabel, type Passage } from "./passages";
-import { getCorpusPassages, getAvailableDifficulties, type Difficulty } from "./corpus";
+import {
+  getCorpusPassages,
+  getCorpusQuotes,
+  getAvailableDifficulties,
+  truncateToWords,
+  type Difficulty,
+} from "./corpus";
 
 /** localStorage key for the layout override (LOC-01, M2-06 §2). */
 export const LAYOUT_STORAGE_KEY = "realtype.layout";
@@ -189,10 +195,105 @@ export function parseStoredUiFont(raw: unknown): UiFont | null {
  */
 export const FOCUS_MODE_STORAGE_KEY = "realtype.focusMode";
 
+/** MOD-01: what kind of test the visitor is setting up. */
+export type TestMode = "prose" | "time" | "words" | "quotes" | "custom";
+
+/** MOD-01: the contract's timed lengths. */
+export const TIME_LIMITS = [15, 30, 60, 120] as const;
+export type TimeLimit = (typeof TIME_LIMITS)[number];
+
+/** MOD-01: the word counts offered. */
+export const WORD_COUNTS = [15, 30, 60] as const;
+export type WordCount = (typeof WORD_COUNTS)[number];
+
+/** MOD-01: the longest custom text the surface will accept. */
+export const MAX_CUSTOM_CHARS = 2000;
+
+/**
+ * The InputLog mode each setup records. The modes differ in WHEN a test ends,
+ * never in how a keystroke is scored, so this is attribution only: the
+ * engine's numbers are identical for "classic" and "custom".
+ */
+export function logModeFor(mode: TestMode): Mode {
+  return mode === "custom" ? "custom" : "classic";
+}
+
+/** MOD-01: the last-resort text if the corpus ever fails to load. */
+const FALLBACK_PASSAGE = "The quick brown fox jumps over the lazy dog.";
+
+/**
+ * The band the app opens on.
+ *
+ * "Typical" is the mid band — the one the onboarding plan maps most visitors
+ * to (partway / returning / unsure all land there), and the band the level-1
+ * opener PROSE-01-004 actually sits in. The bands are COMPUTED typability
+ * bands (CNT-02), not the declared ones, so a passage can be declared Easy and
+ * still be computed Typical: the picker follows the computed value the engine
+ * reports, because that is the one the results screen shows.
+ */
+const DEFAULT_DIFFICULTY: Difficulty = "typical";
+
+/**
+ * The passage the app opens on: the level-1 gentle opener named in
+ * docs/levels-02-boss-and-challenge-content.md (rotation table, level 1). It
+ * is also what the first-session prototype and the whole e2e suite type, so
+ * the picker's default is a documented decision rather than an accident of
+ * corpus ordering.
+ */
+const DEFAULT_PROSE_ID = "PROSE-01-004";
+
 export function App() {
-  const [difficulty, setDifficulty] = useState<Difficulty>("easy");
-  const passages = getCorpusPassages(difficulty);
-  const [passage, setPassage] = useState<Passage>(passages[0]!);
+  const [difficulty, setDifficulty] = useState<Difficulty>(DEFAULT_DIFFICULTY);
+  const [testMode, setTestMode] = useState<TestMode>("prose");
+  const [timeLimit, setTimeLimit] = useState<TimeLimit>(60);
+  const [wordCount, setWordCount] = useState<WordCount>(30);
+  const [customText, setCustomText] = useState("");
+  /**
+   * Which prose passage is loaded (prose / timed / word-count modes).
+   *
+   * The default is PROSE-01-004, the passage the level-1 rotation names as the
+   * gentle opener (docs/levels-02-boss-and-challenge-content.md §rotation) —
+   * the same one the first-session prototype and the e2e suite type. Changing
+   * difficulty moves to the top of that band.
+   */
+  const [proseIndex, setProseIndex] = useState(() => {
+    const band = getCorpusPassages(DEFAULT_DIFFICULTY);
+    const opener = band.findIndex((p) => p.id === DEFAULT_PROSE_ID);
+    return opener >= 0 ? opener : 0;
+  });
+  /** Which quote is loaded (quote mode). */
+  const [quoteIndex, setQuoteIndex] = useState(0);
+
+  const prosePassages = useMemo(() => getCorpusPassages(difficulty), [difficulty]);
+  const quotes = useMemo(() => getCorpusQuotes(), []);
+
+  const fallback = useMemo<Passage>(() => ({ id: "PROSE-01-004", text: FALLBACK_PASSAGE }), []);
+
+  /**
+   * The effective target for the surface.
+   *
+   * The App owns WHICH text is loaded and nothing else (see the header note):
+   * this maps the setup to one passage, and the surface scores it exactly as
+   * it scores any other. MOD-01's modes differ in WHEN a test ends — the
+   * countdown, the word cap — and never in how a keystroke is counted.
+   */
+  const passage: Passage = useMemo(() => {
+    switch (testMode) {
+      case "time":
+      case "prose":
+        return prosePassages[proseIndex] ?? prosePassages[0] ?? fallback;
+      case "words": {
+        const source = prosePassages[proseIndex] ?? prosePassages[0];
+        if (source === undefined) return fallback;
+        return { id: source.id, text: truncateToWords(source.text, wordCount) };
+      }
+      case "quotes":
+        return quotes[quoteIndex % Math.max(1, quotes.length)] ?? prosePassages[0] ?? fallback;
+      case "custom":
+      default:
+        return customText.trim().length > 0 ? { id: "CUSTOM", text: customText } : fallback;
+    }
+  }, [testMode, prosePassages, proseIndex, wordCount, quotes, quoteIndex, customText, fallback]);
   // Free mode is the only error mode exposed for now; the contract carries five
   // (CONTRACT_VERSION 1.3.0) and the settings UI is a later slice. A hard-coded
   // constant is honest about that; a mode bar with one working option is not.
@@ -321,13 +422,19 @@ export function App() {
     }
   }, []);
 
+  /**
+   * "New passage" (action.newPassage): loads different text, so the surface is
+   * never handed the same one back. Quote mode advances the quote; the prose,
+   * timed and word-count modes carry their own picker, so the button moves
+   * that picker rather than silently re-reading the same string.
+   */
   const newPassage = useCallback(() => {
-    setPassage((current) => {
-      const index = passages.findIndex((p) => p.id === current.id);
-      const next = passages[(index + 1) % passages.length];
-      return next ?? passages[0]!;
-    });
-  }, [passages]);
+    if (testMode === "quotes") {
+      setQuoteIndex((i) => i + 1);
+      return;
+    }
+    setProseIndex((i) => (i + 1) % Math.max(1, prosePassages.length));
+  }, [testMode, prosePassages.length]);
 
   return (
     <div className="app" data-focus-mode={focusMode ? "on" : "off"}>
@@ -368,16 +475,81 @@ export function App() {
             <span className="toolbar-caption" id="toolbar-test">
               {COPY.toolbarGroups.test}
             </span>
+            <label htmlFor="test-mode">{COPY.testSetup.modeLabel}</label>
+            <select
+              id="test-mode"
+              value={testMode}
+              data-testid="test-mode-select"
+              onChange={(event) => setTestMode(event.target.value as TestMode)}
+            >
+              {(Object.keys(COPY.testSetup.modeOptions) as TestMode[]).map((mode) => (
+                <option key={mode} value={mode}>
+                  {COPY.testSetup.modeOptions[mode]}
+                </option>
+              ))}
+            </select>
+            {testMode === "time" && (
+              <>
+                <label htmlFor="time-limit">{COPY.testSetup.durationLabel}</label>
+                <select
+                  id="time-limit"
+                  value={timeLimit}
+                  data-testid="time-limit-select"
+                  onChange={(event) => setTimeLimit(Number(event.target.value) as TimeLimit)}
+                >
+                  {TIME_LIMITS.map((sec) => (
+                    <option key={sec} value={sec}>
+                      {COPY.testSetup.durationOptions[sec]}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+            {testMode === "words" && (
+              <>
+                <label htmlFor="word-count">{COPY.testSetup.wordCountLabel}</label>
+                <select
+                  id="word-count"
+                  value={wordCount}
+                  data-testid="word-count-select"
+                  onChange={(event) => setWordCount(Number(event.target.value) as WordCount)}
+                >
+                  {WORD_COUNTS.map((n) => (
+                    <option key={n} value={n}>
+                      {COPY.testSetup.wordCountOptions[n]}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+            {testMode === "custom" && (
+              <>
+                <label htmlFor="custom-text">{COPY.testSetup.customLabel}</label>
+                <textarea
+                  id="custom-text"
+                  data-testid="custom-text-input"
+                  rows={3}
+                  maxLength={MAX_CUSTOM_CHARS}
+                  value={customText}
+                  aria-describedby="custom-text-note"
+                  onChange={(event) => setCustomText(event.target.value)}
+                />
+                <p className="note" id="custom-text-note" data-testid="custom-text-note">
+                  {COPY.testSetup.customLimitNote}
+                </p>
+              </>
+            )}
+            <p className="note" data-testid="test-mode-note">
+              {COPY.testSetup.modeNotes[testMode]}
+            </p>
             <label htmlFor="difficulty">Difficulty</label>
             <select
               id="difficulty"
               value={difficulty}
               data-testid="difficulty-select"
               onChange={(event) => {
-                const next = event.target.value as Difficulty;
-                setDifficulty(next);
-                const first = getCorpusPassages(next)[0];
-                if (first) setPassage(first);
+                setDifficulty(event.target.value as Difficulty);
+                setProseIndex(0);
               }}
             >
               {getAvailableDifficulties().map((d) => (
@@ -386,18 +558,26 @@ export function App() {
                 </option>
               ))}
             </select>
+            {testMode === "quotes" && (
+              <>
+                <button
+                  type="button"
+                  data-testid="next-quote"
+                  onClick={() => setQuoteIndex((i) => i + 1)}
+                >
+                  {COPY.testSetup.quoteAction}
+                </button>
+              </>
+            )}
             <label htmlFor="passage">Passage</label>
             <select
               id="passage"
-              value={passage.id}
+              value={proseIndex}
               data-testid="passage-select"
-              onChange={(event) => {
-                const next = passages.find((p) => p.id === event.target.value);
-                if (next !== undefined) setPassage(next);
-              }}
+              onChange={(event) => setProseIndex(Number(event.target.value))}
             >
-              {passages.map((p) => (
-                <option key={p.id} value={p.id}>
+              {prosePassages.map((p, index) => (
+                <option key={p.id} value={index}>
                   {passageLabel(p)}
                 </option>
               ))}
@@ -584,6 +764,13 @@ export function App() {
           layout={layout}
           autoIndent={autoIndent}
           autoPair={autoPair}
+          // MOD-01: a timed test ends when the clock runs out. Every other
+          // mode has no clock — the surface keeps its fixed-length behaviour.
+          timeLimitSec={testMode === "time" ? timeLimit : 0}
+          // MOD-01: attribution for what kind of test this was. The modes
+          // differ in when the test ends, never in how a keystroke is scored,
+          // so this touches no metric and no `modelVersion`.
+          logMode={logModeFor(testMode)}
           onNewPassage={newPassage}
         />
       </main>

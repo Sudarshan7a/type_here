@@ -23,7 +23,7 @@ import {
   type EngineResult,
   type ErrorMode,
 } from "@realtype/engine";
-import type { CaretStyle, Layout, LogMarker, KeyEvent } from "@realtype/schemas";
+import type { CaretStyle, Layout, LogMarker, KeyEvent, Mode } from "@realtype/schemas";
 
 import { COPY } from "./copy";
 import { InputCapture } from "./input-adapter";
@@ -62,6 +62,24 @@ export interface TypingSurfaceProps {
    */
   autoIndent: boolean;
   autoPair: boolean;
+  /**
+   * Countdown length in seconds. When set (> 0) the test ends when the clock
+   * reaches zero, whatever the buffer has covered — the classic timed mode.
+   * Characters past the end are still accepted up to that instant, so a
+   * partially-typed text is the normal outcome and the engine scores the
+   * elapsed window. Absent (0/undefined) keeps the fixed-length behaviour:
+   * the test ends when the buffer covers the target.
+   *
+   * Paused time is excluded: pausing freezes the remaining budget.
+   */
+  timeLimitSec?: number;
+  /**
+   * The mode recorded in the InputLog. Prose/time/words/quotes stay
+   * "classic"; custom text is "custom" (both in the contract's ModeSchema).
+   * The value reaches no metric and no `modelVersion` — it is attribution
+   * for what kind of test this was, exactly like the declared layout.
+   */
+  logMode?: Mode;
   /** Notified once per finished test, for the parent's history or telemetry. */
   onFinish?: (result: EngineResult) => void;
   /** Offered on the finished panel. Omitted when the host has nowhere to go. */
@@ -108,6 +126,8 @@ export function TypingSurface({
   layout,
   autoIndent,
   autoPair,
+  timeLimitSec = 0,
+  logMode = "classic",
   onFinish,
   onNewPassage,
 }: TypingSurfaceProps) {
@@ -134,6 +154,17 @@ export function TypingSurface({
   const slotsRef = useRef<CharSlot[]>([]);
   const rafRef = useRef<number | null>(null);
   const pausedAtRef = useRef(0);
+  /**
+   * Timed mode (MOD-01). `deadlineRef` is the performance.now() timestamp the
+   * test ends at; null whenever the test is paused or the mode is fixed-length.
+   * The remaining time is PAINTED through a ref, never state, so the ticking
+   * clock costs no React render (AGENTS.md rule 2).
+   */
+  const deadlineRef = useRef<number | null>(null);
+  const remainingOnPauseRef = useRef(0);
+  const timeRemainingRef = useRef<HTMLElement>(null);
+  const timeLimitRef = useRef(timeLimitSec);
+  timeLimitRef.current = timeLimitSec;
 
   const chars = useMemo(() => [...passage.text], [passage.text]);
 
@@ -316,6 +347,10 @@ export function TypingSurface({
     captureRef.current = new InputCapture();
     bufferRef.current = [];
     pausedAtRef.current = 0;
+    // Timed mode (MOD-01): a restarted test gets the whole budget back, and
+    // the readout returns to the configured limit before the first keystroke.
+    deadlineRef.current = null;
+    remainingOnPauseRef.current = 0;
     cancelFrame();
     setResult(null);
     setRetainedLog(null);
@@ -334,9 +369,13 @@ export function TypingSurface({
   const finish = useCallback(() => {
     const capture = captureRef.current;
     if (capture === null) return;
+    deadlineRef.current = null;
     const text = { id: passage.id, text: passage.text };
     const log = capture.toLog({
-      mode: "classic",
+      // MOD-01: the test kind this run was, carried into the log as
+      // attribution. It reaches no metric and no `modelVersion` — the modes
+      // differ in WHEN the test ends, not in how a keystroke is scored.
+      mode: logMode,
       textId: passage.id,
       textHash: textHashFor(passage.text),
       // LOC-01: the declared layout, carried as-is (the adapter no longer
@@ -371,9 +410,54 @@ export function TypingSurface({
     onFinish,
     passage.id,
     passage.text,
+    logMode,
     paint,
     runFrame,
   ]);
+
+  /**
+   * Timed mode (MOD-01): paint the remaining whole seconds through the ref.
+   * Display-only, and only called from the 250 ms cadence below — never in the
+   * key path, never as React state (AGENTS.md rule 2).
+   */
+  const tickCountdown = useCallback(() => {
+    const deadline = deadlineRef.current;
+    if (deadline === null) return;
+    const remaining = Math.max(0, deadline - performance.now());
+    const seconds = String(Math.ceil(remaining / 1000));
+    if (timeRemainingRef.current !== null) {
+      timeRemainingRef.current.textContent = seconds;
+    }
+    if (remaining <= 0) finish();
+  }, [finish]);
+
+  /**
+   * Arm the deadline when the test starts running: a fresh start gets the full
+   * budget, a resume after a pause gets exactly what was left when it stopped.
+   * Without the freeze/resume pair, a pause that waits for the user's attention
+   * would silently shorten the test — and the scored duration is derived from
+   * the same clock, so the two must agree.
+   */
+  const armCountdown = useCallback((resuming: boolean) => {
+    const limit = timeLimitRef.current;
+    if (limit <= 0) return;
+    if (resuming && remainingOnPauseRef.current > 0) {
+      deadlineRef.current = performance.now() + remainingOnPauseRef.current;
+    } else if (!resuming) {
+      deadlineRef.current = performance.now() + limit * 1000;
+      if (timeRemainingRef.current !== null) {
+        timeRemainingRef.current.textContent = String(limit);
+      }
+    }
+  }, []);
+
+  /** Freeze the countdown on pause: the budget is banked, not spent. */
+  const freezeCountdown = useCallback(() => {
+    const deadline = deadlineRef.current;
+    if (deadline === null) return;
+    remainingOnPauseRef.current = Math.max(0, deadline - performance.now());
+    deadlineRef.current = null;
+  }, []);
 
   /**
    * The live figures must keep moving while the user is idle mid-test, because
@@ -382,9 +466,12 @@ export function TypingSurface({
    */
   useEffect(() => {
     if (phase !== "running") return;
-    const id = window.setInterval(() => scheduleFrame(), 250);
+    const id = window.setInterval(() => {
+      scheduleFrame();
+      tickCountdown();
+    }, 250);
     return () => window.clearInterval(id);
-  }, [phase, scheduleFrame]);
+  }, [phase, scheduleFrame, tickCountdown]);
 
   // The capture has to exist before the first keystroke arrives. Without this the
   // very first keydown found no capture, returned early, and every later keydown
@@ -444,6 +531,9 @@ export function TypingSurface({
       // or on page load (chapter 4 §4.10 edge E1).
       if (phase === "idle" || phase === "paused") {
         pausedAtRef.current = 0;
+        // Timed mode (MOD-01): the countdown starts with the same keystroke the
+        // scored clock does, so the two cannot disagree about when time began.
+        armCountdown(phase === "paused");
         setPhase("running");
       }
 
@@ -456,7 +546,7 @@ export function TypingSurface({
       // modes that do accept extras.
       if (bufferRef.current.length >= chars.length) finish();
     },
-    [chars.length, errorMode, finish, passage.text, phase, restart, scheduleFrame],
+    [chars.length, errorMode, finish, passage.text, phase, restart, scheduleFrame, armCountdown],
   );
 
   const handleKeyUp = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -490,12 +580,13 @@ export function TypingSurface({
       // a first keystroke (ENG-04, chapter 4 edge E1).
       if (phase === "idle" || phase === "paused") {
         pausedAtRef.current = 0;
+        armCountdown(phase === "paused");
         setPhase("running");
       }
       scheduleFrame();
       if (bufferRef.current.length >= chars.length) finish();
     },
-    [chars.length, errorMode, finish, passage.text, phase, scheduleFrame],
+    [chars.length, errorMode, finish, passage.text, phase, scheduleFrame, armCountdown],
   );
 
   const handleFocus = useCallback(() => {
@@ -512,9 +603,12 @@ export function TypingSurface({
     // practice mode); paused time is excluded from the scored duration.
     if (phase === "running") {
       pausedAtRef.current = performance.now();
+      // Timed mode (MOD-01): the countdown freezes with the scored clock, so
+      // time spent away from the field costs the user none of the budget.
+      freezeCountdown();
       setPhase("paused");
     }
-  }, [phase]);
+  }, [phase, freezeCountdown]);
 
   const handlePaste = useCallback((event: React.ClipboardEvent<HTMLDivElement>) => {
     // E7 (a): blocked at the DOM level. The server-side plausibility backstop is
@@ -654,6 +748,25 @@ export function TypingSurface({
       */}
       {phase !== "finished" && (
         <div className="live-bar" data-testid="live-bar">
+          {timeLimitSec > 0 && (
+            <span className="live-item">
+              <span className="live-label">{COPY.liveTimeRemainingLabel}</span>
+              {/*
+                The ticking number is painted through a ref, never state
+                (AGENTS.md rule 2), and is hidden from assistive tech: a value
+                that changes every second is noise in a screen reader, and the
+                outcome is announced once, at the end, like every other result.
+              */}
+              <strong
+                className="live-value"
+                ref={timeRemainingRef}
+                data-testid="live-time-remaining"
+                aria-hidden="true"
+              >
+                {timeLimitSec}
+              </strong>
+            </span>
+          )}
           <span className="live-item">
             <span className="live-label">{COPY.liveNetWpmLabel}</span>
             <strong className="live-value" ref={liveWpmRef} data-testid="live-net-wpm">

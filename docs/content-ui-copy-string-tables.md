@@ -63,6 +63,30 @@
 | `home.difficultyBadge.typical` | Typical | |
 | `home.difficultyBadge.hard` | Hard | |
 | `home.focusMode.entering` | *(no text — chrome fades silently, no announcement)* | Deliberate: focus mode should feel invisible, not narrated |
+| `home.length.modeLabel` | Test length | MOD-01: names the mode selector; the modes differ in when a test ends, never in how a keystroke is scored |
+| `home.length.mode.prose` | Full passage | No clock; the default. The no-timer practice option |
+| `home.length.mode.time` | Timed | MOD-01 |
+| `home.length.mode.words` | Word count | MOD-01 |
+| `home.length.mode.quotes` | Quotes | MOD-01; quotes come from the content library |
+| `home.length.mode.custom` | Custom text | MOD-01; the user's own text, display-only and never stored |
+| `home.length.note.prose` | Type the whole passage. No clock. | |
+| `home.length.note.time` | Type as much as you can before the clock runs out. | |
+| `home.length.note.words` | Type the first N words of a passage. | |
+| `home.length.note.quotes` | Type a quote from the content library. | |
+| `home.length.note.custom` | Paste or type your own text to practise on. | |
+| `home.length.durationLabel` | Time limit | Shown in timed mode |
+| `home.length.duration.15s` | 15s | |
+| `home.length.duration.30s` | 30s | |
+| `home.length.duration.60s` | 60s | Default timed length |
+| `home.length.duration.120s` | 2 minutes | |
+| `home.length.wordCountLabel` | Words | Shown in word-count mode |
+| `home.length.wordCount.15` | 15 words | |
+| `home.length.wordCount.30` | 30 words | |
+| `home.length.wordCount.60` | 60 words | |
+| `home.length.quoteAction` | Next quote | Loads another quote; the surface never reloads the same text back at the user |
+| `home.length.customLabel` | Your text | Label for the custom-text field |
+| `home.length.customLimitNote` | Up to 2000 characters. Nothing you type here is stored or sent anywhere. | States the limit and the privacy rule beside the field |
+| `home.live.timeRemaining` | Time left | Shown only in a timed test; the ticking number is hidden from assistive tech, the outcome is announced once at the end |
 
 ---
 

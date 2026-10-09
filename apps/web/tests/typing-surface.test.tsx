@@ -236,11 +236,15 @@ describe("App shell", () => {
   });
 
   it("offers every passage in the content set", () => {
-    // App defaults to "easy" difficulty
-    const easyPassages = getCorpusPassages("easy");
-    for (const p of easyPassages) {
-      expect(html).toContain(`value="${p.id}"`);
-    }
+    // The App defaults to the "typical" band (DEFAULT_DIFFICULTY), and the
+    // picker carries one option per corpus passage in it. The option VALUE is
+    // the position (the id rides in the log, never in the DOM's choice
+    // surface), so the honest count is what is asserted here.
+    const band = getCorpusPassages("typical");
+    expect(band.length).toBeGreaterThan(10);
+    const selected = html.slice(html.indexOf('id="passage"'));
+    const passageOptions = selected.slice(0, selected.indexOf("</select>")).match(/<option/g);
+    expect(passageOptions?.length).toBe(band.length);
   });
 
   it("states plainly that nothing is saved or sent", () => {

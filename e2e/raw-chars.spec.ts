@@ -33,10 +33,12 @@ test("ENG-10: apostrophes and capitals arrive verbatim", async ({ page }) => {
 test("ENG-10: a straight quote is never smart-folded into an apostrophe", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("surface").click();
-  // Same length as the target, with `"` where `'` belongs: the attempt must
-  // still finish, carrying the typed character verbatim.
+  // Same length as the target, with `"` where the first `'` belongs (position
+  // 7): the attempt must still finish, carrying the typed character verbatim.
+  // Only that one apostrophe is substituted, so the run has exactly one error
+  // and the replay's wording can name its position.
   await page.keyboard.type(
-    'Dinner"s ready whenever you are. I made extra rice in case your brother stops by later tonight.',
+    "Dinner\"s ready whenever you are. I made extra rice in case your brother stops by later tonight. There's also that soup from Sunday in the freezer if you're still hungry after. Just heat it on the stove and add a little pepper. I'll be in the garden until it gets dark, so come find me when you're done.",
     { delay: 2 },
   );
   await expect(page.getByTestId("finished")).toBeVisible({ timeout: 15_000 });

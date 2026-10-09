@@ -92,7 +92,7 @@ test("ENG-08: a typo run names its error positions in words", async ({ page }) =
   // the test still finishes — the finished attempt carries a real error.
   await finishPassage(
     page,
-    "DinnXr's ready whenever you are. I made extra rice in case your brother stops by later tonight.",
+    "DinnXr's ready whenever you are. I made extra rice in case your brother stops by later tonight. There's also that soup from Sunday in the freezer if you're still hungry after. Just heat it on the stove and add a little pepper. I'll be in the garden until it gets dark, so come find me when you're done.",
   );
   await openReplay(page);
 

@@ -174,6 +174,51 @@ export const COPY = {
   liveNetWpmLabel: "Net WPM",
   liveAccuracyLabel: "Keystroke accuracy",
 
+  /** home.live.timeRemaining — shown only in a timed test (MOD-01). */
+  liveTimeRemainingLabel: "Time left",
+
+  /**
+   * MOD-01: the classic test setup. Mode names and option labels only — each
+   * one names what the test IS, never what it will do for the reader, so the
+   * claims ban has nothing to catch here. The durations are the contract's
+   * 15/30/60/120 (120s labelled "2 minutes" rather than "120s", because that
+   * is what the string table asks for and because "120s" reads as a stopwatch,
+   * not a promise).
+   */
+  testSetup: {
+    modeLabel: "Test length",
+    modeOptions: {
+      prose: "Full passage",
+      time: "Timed",
+      words: "Word count",
+      quotes: "Quotes",
+      custom: "Custom text",
+    },
+    modeNotes: {
+      prose: "Type the whole passage. No clock.",
+      time: "Type as much as you can before the clock runs out.",
+      words: "Type the first N words of a passage.",
+      quotes: "Type a quote from the content library.",
+      custom: "Paste or type your own text to practise on.",
+    },
+    durationLabel: "Time limit",
+    durationOptions: {
+      15: "15s",
+      30: "30s",
+      60: "60s",
+      120: "2 minutes",
+    } as const,
+    wordCountLabel: "Words",
+    wordCountOptions: {
+      15: "15 words",
+      30: "30 words",
+      60: "60 words",
+    } as const,
+    quoteAction: "Next quote",
+    customLabel: "Your text",
+    customLimitNote: "Up to 2000 characters. Nothing you type here is stored or sent anywhere.",
+  },
+
   /** Shown while the test is paused by focus loss (chapter 4 E4). */
   paused: "Paused — click here to continue when you're ready.",
 
