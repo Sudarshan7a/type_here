@@ -89,14 +89,39 @@ body {
   top: var(--s-2);
   z-index: var(--z-toast);
   padding: var(--s-2) var(--s-3);
-  border-radius: var(--r-key);
+  border-radius: var(--r-pill);
   background: var(--flow);
   color: var(--on-flow);
-  transform: translateY(-200%);
+  /*
+   * Hidden until focused as a 1px CLIPPED box at its natural spot — NOT
+   * translated off-viewport.
+   *
+   * The first version used `transform: translateY(-200%)`, which reads the
+   * same in a screenshot and behaves differently in sequential keyboard
+   * navigation: once the page is scrolled (clicking the surface scrolls it
+   * into view), the translated box sits far above the viewport and Chromium
+   * drops it from the Tab order entirely. The first Tab after leaving the
+   * field then went to the toolbar instead of here, which is exactly the
+   * keyboard path the focus-mode test pins — and it presented as a flake
+   * because it only reproduces when the page has been scrolled first.
+   *
+   * A clipped 1px box stays where it is in the layout, so scroll position
+   * cannot take it out of the order. `position: fixed` would fix it too, but
+   * AC6 fails any fixed element that is not the caret.
+   */
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .skip-link:focus-visible {
-  transform: none;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
 }
 
 /* ---- product header ------------------------------------------------------- */
@@ -1118,6 +1143,84 @@ select:disabled {
   text-align: center;
 }
 
+/* ---- unlock strip (LRN-03) -------------------------------------------------- */
+
+/*
+ * What is unlocked and what is next. Rows of chips rather than a grid, so the
+ * count reads at a glance — the spec's "max 2 new items at once" is visible
+ * without enumerating anything.
+ */
+.unlock {
+  max-width: var(--w-type);
+  margin: var(--s-6) auto 0;
+}
+
+.unlock-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+}
+
+.unlock-set {
+  color: var(--text);
+}
+
+.unlock-learning {
+  color: var(--text-muted);
+}
+
+.unlock-chips {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  margin: 0 0 var(--s-3);
+  padding: 0;
+}
+
+.unlock-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+.unlock-chip-key {
+  min-width: var(--s-8);
+  height: var(--s-8);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-vkey);
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font-type);
+  font-size: var(--t-body);
+  cursor: pointer;
+}
+
+.unlock-chip[data-state="new"] .unlock-chip-key {
+  border-color: var(--flow);
+}
+
+/* "Next" is a shown chip that is not yet typeable: the label carries the
+   meaning, and the border is lighter than a new key rather than a colour. */
+.unlock-chip[data-state="next"] .unlock-chip-key {
+  border-color: var(--line);
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.unlock-chip-label {
+  color: var(--text-muted);
+  font-size: var(--t-caption);
+}
+
 /* ---- goal panel (LRN-06) ---------------------------------------------------- */
 
 /*
@@ -1437,9 +1540,23 @@ select:disabled {
  *    stamp — and the paused notice in the surface shell are test feedback,
  *    not chrome, so they stay visible and the replay stays fully usable.
  */
+/*
+ * Focus mode hides the non-essential chrome. The list below is the whole of
+ * that decision, and it now includes the unlock strip and the goal panel for
+ * the same reason as the settings row: neither is needed to type a passage,
+ * and the mode's promise is that only the field and its feedback are left.
+ *
+ * The unlock strip's drill buttons are INTERACTIVE, which makes this more
+ * than a visual decision: leaving them visible would put two focus stops
+ * between the skip link and the focus toggle, and the keyboard path out of
+ * focus mode is pinned at two Tabs by e2e/appearance.spec.ts. A way out that
+ * requires three is a way out nobody finds.
+ */
 .app[data-focus-mode="on"] .controls,
 .app[data-focus-mode="on"] .site-footer,
 .app[data-focus-mode="on"] .passage-id,
+.app[data-focus-mode="on"] .unlock,
+.app[data-focus-mode="on"] .goal,
 .app[data-focus-mode="on"] > main > .note {
   display: none;
 }

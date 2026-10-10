@@ -317,6 +317,23 @@ export const COPY = {
    * knows and nothing about what it will do for the visitor (rule 9): the
    * ETA is "your runs imply", never "you will".
    */
+  /**
+   * LRN-03 — gradual unlocking.
+   *
+   * The counts are the point: "2 of 2" tells the visitor exactly how much of
+   * the new material they are being shown, and the rule it comes from (max 2
+   * new items at once) is stated in the copy rather than implied by a grid
+   * they have to count.
+   */
+  unlocking: {
+    nowLabel: "Now learning:",
+    newLabel: "{shown} of {max} new keys",
+    newKey: "New",
+    nextKey: "Next",
+    available: "{n} characters available so far.",
+    setsCleared: "{n} row groups cleared.",
+  },
+
   goal: {
     title: "Your goal",
     targetLabel: "Target speed",

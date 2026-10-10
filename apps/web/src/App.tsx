@@ -8,13 +8,28 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ErrorMode, EngineResult } from "@realtype/engine";
-import { LayoutSchema, type CaretStyle, type Layout, type Mode } from "@realtype/schemas";
+import {
+  LayoutSchema,
+  type CaretStyle,
+  type InputLog,
+  type Layout,
+  type Mode,
+  type TypingText,
+} from "@realtype/schemas";
 
 import { COPY } from "./copy";
 
 import { OnboardingPanel } from "./onboarding/OnboardingPanel";
 import { PlacementCard } from "./baseline/PlacementCard";
 import { GoalPanel } from "./learning/GoalPanel";
+import { UnlockStrip } from "./learning/UnlockStrip";
+import { unlockStateFor } from "./learning/unlocking";
+import {
+  mergeAttempt,
+  readKeyProgress,
+  solidCharsFor,
+  writeKeyProgress,
+} from "./learning/key-progress";
 import { readGoalRecord, recordAttempt, type GoalSample } from "./learning/goal-storage";
 import { TypingSurface } from "./TypingSurface";
 import { passageLabel, type Passage } from "./passages";
@@ -301,6 +316,25 @@ export function App() {
   const [goalHistory, setGoalHistory] = useState<readonly GoalSample[]>(
     () => readGoalRecord().history,
   );
+  // LRN-03: what is unlocked, from what has been measured. The memory is read
+  // once at mount and folded on every finished attempt — never in the key
+  // path. Unknown characters are not weak, so an empty memory unlocks exactly
+  // the home row and nothing else.
+  const [keyProgress, setKeyProgress] = useState(() => readKeyProgress());
+  const solidChars = useMemo(() => solidCharsFor(keyProgress), [keyProgress]);
+
+  /**
+   * LRN-03: fold one finished attempt into the per-key memory.
+   *
+   * Counts only, persisted; the log and the text never leave the surface.
+   * Runs for every mode including drills and baselines, because progress made
+   * anywhere is progress.
+   */
+  const handleAttemptLogged = useCallback((log: InputLog, text: TypingText) => {
+    const next = mergeAttempt(readKeyProgress(), log, text);
+    writeKeyProgress(next);
+    setKeyProgress(next);
+  }, []);
   // MOD-03: the language and snippet index. The language list comes from the
   // engine's language profiles, so it cannot name one the token map cannot
   // read — a label the gate would refuse is a label the UI never shows.
@@ -1015,6 +1049,8 @@ export function App() {
           onFinish={handleFinish}
           // LRN-05: the one-click drill, from the finished screen.
           onDrillConfusion={drillConfusion}
+          // LRN-03: the finished attempt's log, folded into per-key progress.
+          onAttemptLogged={handleAttemptLogged}
           onNewPassage={newPassage}
         />
 
@@ -1050,6 +1086,20 @@ export function App() {
           the surface's single polite announcer stays the only announcement.
         */}
         <GoalPanel history={goalHistory} />
+
+        {/*
+          LRN-03: what is unlocked, and what is being learned. Above the goal
+          panel because it describes the practice the visitor is about to do,
+          and only when the surface has something to unlock — a visitor who has
+          cleared every set sees the summary and nothing else.
+        */}
+        <UnlockStrip
+          state={unlockStateFor(solidChars)}
+          onDrillNext={(chars) => {
+            setCustomText(chars);
+            setTestMode("custom");
+          }}
+        />
       </main>
 
       {/*

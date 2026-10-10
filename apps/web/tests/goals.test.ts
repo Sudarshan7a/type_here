@@ -10,11 +10,7 @@ import {
   type Goal,
   type GoalSample,
 } from "../src/learning/goals";
-import {
-  MAX_HISTORY_SAMPLES,
-  emptyGoalRecord,
-  readGoalRecord,
-} from "../src/learning/goal-storage";
+import { MAX_HISTORY_SAMPLES, emptyGoalRecord, readGoalRecord } from "../src/learning/goal-storage";
 
 /**
  * LRN-06 — goals.

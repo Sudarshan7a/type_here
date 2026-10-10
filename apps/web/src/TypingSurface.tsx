@@ -23,7 +23,15 @@ import {
   type EngineResult,
   type ErrorMode,
 } from "@realtype/engine";
-import type { CaretStyle, Layout, LogMarker, KeyEvent, Mode } from "@realtype/schemas";
+import type {
+  CaretStyle,
+  InputLog,
+  TypingText,
+  Layout,
+  LogMarker,
+  KeyEvent,
+  Mode,
+} from "@realtype/schemas";
 
 import { COPY } from "./copy";
 import { InputCapture } from "./input-adapter";
@@ -113,6 +121,15 @@ export interface TypingSurfaceProps {
    * nothing else.
    */
   onDrillConfusion?: (drillText: string, confusion: Confusion) => void;
+  /**
+   * LRN-03: the finished attempt's log, for per-key progress.
+   *
+   * The log (not the result) is what progress needs: counts of correct and
+   * incorrect presses per character. It is handed to whoever owns the memory
+   * (the App), which folds it into counts and persists those — the text and
+   * the timings never leave this component.
+   */
+  onAttemptLogged?: (log: InputLog, text: TypingText) => void;
   /** Notified once per finished test, for the parent's history or telemetry. */
   onFinish?: (result: EngineResult) => void;
   /** Offered on the finished panel. Omitted when the host has nowhere to go. */
@@ -178,6 +195,7 @@ export function TypingSurface({
   logMode = "classic",
   difficultyBand,
   onDrillConfusion,
+  onAttemptLogged,
   onFinish,
   onNewPassage,
 }: TypingSurfaceProps) {
@@ -475,6 +493,7 @@ export function TypingSurface({
     // travel with it because frame timing shares the log's clock.
     setRetainedLog({ events: [...capture.events], markers: [...capture.markers] });
     setReplayOpen(false);
+    onAttemptLogged?.(log, text);
     onFinish?.(computed);
   }, [
     cancelFrame,
@@ -482,6 +501,7 @@ export function TypingSurface({
     layout,
     autoIndent,
     autoPair,
+    onAttemptLogged,
     onFinish,
     passage.id,
     passage.text,

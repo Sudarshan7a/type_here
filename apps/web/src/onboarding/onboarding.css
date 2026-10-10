@@ -125,11 +125,6 @@
   margin-top: var(--s-2);
 }
 
-/*
- * An option is the hit area, not the box: the label wraps the input and its text,
- * so clicking the words selects the option — and WCAG 2.2 2.5.8 wants ≥24×24,
- * which the label's min-height provides even where the native control does not.
- */
 .onboarding-option {
   display: inline-flex;
   align-items: center;
@@ -138,7 +133,7 @@
      line box, and a 24px floor lands a fraction under it in Chromium's layout
      units (measured at 23.99997), which fails a 24px target check for a reason
      that has nothing to do with the target being too small. */
-  min-height: var(--h-control-sm);
+  min-height: var(--s-8);
   color: var(--text);
   font-family: var(--font-ui);
   font-size: var(--t-small);
@@ -146,11 +141,18 @@
   cursor: pointer;
 }
 
-/* Radios and checkboxes do not reach 24px on their own; size them up. */
+/*
+ * Radios and checkboxes do not reach 24px on their own; size them up.
+ *
+ * 24px exactly measured 23.99997px in Chromium's layout units on a scaled
+ * viewport, which fails WCAG 2.2 2.5.8 by a fraction nobody can see — so the
+ * box carries headroom above the floor instead of sitting exactly on it. The
+ * hit area is still the label, which is larger again.
+ */
 .onboarding-option input[type="radio"],
 .onboarding-option input[type="checkbox"] {
-  min-width: var(--s-6);
-  min-height: var(--s-6);
+  min-width: var(--s-8);
+  min-height: var(--s-8);
   margin: 0;
   accent-color: var(--flow);
 }
