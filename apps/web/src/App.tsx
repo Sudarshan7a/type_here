@@ -533,6 +533,19 @@ export function App() {
    * Only the engine's summary numbers are written. No text, no keystrokes, no
    * passage id (keystroke-privacy, D-M4-6).
    */
+  /**
+   * LRN-05: the one-click drill.
+   *
+   * The confusion's own characters become the target, as custom text — the
+   * same path MOD-01 already uses for a visitor's own text, so the drill is a
+   * passage like any other and the surface scores it unchanged. Nothing here
+   * special-cases scoring: a drill is not a different instrument.
+   */
+  const drillConfusion = useCallback((drillText: string) => {
+    setCustomText(drillText);
+    setTestMode("custom");
+  }, []);
+
   const handleFinish = useCallback(
     (result: EngineResult) => {
       if (testMode !== "baseline") return;
@@ -982,6 +995,8 @@ export function App() {
           // MOD-05: a finished baseline measures and stores; every other mode
           // ignores this hook entirely.
           onFinish={handleFinish}
+          // LRN-05: the one-click drill, from the finished screen.
+          onDrillConfusion={drillConfusion}
           onNewPassage={newPassage}
         />
 

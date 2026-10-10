@@ -278,6 +278,37 @@ export const COPY = {
     skip: "Skip — keep what I have",
   },
 
+  /**
+   * LRN-05 — learn from errors.
+   *
+   * Every string here describes what the visitor typed and what they meant to
+   * type. It never says what it means for them (no "you will improve") — the
+   * evidence is the character, and the drill is the character repeated.
+   */
+  learning: {
+    title: "What you typed",
+    intro:
+      "The mistakes that repeated, or that swapped two characters. One slip is not a pattern, so it is not listed.",
+    /**
+     * The engine's error KINDS, minus `correct` (which is not a mistake, so it
+     * has no label here — the engine's `ErrorKind` union carries it, and this
+     * table deliberately does not).
+     */
+    kindNames: {
+      substitution: "Wrong key",
+      transposition: "Swapped",
+      omission: "Skipped",
+      insertion: "Extra",
+    } as const,
+    count: "{n} times",
+    drillAction: "Drill this",
+    mapLabel: "Where it lands",
+    emptyNote:
+      "No repeated mistakes in this attempt. There is nothing here to drill yet, and a clean run is its own result.",
+    /** The one-click drill's target, shown before it starts. */
+    drillTarget: "Drill: {chars}",
+  },
+
   /** Shown while the test is paused by focus loss (chapter 4 E4). */
   paused: "Paused — click here to continue when you're ready.",
 

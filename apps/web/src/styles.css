@@ -1118,6 +1118,125 @@ select:disabled {
   text-align: center;
 }
 
+/* ---- confusions list (LRN-05) ---------------------------------------------- */
+
+/*
+ * The list of repeated mistakes, and the typo arrows beside it. Plain rows:
+ * what was intended, what was typed, the classification, the count, and one
+ * button. It sits below the results panel in normal flow, covering nothing,
+ * and it is NOT a live region — the surface's single polite announcer stays
+ * the only thing announced.
+ */
+.confusions {
+  max-width: var(--w-type);
+  margin: var(--s-6) auto 0;
+}
+
+.confusions-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.confusion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+  color: var(--text);
+}
+
+/* The intended → typed pair is the row's anchor: monospace, because it is
+   literally characters. */
+.confusion-chars {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-family: var(--font-type);
+  font-size: var(--t-body);
+}
+
+.confusion-intended {
+  color: var(--text);
+}
+
+.confusion-typed {
+  color: var(--slip);
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-underline-offset: 3px;
+}
+
+.confusion-arrow {
+  color: var(--text-muted);
+}
+
+.confusion-kind {
+  color: var(--text-muted);
+}
+
+.confusion-count {
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.confusion-drill {
+  min-height: var(--h-control-sm);
+  font-size: var(--t-caption);
+}
+
+/*
+ * The typo map: a stylised home row with the confused keys placed on it. The
+ * keys are positioned by character rather than by index, so a letter that is
+ * absent (a punctuation confusion) simply does not appear — the map is only
+ * ever drawn for letters it can place.
+ */
+.typo-map {
+  margin-top: var(--s-4);
+  padding: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+}
+
+.typo-map-label {
+  display: block;
+  margin-bottom: var(--s-3);
+  color: var(--text-muted);
+  font-size: var(--t-caption);
+}
+
+.typo-row {
+  position: relative;
+  height: var(--s-8);
+}
+
+.typo-key {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  min-width: var(--s-6);
+  height: var(--s-6);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-vkey);
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font-type);
+  font-size: var(--t-small);
+}
+
+/* The keyboard has no coloured backlight, so it has none here either. */
+
 /* ---- placement card (MOD-05 / LRN-01) -------------------------------------- */
 
 /*

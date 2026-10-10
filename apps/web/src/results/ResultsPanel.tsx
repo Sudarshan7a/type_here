@@ -29,6 +29,8 @@ import type { KeyEvent, LogMarker } from "@realtype/schemas";
 
 import { ReplayViewer } from "../ReplayViewer";
 import { COPY } from "../copy";
+import { ConfusionsList } from "../learning/ConfusionsList";
+import type { Confusion } from "../learning/errors";
 import { assessResult, flagNotes, shortNotice } from "./assess";
 import { detailRows, headlineFigures } from "./metrics";
 
@@ -39,6 +41,14 @@ export interface ResultsPanelProps {
   onRestart: () => void;
   /** Offered when the host has another passage to load. */
   onNewPassage?: () => void;
+  /**
+   * LRN-05: the repeated mistakes worth showing. Undefined when there is
+   * nothing to show — the panel then renders no confusions section at all,
+   * rather than an empty one saying so.
+   */
+  confusions?: readonly Confusion[];
+  /** LRN-05: start a drill on one confusion, from the finished screen. */
+  onDrill?: (confusion: Confusion) => void;
   /** The passage that was typed — the replay folds against the same target. */
   target: string;
   /** The error mode the attempt ran under. */
@@ -89,6 +99,8 @@ export function ResultsPanel({
   onWatchReplay,
   onCloseReplay,
   onReturnToSurface,
+  confusions,
+  onDrill,
 }: ResultsPanelProps) {
   const online = useOnline();
   const replayToggleRef = useRef<HTMLButtonElement>(null);
@@ -268,6 +280,23 @@ export function ResultsPanel({
       <p className="note" data-testid="results-pending">
         {COPY.resultsPending}
       </p>
+
+      {/*
+        LRN-05: the confusions. Rendered where the visitor looks for them —
+        below the figures, above the actions — and only for a custom drill
+        request, so a results screen with nothing to say says nothing.
+      */}
+      {confusions !== undefined && (
+        <section className="confusions" aria-labelledby="confusions-title" data-testid="confusions">
+          <h3 id="confusions-title" data-testid="confusions-title">
+            {COPY.learning.title}
+          </h3>
+          <p className="note" data-testid="confusions-intro">
+            {COPY.learning.intro}
+          </p>
+          <ConfusionsList confusions={confusions} onDrill={onDrill ?? (() => {})} />
+        </section>
+      )}
 
       <p className="finished-actions">
         <button type="button" data-testid="restart" onClick={onRestart}>

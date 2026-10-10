@@ -28,6 +28,12 @@ import type { CaretStyle, Layout, LogMarker, KeyEvent, Mode } from "@realtype/sc
 import { COPY } from "./copy";
 import { InputCapture } from "./input-adapter";
 import type { Passage } from "./passages";
+import {
+  confusionsFromAttempt,
+  drillTextFor,
+  notableConfusions,
+  type Confusion,
+} from "./learning/errors";
 import { buildAnnouncement } from "./results/announce";
 import { ResultsPanel } from "./results/ResultsPanel";
 
@@ -98,6 +104,15 @@ export interface TypingSurfaceProps {
    * text), where the honest answer is that there is no band to show.
    */
   difficultyBand?: string;
+  /**
+   * LRN-05: start a drill on one confusion.
+   *
+   * The surface itself never chooses the drill text — `drillTextFor` does, and
+   * this only hands it to whoever owns which passage is loaded (the App), the
+   * same seam MOD-01 uses. That keeps the surface scoring what it is given and
+   * nothing else.
+   */
+  onDrillConfusion?: (drillText: string, confusion: Confusion) => void;
   /** Notified once per finished test, for the parent's history or telemetry. */
   onFinish?: (result: EngineResult) => void;
   /** Offered on the finished panel. Omitted when the host has nowhere to go. */
@@ -162,6 +177,7 @@ export function TypingSurface({
   timeLimitOverride,
   logMode = "classic",
   difficultyBand,
+  onDrillConfusion,
   onFinish,
   onNewPassage,
 }: TypingSurfaceProps) {
@@ -201,6 +217,31 @@ export function TypingSurface({
   timeLimitRef.current = timeLimitOverride ?? timeLimitSec;
 
   const chars = useMemo(() => [...passage.text], [passage.text]);
+
+  /**
+   * LRN-05: the mistakes worth showing, folded from the finished attempt.
+   *
+   * A `useMemo` on the result rather than a per-render call: it runs once per
+   * finished test, never in the key path, and the alignment walk is not cheap
+   * enough to repeat on every render. It is `[]` before a test finishes, so the
+   * results panel shows no confusions section for an attempt that has not
+   * happened yet.
+   */
+  const notable = useMemo<readonly Confusion[]>(
+    () =>
+      result === null
+        ? []
+        : notableConfusions(confusionsFromAttempt(passage.text, result.finalText)),
+    [result, passage.text],
+  );
+
+  /** LRN-05: the drill text for one confusion, handed to whoever owns the passage. */
+  const handleDrill = useCallback(
+    (confusion: Confusion) => {
+      onDrillConfusion?.(drillTextFor(confusion), confusion);
+    },
+    [onDrillConfusion],
+  );
 
   /**
    * The passage split into words and the spaces between them, keeping each
@@ -850,6 +891,11 @@ export function TypingSurface({
           onWatchReplay={() => setReplayOpen(true)}
           onCloseReplay={() => setReplayOpen(false)}
           onReturnToSurface={() => surfaceRef.current?.focus()}
+          // LRN-05: the mistakes worth showing, folded from what was typed.
+          // Only when there ARE some: a clean run has nothing to say, and the
+          // results screen already reports it as clean.
+          confusions={notable.length > 0 ? notable : undefined}
+          onDrill={handleDrill}
         />
       )}
 
