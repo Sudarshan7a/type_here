@@ -80,7 +80,43 @@ function keyStyle(char: string): React.CSSProperties | undefined {
   return { left: `${(index / (HOME_ROW.length - 1)) * 100}%` };
 }
 
+/**
+ * The pairs to draw as arrows: a confusion where the typed character is a
+ * QWERTY-US neighbour of the intended one.
+ *
+ * Only neighbours are drawn. A confusion between two keys that are nowhere
+ * near each other is real, but it is not a finger-slip, and the map's claim is
+ * specifically about fingers landing one key off — drawing every confusion
+ * onto the same row would make that claim false.
+ */
+function neighbourMixups(
+  confusions: readonly Confusion[],
+): readonly { readonly key: string; readonly from: number; readonly to: string }[] {
+  const out: { key: string; from: number; to: string }[] = [];
+  const seen = new Set<string>();
+  for (const c of confusions) {
+    if (c.kind !== "substitution" || c.typed === null) continue;
+    const intended = c.intended.toLowerCase();
+    const typed = c.typed.toLowerCase();
+    const neighbours = QWERTY_NEIGHBOURS[intended];
+    if (neighbours === undefined || !neighbours.includes(typed)) continue;
+    const key = `${intended}->${typed}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const index = HOME_ROW.indexOf(intended);
+    if (index === -1) continue;
+    out.push({
+      key,
+      // Position as a percentage of the row, matching the keys' own placement.
+      from: (index / (HOME_ROW.length - 1)) * 100,
+      to: typed,
+    });
+  }
+  return out;
+}
+
 export function ConfusionsList({ confusions, onDrill }: ConfusionsListProps) {
+  const mixups = neighbourMixups(confusions);
   if (confusions.length === 0) {
     return (
       <p className="note" data-testid="confusions-empty">
@@ -126,11 +162,18 @@ export function ConfusionsList({ confusions, onDrill }: ConfusionsListProps) {
       </ul>
 
       {/*
-        LRN-05's typo arrows on the keyboard: the confusion drawn onto a
-        stylised home row. Decorative and hidden from assistive tech — the list
-        above is the accessible form, and a map of arrows has nothing to add to
-        it. Never colour-only: the arrow direction and the labelled keys carry
-        the meaning.
+        LRN-05's typo arrows on the keyboard.
+        Decorative and hidden from assistive tech — the list above is the
+        accessible form, and a map of arrows has nothing to add to it. Never
+        colour-only: the arrow direction and the labelled keys carry the
+        meaning.
+
+        Each letter key is drawn at its position on the home row, and where a
+        confusion's typed character is a NEIGHBOUR of the intended one (QWERTY-US,
+        the layout the app classifies LOC-01's default as) an arrow is drawn
+        between the two keys. That is the whole insight of the map: most of
+        these mistakes are a finger landing one key off, and seeing the two
+        keys next to each other makes it obvious.
       */}
       <div className="typo-map" data-testid="typo-map" aria-hidden="true">
         <span className="typo-map-label">{COPY.learning.mapLabel}</span>
@@ -138,6 +181,19 @@ export function ConfusionsList({ confusions, onDrill }: ConfusionsListProps) {
           {[...HOME_ROW].map((char) => (
             <span key={char} className="typo-key" style={keyStyle(char)} data-char={char}>
               {char}
+            </span>
+          ))}
+        </div>
+        {/* The arrows, over the keys: intended → the neighbour that was typed. */}
+        <div className="typo-arrows">
+          {mixups.map((m) => (
+            <span
+              key={m.key}
+              className="typo-arrow"
+              style={{ left: `${m.from}%` }}
+              data-arrow={m.key}
+            >
+              → {m.to}
             </span>
           ))}
         </div>
