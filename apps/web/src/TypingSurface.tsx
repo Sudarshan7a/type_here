@@ -74,6 +74,13 @@ export interface TypingSurfaceProps {
    */
   timeLimitSec?: number;
   /**
+   * MOD-05: a countdown that comes from somewhere other than the duration
+   * selector — the baseline's fixed three minutes. Separate from
+   * `timeLimitSec` so the generic timed mode and the baseline can each set a
+   * countdown without one having to know about the other's selector.
+   */
+  timeLimitOverride?: number;
+  /**
    * The mode recorded in the InputLog. Prose/time/words/quotes stay
    * "classic"; custom text is "custom" (both in the contract's ModeSchema).
    * The value reaches no metric and no `modelVersion` — it is attribution
@@ -152,6 +159,7 @@ export function TypingSurface({
   autoIndent,
   autoPair,
   timeLimitSec = 0,
+  timeLimitOverride,
   logMode = "classic",
   difficultyBand,
   onFinish,
@@ -190,7 +198,7 @@ export function TypingSurface({
   const remainingOnPauseRef = useRef(0);
   const timeRemainingRef = useRef<HTMLElement>(null);
   const timeLimitRef = useRef(timeLimitSec);
-  timeLimitRef.current = timeLimitSec;
+  timeLimitRef.current = timeLimitOverride ?? timeLimitSec;
 
   const chars = useMemo(() => [...passage.text], [passage.text]);
 
@@ -774,7 +782,7 @@ export function TypingSurface({
       */}
       {phase !== "finished" && (
         <div className="live-bar" data-testid="live-bar">
-          {timeLimitSec > 0 && (
+          {(timeLimitOverride ?? timeLimitSec) > 0 && (
             <span className="live-item">
               <span className="live-label">{COPY.liveTimeRemainingLabel}</span>
               {/*
@@ -789,7 +797,7 @@ export function TypingSurface({
                 data-testid="live-time-remaining"
                 aria-hidden="true"
               >
-                {timeLimitSec}
+                {timeLimitOverride ?? timeLimitSec}
               </strong>
             </span>
           )}

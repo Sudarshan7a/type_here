@@ -174,17 +174,24 @@ export interface StartingPlan {
 
   readonly level: {
     readonly selfReported: OnboardingLevel | null;
-    /** Always `self-report`: LRN-01/MOD-05 are not built. */
-    readonly basis: "self-report";
-    /** Always null, and named so the hole is visible rather than inferred. */
-    readonly measured: null;
+    /**
+     * `self-report` until a baseline has been taken, then `measured` (MOD-05).
+     * The basis is what makes the plan honest about where its band came from:
+     * a number the visitor earned and a number they said about themselves are
+     * different evidence, and the plan says which one it is using.
+     */
+    readonly basis: "self-report" | "measured";
+    /** The baseline's band when one exists. Named, not implied. */
+    readonly measured: DifficultyBand | null;
   };
 
   readonly content: {
     /** Always `prose`: CNT-02 scores prose and quotes, and nothing else. */
     readonly family: "prose";
     readonly band: DifficultyBand;
-    readonly bandBasis: "self-report";
+    // `self-report` until MOD-05's baseline has measured the visitor, then
+    // `measured`. A plan that blurred the two would be the dishonest version.
+    readonly bandBasis: "self-report" | "measured";
     /** Always false. Stage A publishes a label, not a score (master-spec §6.2). */
     readonly scored: false;
     /** Always `none`: `out-of-scope-code` for every code item, by construction. */
@@ -229,6 +236,13 @@ export interface StartingPlanInput {
   readonly layout: Layout;
   /** Whether that layout was guessed or chosen by the visitor. */
   readonly layoutConfirmed: boolean;
+  /**
+   * The band a completed baseline placed the visitor in (MOD-05), when one
+   * exists. It beats the self-report: it is the only measured evidence the app
+   * has. Omitted by every caller with no baseline, and the plan then says
+   * `self-report` rather than pretending otherwise.
+   */
+  readonly measuredBand?: DifficultyBand | null;
 }
 
 /** Keep only ids this build knows, in the order given, without duplicates. */
@@ -267,6 +281,13 @@ export function normaliseLevel(raw: unknown): OnboardingLevel | null {
  * empty language list and a corrupt layout source all produce a complete plan
  * with the gaps named — which is what makes "skippable" mean the app still has a
  * starting point rather than a null.
+ *
+ * `measuredBand` is the one input that is not a question. When a baseline has
+ * been taken (MOD-05), its band is passed here and the plan says `measured` —
+ * the honest description of where that number came from. Without it the plan
+ * says `self-report`, because that is all it has. A plan that quietly upgraded
+ * a self-report into a measurement would be the dishonest version of this
+ * feature.
  */
 export function buildStartingPlan(input: StartingPlanInput): StartingPlan {
   const goal = normaliseGoal(input.goal);
@@ -274,17 +295,26 @@ export function buildStartingPlan(input: StartingPlanInput): StartingPlan {
   const selected = normaliseLanguages(input.languages);
   // `unsure` is a real answer to both questions and is kept as one; only a
   // genuinely absent or unrecognised answer falls back to the middle band.
-  const band = level === null ? BAND_FOR_LEVEL.unsure : BAND_FOR_LEVEL[level];
+  const measured = input.measuredBand ?? null;
+  const band = measured ?? (level === null ? BAND_FOR_LEVEL.unsure : BAND_FOR_LEVEL[level]);
   const focus = goal === null ? FOCUS_FOR_GOAL.unsure : FOCUS_FOR_GOAL[goal];
 
   return {
     version: 1,
     goal: { id: goal, source: goal === null ? "defaulted" : "asked" },
-    level: { selfReported: level, basis: "self-report", measured: null },
+    level: {
+      selfReported: level,
+      // A measurement is better evidence than a question, and the plan names
+      // which one it is using rather than blurring the two.
+      basis: measured === null ? "self-report" : "measured",
+      measured,
+    },
     content: {
       family: "prose",
       band,
-      bandBasis: "self-report",
+      bandBasis: measured === null ? "self-report" : "measured",
+      // `scored` stays false: the band is measured, but the SCORE that produced
+      // it is a baseline result, not a practice score the plan owns.
       scored: false,
       codeBands: "none",
     },

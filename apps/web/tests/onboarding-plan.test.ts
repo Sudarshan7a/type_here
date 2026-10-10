@@ -120,12 +120,42 @@ describe("the plan's shape is total: every field, on every path", () => {
     expect(buildStartingPlan(input)).toEqual(buildStartingPlan(input));
   });
 
-  it("never carries a measured level, on any path", () => {
+  it("says self-report when nothing has been measured", () => {
     for (const level of [...ONBOARDING_LEVELS, null]) {
-      expect(buildStartingPlan({ ...LAYOUT, level }).level.measured).toBeNull();
-      expect(buildStartingPlan({ ...LAYOUT, level }).level.basis).toBe("self-report");
-      expect(buildStartingPlan({ ...LAYOUT, level }).content.bandBasis).toBe("self-report");
+      const plan = buildStartingPlan({ ...LAYOUT, level });
+      expect(plan.level.measured).toBeNull();
+      expect(plan.level.basis).toBe("self-report");
+      expect(plan.content.bandBasis).toBe("self-report");
     }
+  });
+
+  it("says measured once a baseline has been taken (MOD-05)", () => {
+    // The one path where the plan is NOT a self-report. It names the measured
+    // band and the basis that produced it, rather than blurring the two — a
+    // plan that quietly upgraded a self-report into a measurement would be the
+    // dishonest version of this feature.
+
+    for (const band of ["easy", "typical", "hard"] as const) {
+      const plan = buildStartingPlan({ ...LAYOUT, level: "new", measuredBand: band });
+      expect(plan.level.basis).toBe("measured");
+      expect(plan.level.measured).toBe(band);
+      expect(plan.content.band).toBe(band);
+      expect(plan.content.bandBasis).toBe("measured");
+      expect(plan.level.selfReported).toBe("new");
+    }
+
+    // And the measurement really does override the self-report: a visitor who
+    // says `new` but measures as `comfortable` is started at hard, not easy.
+    const overridden = buildStartingPlan({ ...LAYOUT, level: "new", measuredBand: "hard" });
+    expect(overridden.content.band).toBe("hard");
+  });
+
+  it("keeps a measurement even when the visitor said nothing", () => {
+    const plan = buildStartingPlan({ ...LAYOUT, measuredBand: "hard" });
+    expect(plan.level.selfReported).toBeNull();
+    expect(plan.level.measured).toBe("hard");
+    expect(plan.level.basis).toBe("measured");
+    expect(plan.content.band).toBe("hard");
   });
 });
 

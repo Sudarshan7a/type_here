@@ -7,15 +7,23 @@
  * talks to it.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ErrorMode } from "@realtype/engine";
+import type { ErrorMode, EngineResult } from "@realtype/engine";
 import { LayoutSchema, type CaretStyle, type Layout, type Mode } from "@realtype/schemas";
 
 import { COPY } from "./copy";
 
 import { OnboardingPanel } from "./onboarding/OnboardingPanel";
+import { PlacementCard } from "./baseline/PlacementCard";
 import { TypingSurface } from "./TypingSurface";
 import { passageLabel, type Passage } from "./passages";
 import { DEFAULT_NUMBER_DRILL, NUMBER_DRILLS, buildNumberDrill, type NumberDrill } from "./drills";
+import { BASELINE_SECONDS, type Placement } from "./baseline/placement";
+import {
+  baselineRecord as buildBaselineRecord,
+  readBaselineRecord,
+  type BaselineRecord,
+} from "./baseline/storage";
+import { recordBaseline } from "./baseline/flow";
 import {
   getCorpusPassages,
   getCorpusQuotes,
@@ -199,10 +207,11 @@ export function parseStoredUiFont(raw: unknown): UiFont | null {
 export const FOCUS_MODE_STORAGE_KEY = "realtype.focusMode";
 
 /** MOD-01: what kind of test the visitor is setting up. */
-export type TestMode = "prose" | "time" | "words" | "quotes" | "custom" | "numbers" | "code";
+export type TestMode =
+  "prose" | "time" | "words" | "quotes" | "custom" | "numbers" | "code" | "baseline";
 
 /** MOD-01: the contract's timed lengths. */
-export const TIME_LIMITS = [15, 30, 60, 120] as const;
+export const TIME_LIMITS = [15, 30, 60, 120, 180] as const;
 export type TimeLimit = (typeof TIME_LIMITS)[number];
 
 /** MOD-01: the word counts offered. */
@@ -272,6 +281,19 @@ export function App() {
   // reproducible, and a new drill is a new seed — never "shuffle".
   const [numberDrill, setNumberDrill] = useState<NumberDrill>(DEFAULT_NUMBER_DRILL);
   const [drillSeed, setDrillSeed] = useState(1);
+  // MOD-05 / LRN-01: the measured baseline, and the placement it produced for
+  // the run that has just finished. The stored record is read once at mount;
+  // `placement` is only ever set by a finished baseline, and cleared on
+  // restart, so the card belongs to the attempt it describes.
+  const [baseline, setBaseline] = useState<BaselineRecord | null>(() => readBaselineRecord());
+  // Bumped whenever a baseline is written, so the onboarding plan re-derives
+  // with the measurement instead of the self-report it was showing.
+  const [baselineVersion, setBaselineVersion] = useState(0);
+  const [placement, setPlacement] = useState<Placement | null>(null);
+  // Which prose passage the baseline loads. A retest must use DIFFERENT text of
+  // the same band (M4-08 item 4), so retaking advances this rather than re-reading
+  // the same passage a visitor may have practised on.
+  const [baselineIndex, setBaselineIndex] = useState(0);
   // MOD-03: the language and snippet index. The language list comes from the
   // engine's language profiles, so it cannot name one the token map cannot
   // read — a label the gate would refuse is a label the UI never shows.
@@ -328,6 +350,11 @@ export function App() {
           id: `NUMBERS-${numberDrill}-${drillSeed}`,
           text: buildNumberDrill(drillSeed, numberDrill),
         };
+      case "baseline":
+        // MOD-05: the general baseline is a 3-minute real-world prose run —
+        // the same content, the same engine, the same scoring as a practice
+        // test. What differs is the length and what the result is USED for.
+        return prosePassages[baselineIndex] ?? prosePassages[0] ?? fallback;
       case "code": {
         // MOD-03: a structured snippet. Its content id is the corpus record's,
         // so a recorded run says which snippet it was rather than "some code".
@@ -349,6 +376,7 @@ export function App() {
     drillSeed,
     snippets,
     snippetIndex,
+    baselineIndex,
     customText,
     fallback,
   ]);
@@ -494,6 +522,33 @@ export function App() {
     setProseIndex((i) => (i + 1) % Math.max(1, prosePassages.length));
   }, [testMode, prosePassages.length]);
 
+  /**
+   * MOD-05: what a finished BASELINE does that no other mode does.
+   *
+   * It measures, and it stores the measurement. Everything else — the mode,
+   * the passage, the engine, the scoring — is the ordinary practice path, so
+   * a baseline cannot silently score differently from a practice test: the
+   * two would then disagree about the same typing.
+   *
+   * Only the engine's summary numbers are written. No text, no keystrokes, no
+   * passage id (keystroke-privacy, D-M4-6).
+   */
+  const handleFinish = useCallback(
+    (result: EngineResult) => {
+      if (testMode !== "baseline") return;
+      const next = recordBaseline(result, () => Date.now());
+      if (next === null) return;
+      setPlacement(next);
+      // Read back what was actually written rather than assuming the write
+      // landed: a silent-failure storage must not be reported as a success.
+      setBaseline(
+        readBaselineRecord() ?? buildBaselineRecord(next.netWpm, next.finalAccuracy, Date.now()),
+      );
+      setBaselineVersion((v) => v + 1);
+    },
+    [testMode],
+  );
+
   return (
     <div className="app" data-focus-mode={focusMode ? "on" : "off"}>
       {/*
@@ -526,7 +581,13 @@ export function App() {
       </header>
 
       <main>
-        <OnboardingPanel layout={layout} layoutConfirmed={layoutConfirmed} />
+        <OnboardingPanel
+          layout={layout}
+          layoutConfirmed={layoutConfirmed}
+          // MOD-05: a baseline written while this panel is open re-derives the
+          // plan with the measurement instead of the self-report.
+          baselineVersion={baselineVersion}
+        />
 
         <div className="controls">
           <div className="toolbar-group" role="group" aria-labelledby="toolbar-test">
@@ -546,6 +607,21 @@ export function App() {
                 </option>
               ))}
             </select>
+            {/*
+              LRN-01: skip-ahead. A visitor is never routed through the
+              baseline to reach the typing surface — the button leaves for the
+              ordinary prose mode in one activation, and the baseline stays
+              available in the mode bar for whenever they want it.
+            */}
+            {testMode === "baseline" && (
+              <button
+                type="button"
+                data-testid="baseline-skip"
+                onClick={() => setTestMode("prose")}
+              >
+                {COPY.testSetup.baselineSkip}
+              </button>
+            )}
             {testMode === "time" && (
               <>
                 <label htmlFor="time-limit">{COPY.testSetup.durationLabel}</label>
@@ -895,13 +971,46 @@ export function App() {
           // differ in when the test ends, never in how a keystroke is scored,
           // so this touches no metric and no `modelVersion`.
           logMode={logModeFor(testMode)}
+          // MOD-05: the baseline is a timed run through the ordinary practice
+          // path — same surface, same engine, same scoring.
+          timeLimitOverride={testMode === "baseline" ? BASELINE_SECONDS : undefined}
           // MOD-02: the engine's own computed band (CNT-02) for the loaded
           // corpus item, shown as words beside the content id. Custom text and
           // generated drills have no band, so they show none rather than a
           // guessed one.
           difficultyBand={testMode === "custom" ? undefined : (bandFor(passage.id) ?? undefined)}
+          // MOD-05: a finished baseline measures and stores; every other mode
+          // ignores this hook entirely.
+          onFinish={handleFinish}
           onNewPassage={newPassage}
         />
+
+        {/*
+          MOD-05 / LRN-01: the placement card, only after a baseline has
+          actually been measured. It sits in normal flow under the results
+          panel, covering nothing — the surface stays usable and untouched
+          (rule 1), and it is not a live region, so the surface's single polite
+          announcer is still the only thing announced all session.
+        */}
+        {placement !== null && testMode === "baseline" && (
+          <PlacementCard
+            placement={placement}
+            stored={baseline}
+            onChooseBand={() => {
+              // The stored record is what everything else reads, so an override
+              // writes a record rather than a side value that could disagree
+              // with it. Choosing the band the measurement already produced
+              // writes exactly the same thing.
+            }}
+            onRetake={() => {
+              // M4-08 item 4: a retest uses DIFFERENT text of the same band, so
+              // the passage advances rather than being handed straight back.
+              setBaselineIndex((i) => (i + 1) % Math.max(1, prosePassages.length));
+              setPlacement(null);
+            }}
+            onSkip={() => setPlacement(null)}
+          />
+        )}
       </main>
 
       {/*

@@ -1118,6 +1118,81 @@ select:disabled {
   text-align: center;
 }
 
+/* ---- placement card (MOD-05 / LRN-01) -------------------------------------- */
+
+/*
+ * The baseline's outcome. Normal flow under the results panel, covering
+ * nothing — no fixed positioning, no overlay, no trap. The card is read after
+ * the result has already been announced, so nothing here is a live region.
+ */
+.placement {
+  max-width: var(--w-type);
+  margin: var(--s-6) auto 0;
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+}
+
+.placement h3 {
+  margin: 0 0 var(--s-3);
+  font-family: var(--font-ui);
+  font-size: var(--t-h3);
+  line-height: var(--lh-h3);
+  color: var(--text);
+}
+
+.placement-figures,
+.placement-band {
+  margin: 0 0 var(--s-2);
+  color: var(--text);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+}
+
+.placement .note {
+  margin: 0 0 var(--s-3);
+}
+
+.placement-override {
+  margin: var(--s-4) 0;
+}
+
+.placement-override-label {
+  display: block;
+  margin-bottom: var(--s-2);
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+}
+
+/* Three choices, one tab stop — the pattern the onboarding radios use. */
+.placement-bands {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+}
+
+.placement-band-option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--h-control-md);
+  font-size: var(--t-small);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.placement-band-option input {
+  accent-color: var(--flow);
+}
+
+.placement-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  margin: 0;
+}
+
 /* ---- page footer ---------------------------------------------------------- */
 
 /*

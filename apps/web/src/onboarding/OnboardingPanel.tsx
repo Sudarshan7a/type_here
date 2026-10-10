@@ -64,6 +64,7 @@ import {
   writeOnboardingRecord,
   type OnboardingRecord,
 } from "./storage";
+import { readBaselineRecord } from "../baseline/storage";
 
 export interface OnboardingPanelProps {
   /**
@@ -74,6 +75,14 @@ export interface OnboardingPanelProps {
   layout: Layout;
   /** Whether that layout is a confirmed choice or LOC-01's first-run guess. */
   layoutConfirmed: boolean;
+  /**
+   * Changes whenever a baseline is written (MOD-05), so the plan re-derives
+   * with the measurement instead of the self-report it was shown before. A
+   * plain prop rather than a store subscription: this component has no state
+   * that changes while a test runs (rule 2), and one number that changes twice
+   * in a session does not justify a subscription.
+   */
+  baselineVersion?: number;
 }
 
 /**
@@ -84,7 +93,11 @@ export interface OnboardingPanelProps {
  */
 type View = "form" | "summary" | "closed";
 
-export function OnboardingPanel({ layout, layoutConfirmed }: OnboardingPanelProps) {
+export function OnboardingPanel({
+  layout,
+  layoutConfirmed,
+  baselineVersion = 0,
+}: OnboardingPanelProps) {
   /**
    * One lazy read of the stored record, and the initial view derived from it. Held
    * in a single `useState` rather than four so localStorage is touched exactly
@@ -131,8 +144,19 @@ export function OnboardingPanel({ layout, layoutConfirmed }: OnboardingPanelProp
   const languagesNoteId = `${uid}-languages-note`;
 
   const plan = useMemo(
-    () => buildStartingPlan({ goal, level, languages, layout, layoutConfirmed }),
-    [goal, level, languages, layout, layoutConfirmed],
+    () =>
+      buildStartingPlan({
+        goal,
+        level,
+        languages,
+        layout,
+        layoutConfirmed,
+        // MOD-05 / LRN-01: a completed baseline beats the self-report, and the
+        // plan names its basis so the two cannot be confused. Read once per
+        // open, not per keystroke.
+        measuredBand: readBaselineRecord()?.band ?? null,
+      }),
+    [goal, level, languages, layout, layoutConfirmed, baselineVersion],
   );
 
   /** Reopen from the collapsed summary, remembering who opened it. */

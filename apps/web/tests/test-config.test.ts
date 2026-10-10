@@ -121,10 +121,15 @@ describe("test-setup copy (MOD-01)", () => {
   });
 
   it("carries the contract's timed lengths and word counts", () => {
-    expect(Object.keys(COPY.testSetup.durationOptions)).toEqual(["15", "30", "60", "120"]);
+    // MOD-05 adds the 3-minute baseline to the ladder, above the contract's
+    // 15/30/60/120. The set is the union, not a replacement.
+    expect(Object.keys(COPY.testSetup.durationOptions)).toEqual(["15", "30", "60", "120", "180"]);
     expect(Object.keys(COPY.testSetup.wordCountOptions)).toEqual(["15", "30", "60"]);
-    // The default timed length is 60s, the contract's default (M2-03 §3).
+    // 60s is still the default timed length (M2-03 §3).
     expect(COPY.testSetup.durationOptions[60]).toBe("60s");
+    // The baseline's own length is not offered as a plain timed length: it is
+    // a different kind of test, not a longer stopwatch.
+    expect(COPY.testSetup.durationOptions[180]).toBe("3 minutes");
   });
 
   it("keeps the no-timer option available", () => {

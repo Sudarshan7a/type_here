@@ -87,6 +87,21 @@
 | `home.length.customLabel` | Your text | Label for the custom-text field |
 | `home.length.customLimitNote` | Up to 2000 characters. Nothing you type here is stored or sent anywhere. | States the limit and the privacy rule beside the field |
 | `home.live.timeRemaining` | Time left | Shown only in a timed test; the ticking number is hidden from assistive tech, the outcome is announced once at the end |
+| `home.length.mode.baseline` | Baseline test | MOD-05: the general baseline. A measurement, not a drill |
+| `home.length.note.baseline` | A 3-minute real-world prose test that decides where you start. Skip it and keep what you already chose. | LRN-01: names the length and that it can be skipped, in the same breath |
+| `home.length.baselineSkip` | Skip the baseline | LRN-01's skip-ahead. Available before the baseline starts, not only mid-way |
+| `home.length.duration.180s` | 3 minutes | MOD-05's general baseline length |
+| `placement.title` | Where you start | MOD-05 / LRN-01: the card below the results panel. Never promises an outcome |
+| `placement.measured` | Your baseline: {wpm} words per minute net, {accuracy} percent keystroke accuracy, over three minutes. | The two measured numbers and the window they were measured over. No outcome |
+| `placement.recommendation` | That places you in the {band} band. | The placement, named as a placement |
+| `placement.basis` | This is a measurement, not a guess about you — three minutes of typing, scored by the same engine that scores every practice test. It sets where you start, and nothing else. | The honesty statement: what the band is based on, and that it promises nothing |
+| `placement.overrideLabel` | Start somewhere else | LRN-01's manual override |
+| `placement.bandNames.easy` | Easy | |
+| `placement.bandNames.typical` | Typical | |
+| `placement.bandNames.hard` | Hard | |
+| `placement.retest` | A retest with different text of the same difficulty is suggested after {date}. | M4-08 item 4. Suggests, never nags; reminders are V1 |
+| `placement.retake` | Take it again | Advances to different text of the same band |
+| `placement.skip` | Skip — keep what I have | |
 
 ---
 

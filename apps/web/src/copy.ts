@@ -198,6 +198,7 @@ export const COPY = {
       custom: "Custom text",
       numbers: "Numbers & symbols",
       code: "Code",
+      baseline: "Baseline test",
     },
     modeNotes: {
       // MOD-02: every feature named here is verified to exist in the shippable
@@ -212,6 +213,8 @@ export const COPY = {
       custom: "Paste or type your own text to practise on.",
       numbers: "Digit rows, symbol rows and mixed alphanumerics. No clock.",
       code: "Structured snippets in the languages the engine can classify. Enter types a newline.",
+      baseline:
+        "A 3-minute real-world prose test that decides where you start. Skip it and keep what you already chose.",
     },
     codeLanguageLabel: "Language",
     codeSnippetLabel: "Snippet",
@@ -223,6 +226,7 @@ export const COPY = {
       30: "30s",
       60: "60s",
       120: "2 minutes",
+      180: "3 minutes",
     } as const,
     wordCountLabel: "Words",
     wordCountOptions: {
@@ -244,6 +248,34 @@ export const COPY = {
     },
     drillAction: "New drill",
     drillNote: "Synthetic material, generated from a seed — the same drill is always reproducible.",
+    /** LRN-01: skip-ahead out of the baseline, before it has been taken. */
+    baselineSkip: "Skip the baseline",
+  },
+  /** Site-wide banner: this is a practice surface, not a tracked product. */
+
+  /**
+   * MOD-05 / LRN-01 — the baseline card.
+   *
+   * Two numbers and a band. Nothing here may promise an outcome (rule 9): the
+   * band is where the surface STARTS someone, and the override exists because
+   * being placed wrongly is a real thing that happens to real people.
+   */
+  placement: {
+    title: "Where you start",
+    measured:
+      "Your baseline: {wpm} words per minute net, {accuracy} percent keystroke accuracy, over three minutes.",
+    recommendation: "That places you in the {band} band.",
+    basis:
+      "This is a measurement, not a guess about you — three minutes of typing, scored by the same engine that scores every practice test. It sets where you start, and nothing else.",
+    overrideLabel: "Start somewhere else",
+    bandNames: {
+      easy: "Easy",
+      typical: "Typical",
+      hard: "Hard",
+    },
+    retest: "A retest with different text of the same difficulty is suggested after {date}.",
+    retake: "Take it again",
+    skip: "Skip — keep what I have",
   },
 
   /** Shown while the test is paused by focus loss (chapter 4 E4). */
