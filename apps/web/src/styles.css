@@ -1118,6 +1118,53 @@ select:disabled {
   text-align: center;
 }
 
+/* ---- goal panel (LRN-06) ---------------------------------------------------- */
+
+/*
+ * The goal: two fields and a sentence. Normal flow, below the results panel,
+ * covering nothing — and never a live region, so the surface's single polite
+ * announcer stays the only thing announced.
+ */
+.goal {
+  max-width: var(--w-type);
+  margin: var(--s-6) auto 0;
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+}
+
+.goal h3 {
+  margin: 0 0 var(--s-3);
+  font-family: var(--font-ui);
+  font-size: var(--t-h3);
+  line-height: var(--lh-h3);
+  color: var(--text);
+}
+
+.goal-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3) var(--s-4);
+  align-items: center;
+}
+
+.goal-fields label {
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+}
+
+.goal-eta {
+  margin: var(--s-4) 0 var(--s-3);
+  color: var(--text);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+}
+
+.goal .note {
+  margin: 0;
+}
+
 /* ---- confusions list (LRN-05) ---------------------------------------------- */
 
 /*

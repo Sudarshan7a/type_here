@@ -14,6 +14,8 @@ import { COPY } from "./copy";
 
 import { OnboardingPanel } from "./onboarding/OnboardingPanel";
 import { PlacementCard } from "./baseline/PlacementCard";
+import { GoalPanel } from "./learning/GoalPanel";
+import { readGoalRecord, recordAttempt, type GoalSample } from "./learning/goal-storage";
 import { TypingSurface } from "./TypingSurface";
 import { passageLabel, type Passage } from "./passages";
 import { DEFAULT_NUMBER_DRILL, NUMBER_DRILLS, buildNumberDrill, type NumberDrill } from "./drills";
@@ -294,6 +296,11 @@ export function App() {
   // the same band (M4-08 item 4), so retaking advances this rather than re-reading
   // the same passage a visitor may have practised on.
   const [baselineIndex, setBaselineIndex] = useState(0);
+  // LRN-06: the practice history the goal's ETA is derived from. Read once at
+  // mount, appended on finish — never in the key path.
+  const [goalHistory, setGoalHistory] = useState<readonly GoalSample[]>(
+    () => readGoalRecord().history,
+  );
   // MOD-03: the language and snippet index. The language list comes from the
   // engine's language profiles, so it cannot name one the token map cannot
   // read — a label the gate would refuse is a label the UI never shows.
@@ -546,18 +553,29 @@ export function App() {
     setTestMode("custom");
   }, []);
 
+  /**
+   * LRN-06: every PRACTICE attempt joins the goal's history.
+   *
+   * A baseline does not: it is a measurement, not practice, and mixing the two
+   * would make the trend describe something it never measured. Only the net
+   * WPM and a timestamp are written — no text, no keystrokes.
+   */
   const handleFinish = useCallback(
     (result: EngineResult) => {
-      if (testMode !== "baseline") return;
-      const next = recordBaseline(result, () => Date.now());
-      if (next === null) return;
-      setPlacement(next);
-      // Read back what was actually written rather than assuming the write
-      // landed: a silent-failure storage must not be reported as a success.
-      setBaseline(
-        readBaselineRecord() ?? buildBaselineRecord(next.netWpm, next.finalAccuracy, Date.now()),
-      );
-      setBaselineVersion((v) => v + 1);
+      if (testMode === "baseline") {
+        const next = recordBaseline(result, () => Date.now());
+        if (next === null) return;
+        setPlacement(next);
+        // Read back what was actually written rather than assuming the write
+        // landed: a silent-failure storage must not be reported as a success.
+        setBaseline(
+          readBaselineRecord() ?? buildBaselineRecord(next.netWpm, next.finalAccuracy, Date.now()),
+        );
+        setBaselineVersion((v) => v + 1);
+        return;
+      }
+      recordAttempt(result.summary.netWpm, Date.now());
+      setGoalHistory(readGoalRecord().history);
     },
     [testMode],
   );
@@ -1026,6 +1044,12 @@ export function App() {
             onSkip={() => setPlacement(null)}
           />
         )}
+        {/*
+          LRN-06: the goal panel. Below the results panel and the placement
+          card, in normal flow, covering nothing — and not a live region, so
+          the surface's single polite announcer stays the only announcement.
+        */}
+        <GoalPanel history={goalHistory} />
       </main>
 
       {/*

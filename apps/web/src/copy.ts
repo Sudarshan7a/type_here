@@ -309,6 +309,25 @@ export const COPY = {
     drillTarget: "Drill: {chars}",
   },
 
+  /**
+   * LRN-06 — goals.
+   *
+   * A target and a weekly commitment, and an ETA that names itself as
+   * arithmetic rather than a promise. Every string here states what the app
+   * knows and nothing about what it will do for the visitor (rule 9): the
+   * ETA is "your runs imply", never "you will".
+   */
+  goal: {
+    title: "Your goal",
+    targetLabel: "Target speed",
+    weeklyLabel: "Weekly time",
+    noneOption: "Not set",
+    targetOption: "{wpm} words per minute",
+    weeklyOption: "{minutes} minutes a week",
+    eta: "At the pace of your last runs, that is about {weeks} weeks. Your weekly commitment of {sessions} sessions is the arithmetic, not a promise.",
+    note: "The ETA comes only from your own finished runs — nothing is estimated from anyone else's, and it disappears when your runs stop trending upward.",
+  },
+
   /** Shown while the test is paused by focus loss (chapter 4 E4). */
   paused: "Paused — click here to continue when you're ready.",
 
