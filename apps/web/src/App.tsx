@@ -21,6 +21,9 @@ import { COPY } from "./copy";
 
 import { OnboardingPanel } from "./onboarding/OnboardingPanel";
 import { PlacementCard } from "./baseline/PlacementCard";
+import { MasteryPanel } from "./learning/MasteryPanel";
+import { recordMasteryRun } from "./learning/mastery-storage";
+import type { MasteryType } from "./learning/mastery";
 import { GoalPanel } from "./learning/GoalPanel";
 import { UnlockStrip } from "./learning/UnlockStrip";
 import { unlockStateFor } from "./learning/unlocking";
@@ -247,6 +250,31 @@ export function logModeFor(mode: TestMode): Mode {
   return mode === "custom" ? "custom" : "classic";
 }
 
+/**
+ * LRN-04: which mastery type a finished test counts toward, if any.
+ *
+ * Prose-family modes share one window; quotes, numbers and code keep their
+ * own, so a bad numbers drill cannot drag down a prose average. Custom text
+ * and baselines do not count: one is the visitor's own text, the other is a
+ * measurement rather than practice.
+ */
+function masteryTypeFor(mode: TestMode): MasteryType | null {
+  switch (mode) {
+    case "prose":
+    case "time":
+    case "words":
+      return "prose";
+    case "quotes":
+      return "quotes";
+    case "numbers":
+      return "numbers";
+    case "code":
+      return "code";
+    default:
+      return null;
+  }
+}
+
 /** MOD-01: the last-resort text if the corpus ever fails to load. */
 const FALLBACK_PASSAGE = "The quick brown fox jumps over the lazy dog.";
 
@@ -316,6 +344,9 @@ export function App() {
   const [goalHistory, setGoalHistory] = useState<readonly GoalSample[]>(
     () => readGoalRecord().history,
   );
+  // LRN-04: bumped whenever a run joins a mastery window, so the panel
+  // re-derives. The record is the source of truth; this is only a version.
+  const [masteryVersion, setMasteryVersion] = useState(0);
   // LRN-03: what is unlocked, from what has been measured. The memory is read
   // once at mount and folded on every finished attempt — never in the key
   // path. Unknown characters are not weak, so an empty memory unlocks exactly
@@ -610,6 +641,13 @@ export function App() {
       }
       recordAttempt(result.summary.netWpm, Date.now());
       setGoalHistory(readGoalRecord().history);
+      // LRN-04: the run joins its content type's window. Best 3 of 5 is
+      // computed on read, so nothing here decides anything — it only records.
+      const masteryType = masteryTypeFor(testMode);
+      if (masteryType !== null) {
+        recordMasteryRun(masteryType, result.summary.netWpm, Date.now());
+        setMasteryVersion((v) => v + 1);
+      }
     },
     [testMode],
   );
@@ -1086,6 +1124,29 @@ export function App() {
           the surface's single polite announcer stays the only announcement.
         */}
         <GoalPanel history={goalHistory} />
+
+        {/*
+          LRN-04: mastery per content type. Below the goal panel in normal
+          flow, covering nothing — and not a live region, so the surface's
+          single polite announcer stays the only announcement.
+        */}
+        <MasteryPanel
+          version={masteryVersion}
+          onAdvance={(type) => {
+            // Auto-advance PROPOSES the next band; it never routes. Moving the
+            // difficulty picker is an explicit, visible choice the visitor can
+            // see and undo — an app that yanked the test out from under someone
+            // is an app nobody trusts.
+            if (type === "prose" || type === "quotes") {
+              const order: Difficulty[] = ["easy", "typical", "hard"];
+              const next = order[Math.min(order.length - 1, order.indexOf(difficulty) + 1)];
+              if (next !== undefined) {
+                setDifficulty(next);
+                setProseIndex(0);
+              }
+            }
+          }}
+        />
 
         {/*
           LRN-03: what is unlocked, and what is being learned. Above the goal

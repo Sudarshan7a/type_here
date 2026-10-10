@@ -345,6 +345,28 @@ export const COPY = {
     note: "The ETA comes only from your own finished runs — nothing is estimated from anyone else's, and it disappears when your runs stop trending upward.",
   },
 
+  /**
+   * LRN-04 — flexible mastery.
+   *
+   * Every string names a state, never an outcome. "Mastered" is where the
+   * numbers say the visitor is, not what they will become — and "almost there"
+   * is within reach of the bar, not a promise of reaching it.
+   */
+  mastery: {
+    title: "Mastery",
+    typeNames: {
+      prose: "Prose",
+      quotes: "Quotes",
+      numbers: "Numbers",
+      code: "Code",
+    },
+    best: "Best 3 of 5: {wpm} WPM",
+    barLabel: "Bar",
+    advance: "Move on",
+    autoAdvance: "Suggest the next band when something is mastered",
+    note: "Mastery is the best 3 of your last 5 runs above the bar. No single run can pass or fail you.",
+  },
+
   /** Shown while the test is paused by focus loss (chapter 4 E4). */
   paused: "Paused — click here to continue when you're ready.",
 

@@ -1221,6 +1221,109 @@ select:disabled {
   font-size: var(--t-caption);
 }
 
+/* ---- mastery panel (LRN-04) -------------------------------------------------- */
+
+/*
+ * One row per content type: the state in words, the best-3-of-5 figure, and
+ * the adjustable bar. Below the goal panel in normal flow, covering nothing,
+ * and not a live region.
+ */
+.mastery {
+  max-width: var(--w-type);
+  margin: var(--s-6) auto 0;
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+}
+
+.mastery h3 {
+  margin: 0 0 var(--s-3);
+  font-family: var(--font-ui);
+  font-size: var(--t-h3);
+  line-height: var(--lh-h3);
+  color: var(--text);
+}
+
+.mastery-rows {
+  list-style: none;
+  margin: 0 0 var(--s-4);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.mastery-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+  color: var(--text);
+}
+
+/* The state is words, never colour alone: mastered, almost there, practising
+   and unstarted all read the same to a screen reader. */
+.mastery-type {
+  font-weight: 600;
+}
+
+.mastery-state {
+  color: var(--text-muted);
+}
+
+.mastery-row[data-state="mastered"] .mastery-state {
+  color: var(--flow);
+}
+
+.mastery-best {
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.mastery-bar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--text-muted);
+}
+
+.mastery-bar-label input {
+  width: 4.5rem;
+  font: inherit;
+  padding: var(--s-1) var(--s-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-input);
+  background: var(--surface-2);
+  color: var(--text);
+  color-scheme: var(--scheme);
+}
+
+.mastery-auto {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--h-control-md);
+  font-size: var(--t-small);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.mastery-auto input {
+  min-width: var(--s-6);
+  min-height: var(--s-6);
+  accent-color: var(--flow);
+  cursor: pointer;
+}
+
+.mastery .note {
+  margin: var(--s-3) 0 0;
+}
+
 /* ---- goal panel (LRN-06) ---------------------------------------------------- */
 
 /*
