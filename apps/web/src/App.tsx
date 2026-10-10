@@ -21,6 +21,7 @@ import { COPY } from "./copy";
 
 import { OnboardingPanel } from "./onboarding/OnboardingPanel";
 import { PlacementCard } from "./baseline/PlacementCard";
+import { ProgrammerBaseline, type SegmentScore } from "./baseline/ProgrammerBaseline";
 import { MasteryPanel } from "./learning/MasteryPanel";
 import { recordMasteryRun } from "./learning/mastery-storage";
 import type { MasteryType } from "./learning/mastery";
@@ -339,6 +340,10 @@ export function App() {
   // the same band (M4-08 item 4), so retaking advances this rather than re-reading
   // the same passage a visitor may have practised on.
   const [baselineIndex, setBaselineIndex] = useState(0);
+  /** MOD-05's two tracks: the general 3-minute run, or the segmented programmer run. */
+  const [baselineTrack, setBaselineTrack] = useState<"general" | "programmer">("general");
+  /** The programmer profile, once its five segments are done. */
+  const [programmerScores, setProgrammerScores] = useState<readonly SegmentScore[] | null>(null);
   // LRN-06: the practice history the goal's ETA is derived from. Read once at
   // mount, appended on finish — never in the key path.
   const [goalHistory, setGoalHistory] = useState<readonly GoalSample[]>(
@@ -717,13 +722,33 @@ export function App() {
               available in the mode bar for whenever they want it.
             */}
             {testMode === "baseline" && (
-              <button
-                type="button"
-                data-testid="baseline-skip"
-                onClick={() => setTestMode("prose")}
-              >
-                {COPY.testSetup.baselineSkip}
-              </button>
+              <>
+                {/*
+                  MOD-05's two tracks. General is the 3-minute prose run; the
+                  programmer track is the segmented M6-05 flow. The choice is
+                  visible before anything starts, so nobody begins one track
+                  expecting the other.
+                */}
+                <label htmlFor="baseline-track">{COPY.programmerBaseline.trackLabel}</label>
+                <select
+                  id="baseline-track"
+                  value={baselineTrack}
+                  data-testid="baseline-track"
+                  onChange={(event) =>
+                    setBaselineTrack(event.target.value as "general" | "programmer")
+                  }
+                >
+                  <option value="general">{COPY.programmerBaseline.trackGeneral}</option>
+                  <option value="programmer">{COPY.programmerBaseline.trackProgrammer}</option>
+                </select>
+                <button
+                  type="button"
+                  data-testid="baseline-skip"
+                  onClick={() => setTestMode("prose")}
+                >
+                  {COPY.testSetup.baselineSkip}
+                </button>
+              </>
             )}
             {testMode === "time" && (
               <>
@@ -1052,45 +1077,93 @@ export function App() {
           {COPY.imeNotice}
         </p>
 
-        <TypingSurface
-          // Remounting on a passage change is deliberate: it resets every ref, the
-          // capture and the offsets in one step, instead of relying on an effect to
-          // remember to undo the previous attempt.
-          //
-          // The layout joins the key for the same reason: a run must carry ONE
-          // declared layout, so changing it mid-test restarts the attempt rather
-          // than producing a mixed-attribution log.
-          key={`${passage.id}:${layout}`}
-          passage={passage}
-          errorMode={errorMode}
-          caretStyle={caretStyle}
-          layout={layout}
-          autoIndent={autoIndent}
-          autoPair={autoPair}
-          // MOD-01: a timed test ends when the clock runs out. Every other
-          // mode has no clock — the surface keeps its fixed-length behaviour.
-          timeLimitSec={testMode === "time" ? timeLimit : 0}
-          // MOD-01: attribution for what kind of test this was. The modes
-          // differ in when the test ends, never in how a keystroke is scored,
-          // so this touches no metric and no `modelVersion`.
-          logMode={logModeFor(testMode)}
-          // MOD-05: the baseline is a timed run through the ordinary practice
-          // path — same surface, same engine, same scoring.
-          timeLimitOverride={testMode === "baseline" ? BASELINE_SECONDS : undefined}
-          // MOD-02: the engine's own computed band (CNT-02) for the loaded
-          // corpus item, shown as words beside the content id. Custom text and
-          // generated drills have no band, so they show none rather than a
-          // guessed one.
-          difficultyBand={testMode === "custom" ? undefined : (bandFor(passage.id) ?? undefined)}
-          // MOD-05: a finished baseline measures and stores; every other mode
-          // ignores this hook entirely.
-          onFinish={handleFinish}
-          // LRN-05: the one-click drill, from the finished screen.
-          onDrillConfusion={drillConfusion}
-          // LRN-03: the finished attempt's log, folded into per-key progress.
-          onAttemptLogged={handleAttemptLogged}
-          onNewPassage={newPassage}
-        />
+        {/*
+          MOD-05's programmer track (M6-05): the segmented flow replaces the
+          ordinary surface while it runs, because its five timed segments need
+          sequencing the single surface does not have. The general track keeps
+          the surface below.
+        */}
+        {testMode === "baseline" && baselineTrack === "programmer" && programmerScores === null && (
+          <ProgrammerBaseline
+            onComplete={(scores) => setProgrammerScores(scores)}
+            onExit={() => setTestMode("prose")}
+          />
+        )}
+        {testMode === "baseline" && baselineTrack === "programmer" && programmerScores !== null && (
+          <section className="placement" aria-labelledby="profile-title" data-testid="profile">
+            <h3 id="profile-title" data-testid="profile-title">
+              {COPY.programmerBaseline.profileTitle}
+            </h3>
+            <p className="note" data-testid="profile-intro">
+              {COPY.programmerBaseline.profileIntro}
+            </p>
+            <dl className="profile-rows" data-testid="profile-rows">
+              {[...programmerScores]
+                .sort((a, b) => a.netWpm - b.netWpm)
+                .map((score) => (
+                  <div className="profile-row" key={score.segment} data-testid="profile-row">
+                    <dt data-testid="profile-label">{score.label}</dt>
+                    <dd data-testid="profile-value">
+                      {score.netWpm.toFixed(1)} WPM · {score.finalAccuracy.toFixed(1)}%
+                    </dd>
+                  </div>
+                ))}
+            </dl>
+            <p>
+              <button
+                type="button"
+                data-testid="profile-again"
+                onClick={() => setProgrammerScores(null)}
+              >
+                {COPY.placement.retake}
+              </button>{" "}
+              <button type="button" data-testid="profile-exit" onClick={() => setTestMode("prose")}>
+                {COPY.placement.skip}
+              </button>
+            </p>
+          </section>
+        )}
+        {(testMode !== "baseline" || baselineTrack === "general") && (
+          <TypingSurface
+            // Remounting on a passage change is deliberate: it resets every ref, the
+            // capture and the offsets in one step, instead of relying on an effect to
+            // remember to undo the previous attempt.
+            //
+            // The layout joins the key for the same reason: a run must carry ONE
+            // declared layout, so changing it mid-test restarts the attempt rather
+            // than producing a mixed-attribution log.
+            key={`${passage.id}:${layout}`}
+            passage={passage}
+            errorMode={errorMode}
+            caretStyle={caretStyle}
+            layout={layout}
+            autoIndent={autoIndent}
+            autoPair={autoPair}
+            // MOD-01: a timed test ends when the clock runs out. Every other
+            // mode has no clock — the surface keeps its fixed-length behaviour.
+            timeLimitSec={testMode === "time" ? timeLimit : 0}
+            // MOD-01: attribution for what kind of test this was. The modes
+            // differ in when the test ends, never in how a keystroke is scored,
+            // so this touches no metric and no `modelVersion`.
+            logMode={logModeFor(testMode)}
+            // MOD-05: the baseline is a timed run through the ordinary practice
+            // path — same surface, same engine, same scoring.
+            timeLimitOverride={testMode === "baseline" ? BASELINE_SECONDS : undefined}
+            // MOD-02: the engine's own computed band (CNT-02) for the loaded
+            // corpus item, shown as words beside the content id. Custom text and
+            // generated drills have no band, so they show none rather than a
+            // guessed one.
+            difficultyBand={testMode === "custom" ? undefined : (bandFor(passage.id) ?? undefined)}
+            // MOD-05: a finished baseline measures and stores; every other mode
+            // ignores this hook entirely.
+            onFinish={handleFinish}
+            // LRN-05: the one-click drill, from the finished screen.
+            onDrillConfusion={drillConfusion}
+            // LRN-03: the finished attempt's log, folded into per-key progress.
+            onAttemptLogged={handleAttemptLogged}
+            onNewPassage={newPassage}
+          />
+        )}
 
         {/*
           MOD-05 / LRN-01: the placement card, only after a baseline has

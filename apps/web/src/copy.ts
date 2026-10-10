@@ -367,6 +367,26 @@ export const COPY = {
     note: "Mastery is the best 3 of your last 5 runs above the bar. No single run can pass or fail you.",
   },
 
+  /**
+   * M6-05 / PRG-17 — the programmer baseline.
+   *
+   * Five segments, each named with its length: the visitor always knows what
+   * is running and what comes next. No outcome is promised anywhere here.
+   */
+  programmerBaseline: {
+    trackLabel: "Baseline track",
+    trackGeneral: "General (3 minutes)",
+    trackProgrammer: "Programmer (about 10 minutes)",
+    progress: "Segment {n} of {total}: {label}, {seconds} seconds.",
+    segmentDone: "{label} done: {wpm} words per minute net.",
+    nextUp: "Next: {label}, {seconds} seconds.",
+    next: "Start next segment",
+    exit: "Leave the baseline",
+    profileTitle: "Code skill profile",
+    profileIntro:
+      "Per-segment figures from your baseline. The slowest three are where the most improvement lives — they are information, not a verdict.",
+  },
+
   /** Shown while the test is paused by focus loss (chapter 4 E4). */
   paused: "Paused — click here to continue when you're ready.",
 
