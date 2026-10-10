@@ -93,34 +93,29 @@ body {
   background: var(--flow);
   color: var(--on-flow);
   /*
-   * Hidden until focused as a 1px CLIPPED box at its natural spot — NOT
-   * translated off-viewport.
+   * Hidden until focused WITHOUT leaving the Tab order and WITHOUT shrinking
+   * below the 24px target floor.
    *
-   * The first version used `transform: translateY(-200%)`, which reads the
-   * same in a screenshot and behaves differently in sequential keyboard
-   * navigation: once the page is scrolled (clicking the surface scrolls it
-   * into view), the translated box sits far above the viewport and Chromium
-   * drops it from the Tab order entirely. The first Tab after leaving the
-   * field then went to the toolbar instead of here, which is exactly the
-   * keyboard path the focus-mode test pins — and it presented as a flake
-   * because it only reproduces when the page has been scrolled first.
+   * Three constraints meet here, and each naive solution breaks one of them:
+   * translating it off-viewport drops it from sequential navigation once the
+   * page is scrolled; clipping it to 1px fails WCAG 2.2 2.5.8's 24px target
+   * check; and a full-size invisible box at the top-left would swallow clicks
+   * meant for the header beneath it.
    *
-   * A clipped 1px box stays where it is in the layout, so scroll position
-   * cannot take it out of the order. `position: fixed` would fix it too, but
-   * AC6 fails any fixed element that is not the caret.
+   * So: full layout size (the target check measures the box, which stays
+   * above the floor), clipped to nothing painted, and `pointer-events: none`
+   * so the invisible box never intercepts a click. Focus restores all three.
+   * `position: fixed` would also work but AC6 fails any fixed element that is
+   * not the caret.
    */
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
   clip-path: inset(50%);
+  pointer-events: none;
   white-space: nowrap;
 }
 
 .skip-link:focus-visible {
-  width: auto;
-  height: auto;
-  overflow: visible;
   clip-path: none;
+  pointer-events: auto;
   white-space: normal;
 }
 
