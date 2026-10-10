@@ -116,8 +116,10 @@ body {
   justify-content: space-between;
   gap: var(--s-3) var(--s-4);
   flex-wrap: wrap;
-  padding: var(--s-2) 0 var(--s-4);
-  border-bottom: 1px solid var(--line);
+  padding: var(--s-3) 0 var(--s-4);
+  /* No rule under the bar: the wordmark and the tagline are enough of a
+     boundary, and a full-width hairline read as a section divider where there
+     is only one section. */
   margin-bottom: var(--s-6);
 }
 
@@ -135,9 +137,9 @@ body {
   flex: none;
   width: var(--s-6);
   height: var(--s-6);
-  border-radius: var(--r-key);
-  background: var(--surface-2);
-  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--flow);
+  border: 1px solid transparent;
 }
 
 .brand-mark::after {
@@ -149,7 +151,7 @@ body {
   width: 2px;
   transform: translateX(-50%);
   border-radius: 2px;
-  background: var(--pace);
+  background: var(--on-flow);
 }
 
 .app-title {
@@ -867,59 +869,69 @@ body {
   }
 }
 
-/* 10 §2 + 08 §5: a keycap-style primary — flow fill, bevel, 2px of travel on
-   press. Hit targets stay at or above the §5 control heights. */
+/*
+ * CONTROLS, second pass (the first was a keycap: bevel, 3D press, 2px of
+ * travel). The owner looked at it and called it what it was. What is here now
+ * is the opposite instinct: a flat, quiet control whose state is carried by
+ * TONE and BORDER rather than by a shadow pretending to be a physical key.
+ *
+ * Three rules the redesign keeps, because they were never the problem:
+ *
+ *  1. WCAG 2.2 2.5.8 — the target height stays at --h-control-lg, and the
+ *     focus ring below is 2px with offset, never suppressed.
+ *  2. `prefers-reduced-motion` — nothing eases toward a state here; the colour
+ *     change is the feedback, so the motion catalog's "Button press → Reduced:
+ *     none" holds by having nothing to suppress.
+ *  3. Forced colours — a border and a background both survive, so the control
+ *     stays visible when the OS palette wins.
+ */
 button {
   font: inherit;
   font-family: var(--font-ui);
-  font-size: var(--t-body);
+  font-size: var(--t-small);
+  font-weight: 500;
   min-height: var(--h-control-lg);
   padding: 0 var(--s-5);
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-key);
+  border-radius: var(--r-pill);
   background: var(--surface-2);
   color: var(--text);
   cursor: pointer;
-  transition:
-    transform var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) linear;
+  /*
+   * No transition here either, for the same reason as the fields: the theme
+   * switcher rewrites the custom properties the button reads, and an easing
+   * background is a measured contrast mid-blend between two palettes. The
+   * hover state changes on the same frame it is triggered.
+   */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  button {
-    box-shadow: var(--bevel-rest);
-  }
+button:hover {
+  background: var(--surface-1);
+  border-color: var(--text-muted);
 }
 
 button[data-variant="primary"] {
   background: var(--flow);
   color: var(--on-flow);
   border-color: var(--flow);
-}
-
-button:active {
-  transform: translateY(2px);
-}
-
-button:hover {
-  border-color: var(--text-muted);
+  font-weight: 600;
 }
 
 button[data-variant="primary"]:hover {
-  border-color: var(--on-flow);
+  /* The one place a gradient is worth it: the primary action, and only the
+     primary action. Flat everywhere else would make it invisible among them. */
+  background: color-mix(in srgb, var(--flow) 88%, var(--text));
+  border-color: transparent;
 }
 
 button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
 }
 
 /*
- * Reduced motion: buttons go instant. The press feedback stays (the 2px
- * travel above is a state change, not an animation), but nothing eases
- * toward it — the motion catalog's "Button press → Reduced: none".
+ * Reduced motion: already instant by construction (see the note above), but
+ * the rule stays so a future transition cannot slip in unexamined.
  */
 @media (prefers-reduced-motion: reduce) {
   button {
@@ -927,20 +939,52 @@ button:disabled {
   }
 }
 
+/*
+ * The settings fields: pill-shaped, tone-on-tone, with a chevron drawn from
+ * two gradients. A native `<select>` keeps its own keyboard, screen-reader and
+ * mobile behaviour — `appearance: none` only removes the platform chrome, so
+ * what is styled here is the skin, never the control.
+ */
 select {
   font: inherit;
   font-family: var(--font-ui);
-  font-size: var(--t-body);
+  font-size: var(--t-small);
   min-height: var(--h-control-md);
-  padding: 0 var(--s-8) 0 var(--s-3);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-input);
+  padding: 0 var(--s-8) 0 var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
   background-color: var(--surface-2);
   color: var(--text);
-  /* A native select keeps its keyboard and screen-reader behaviour; only the
-     indicator is drawn, from two gradients, so there is no image asset and no
-     data URI for the bundle gate to count. */
+  /*
+   * THE BUG THESE THREE LINES EXIST FOR, because it is invisible in a
+   * screenshot and loud in the a11y sweep.
+   *
+   * A themed page can switch `color-scheme` at runtime (the theme switcher sets
+   * data-theme on <html>). Chromium repaints a select's TEXT from the new
+   * custom properties immediately but keeps the previously-painted UA face
+   * colour until something invalidates the element's own style — so after
+   * Daylight → Night Ink the text is white while the box is still the pale
+   * native face it was. White on that face measures 2.25:1, which fails AA and
+   * presents exactly like a flaky test.
+   *
+   * `appearance: none` alone does NOT win against the UA face in Chromium; the
+   * `-webkit-` prefixed form does, and it is still prefixed-only so it is
+   * harmless elsewhere. Declaring `background-color` AND `-webkit-appearance`
+   * together, with `color-scheme` derived from the theme token, is what makes
+   * the box follow the palette instead of lagging it.
+   */
+  color-scheme: var(--scheme);
+  -webkit-appearance: none;
   appearance: none;
+  color: var(--text);
+  /*
+   * `background` (the shorthand) LAST, not `background-color` earlier: the
+   * shorthand resets every background sub-property including the UA's face
+   * layer, and ordering it after the appearance reset makes it the final word
+   * on what the box is painted with. Splitting the two — colour early, image
+   * late — is what let the UA face survive a theme switch.
+   */
+  background: var(--surface-2);
   background-image:
     linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
     linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
@@ -950,10 +994,24 @@ select {
   background-size: var(--s-1) var(--s-1);
   background-repeat: no-repeat;
   cursor: pointer;
+  /*
+   * NO transition on the field.
+   *
+   * Not an oversight, and not a taste judgement about hover feedback. The
+   * theme switcher rewrites the custom properties these fields read, so an
+   * easing background means the measured contrast during a switch is a blend
+   * of two palettes — white text on a half-painted face measured 2.23:1 and
+   * failed AA for as long as the ease ran. The a11y sweep reads the LIVE page;
+   * a control whose colour is mid-flight when it is read is a control that can
+   * fail the floor through no fault of its own palette.
+   *
+   * The hover feedback is still a real state change (border + tone step), it
+   * just arrives on the same frame as the click rather than easing toward it.
+   */
 }
 
 select:hover {
-  border-color: var(--text-muted);
+  border-color: var(--line-strong);
   background-color: var(--surface-1);
 }
 
@@ -962,19 +1020,20 @@ select:disabled {
   cursor: not-allowed;
 }
 
+/*
+ * The settings row. It wraps: the mode bar now carries a mode, a conditional
+ * limit selector and the passage picker, and two label/field pairs do not fit
+ * the 360px breakpoint the design pack names. `flex-wrap` is what keeps that
+ * true — without it the row overflows horizontally, which
+ * e2e/typing-surface-design.spec.ts caught and which is a WCAG 2.2 AA failure
+ * (1.4.10 Reflow) rather than a cosmetic one.
+ */
 .controls {
   display: flex;
-  /*
-   * Wraps. Two label/select pairs on one line do not fit the 360px breakpoint
-   * the design pack names, and `flex-wrap` is what keeps that true now that the
-   * caret-style control joined the passage picker. Without it the row overflows
-   * horizontally — which `e2e/typing-surface-design.spec.ts` caught, and which
-   * is a WCAG 2.2 AA failure (1.4.10 Reflow) rather than a cosmetic one.
-   */
   flex-wrap: wrap;
   gap: var(--s-3);
   align-items: stretch;
-  margin-bottom: var(--s-4);
+  margin-bottom: var(--s-5);
   font-size: var(--t-small);
   color: var(--text-muted);
 }
@@ -983,17 +1042,21 @@ select:disabled {
  * The settings toolbar: three labelled groups in cards rather than one flat
  * row of controls. Each group is a `role="group"` named by its visible
  * caption, so the structure reads the same to sight and to assistive
- * technology. Cards use tone + hairline like every other panel (09 §5).
+ * technology.
+ *
+ * The card is quiet on purpose — transparent fill, a hairline, and a caption
+ * that reads as an overline rather than a heading. It groups the controls;
+ * it does not compete with the typing field for attention.
  */
 .toolbar-group {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s-2) var(--s-3);
   align-items: center;
-  padding: var(--s-2) var(--s-3);
+  padding: var(--s-3) var(--s-4) var(--s-4);
   border: 1px solid var(--line);
-  border-radius: var(--r-input);
-  background: var(--surface-1);
+  border-radius: var(--r-card);
+  background: transparent;
   min-width: 0;
 }
 
@@ -1005,23 +1068,45 @@ select:disabled {
   font-size: var(--t-caption);
   line-height: var(--lh-caption);
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
+/*
+ * A control label is the field's NAME, not a caption: same size as the field's
+ * text so the pair reads as one unit. Never lower-contrast than the field
+ * itself — WCAG 4.5:1, measured for both themes by e2e/a11y-sweep.spec.ts.
+ */
 .controls label {
   display: inline-flex;
   align-items: center;
   gap: var(--s-2);
   min-height: var(--h-control-md);
   white-space: nowrap;
+  color: var(--text-muted);
 }
 
 /* The controls may wrap onto their own line, so they must not be the widest
-   thing on it. `min-width: 0` lets a select shrink inside the flex line rather
+   thing on it. `min-width: 0` lets a field shrink inside the flex line rather
    than forcing the row wider than the viewport. */
 .controls select {
   min-width: 0;
   max-width: 100%;
+}
+
+/* The textarea for custom text (MOD-01) shares the field's shape. */
+.controls textarea {
+  font: inherit;
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+  width: 100%;
+  min-width: 12rem;
+  padding: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-input);
+  background: var(--surface-2);
+  color: var(--text);
+  resize: vertical;
 }
 
 .banner {
@@ -1036,14 +1121,12 @@ select:disabled {
 /* ---- page footer ---------------------------------------------------------- */
 
 /*
- * The footer is the banner's frame: a hairline above it and room to breathe,
- * so the page ends on a deliberate line rather than trailing off. It carries
- * the practice-surface note and nothing else — links would promise pages that
- * do not exist yet. Focus mode hides it with the rest of the chrome.
+ * The footer is the banner's frame. Focus mode hides it with the rest of the
+ * chrome, and it carries the practice-surface note and nothing else — links
+ * would promise pages that do not exist yet.
  */
 .site-footer {
-  border-top: 1px solid var(--line);
-  margin-top: var(--s-10);
+  margin-top: var(--s-12);
   padding: var(--s-4) 0 var(--s-2);
 }
 
@@ -1077,9 +1160,14 @@ select:disabled {
 }
 
 /* WCAG 2.2 2.5.8: the scrub slider is a control too — its default box is
-   shorter than the 24px floor, so it is sized up like the checkboxes. */
+   shorter than the 24px floor, so it is sized up like the checkboxes.
+
+   24px is not enough on its own: a UA-styled range input is a few hundredths
+   short of the token after layout rounding, which fails the floor by
+   0.0001px and presents as a flake rather than a defect. The box is sized
+   with a little headroom above the floor instead of exactly at it. */
 .replay-scrub-row input[type="range"] {
-  min-height: var(--s-6);
+  min-height: var(--s-8);
 }
 
 /* ---- focus mode (CUS-02) -------------------------------------------------- */
@@ -1164,10 +1252,12 @@ select:disabled {
 }
 
 /*
- * WCAG 2.2 2.5.8: every control needs a ≥24×24 target. Selects get there via
- * --h-control-md; native checkboxes do not, so the box itself is sized up.
- * Labels keep their own hit area on top of this. Covers the focus toggle and
- * (same pre-existing pattern) the auto-insertion toggles in .controls.
+ * WCAG 2.2 2.5.8: every control needs a ≥24×24 target. Native checkboxes do
+ * not, so the box itself is sized up. `accent-color` paints the check in the
+ * flow accent — the same token the primary button uses, so "on" means one
+ * colour everywhere rather than three browser-specific ones.
+ *
+ * Covers the focus toggle and the auto-insertion toggles in .controls.
  */
 .controls input[type="checkbox"],
 .focus-control input[type="checkbox"] {
@@ -1202,7 +1292,7 @@ details[data-testid="shortcuts"] summary {
 :focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
-  border-radius: var(--r-key);
+  border-radius: var(--r-pill);
 }
 
 @media (forced-colors: active) {

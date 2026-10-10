@@ -27,10 +27,19 @@ import { describe, expect, it } from "vitest";
 const STYLES = fileURLToPath(new URL("../src/styles.css", import.meta.url));
 const source = readFileSync(STYLES, "utf8");
 
-/** The results-screen block of the stylesheet, by its own section markers. */
+/**
+ * The results-screen block of the stylesheet, by its own section markers.
+ *
+ * The END marker changed when the controls were redesigned: the old delimiter
+ * was the phrase "keycap-style primary", and the keycap motif it named was
+ * removed — bevel gone, 3D travel gone, flat pill controls in. A test that
+ * slices by a comment is a test that breaks when the comment is rewritten, so
+ * the marker is whatever the section's own header now says, and the section is
+ * whatever comes BEFORE the controls block.
+ */
 function resultsSection(css: string): string {
   const from = css.indexOf("results screen (ANA-01)");
-  const to = css.indexOf("keycap-style primary");
+  const to = css.indexOf("CONTROLS, second pass");
   if (from === -1 || to === -1 || to <= from) return "";
   return css.slice(from, to);
 }

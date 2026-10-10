@@ -126,6 +126,24 @@
 :root {
   color-scheme: dark;
 
+  /*
+   * THE FIELD SURFACE, in one place rather than repeated per control.
+   *
+   * A `<select>` with `appearance: none` still paints its own face colour from
+   * the UA unless the author's `background-color` wins, and the UA's choice
+   * depends on `color-scheme`. When the theme switcher flips that property at
+   * RUNTIME (data-theme goes on <html>), Chromium repaints the select's text
+   * from the new custom properties immediately but keeps the previously-painted
+   * native face until the next style invalidation that touches the element —
+   * white text on a stale pale face, measured at 2.25:1, which fails AA.
+   *
+   * Every control therefore declares `color-scheme: inherit` (styles.css), so
+   * the UA's face is derived from the theme's own value rather than cached from
+   * an earlier paint. This token keeps that value next to the colours it
+   * belongs with instead of hiding it in a control rule.
+   */
+  --scheme: dark;
+
   /* §1 colour roles. Contrast ratios in the pack: text 16.5:1, text-muted
      7.8:1, text-pending 5.6:1, flow 10.5:1, pace 11.7:1, slip 6.9:1. */
   --bg: #0d1120;
@@ -273,6 +291,7 @@
 
 :root[data-theme="daylight"] {
   color-scheme: light;
+  --scheme: light;
 
   --bg: #f2f5fc;
   --surface-1: #ffffff;
@@ -313,6 +332,7 @@
  */
 :root[data-theme="night-ink"] {
   color-scheme: dark;
+  --scheme: dark;
 }
 
 /*
@@ -339,6 +359,7 @@
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
     color-scheme: light;
+    --scheme: light;
 
     --bg: #f2f5fc;
     --surface-1: #ffffff;
